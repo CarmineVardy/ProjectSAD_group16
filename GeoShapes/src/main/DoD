@@ -1,0 +1,68 @@
+DEFINITION OF DONE (ENGLISH)
+A User Story or Task is considered "Done" when all the following criteria are met:
+Satisfaction of Acceptance Criteria:
+    -All acceptance criteria defined for the User Story have been verified and fully satisfied.
+Source Code and Functionality:
+    -The application compiles without errors or critical warnings.
+    -The new functionality is integrated, the application starts correctly, and the functionality is usable.
+Code Quality and Standards:
+    -The code adheres to the established and documented coding conventions.
+    -The code is adequately commented: comments clarify complex logic and avoid unnecessary or redundant comments.
+Testing:
+    -Unit Tests (JUnit):
+        -Automated unit tests have been written with JUnit for all newly implemented business logic
+        and for significant modified code sections.
+        -All unit tests (new and relevant pre-existing ones) pass successfully.
+    -Specificity:
+        -Test cases cover various scenarios, including boundary values, typical inputs, and special/exceptional conditions.
+    -Integration and Regression Testing (Functional Verification):
+        -It has been verified that the new functionality integrates properly with existing system components, and that pre-existing
+        functionalities potentially impacted by the changes continue to work as expected (verifiable by rerunning unit tests and
+        targeted tests deemed necessary).
+Code Review (Peer Review):
+    -The code and implemented functionality have been reviewed by at least one other team member (not the primary author).
+    Review methods may include pair programming, code review, or informal peer-review (quick review), depending on the needs.
+    -Any critical issues or significant suggestions raised during the review have been discussed with the team, and necessary corrective changes
+    have been made and re-verified.
+Version Control (Git):
+    -The source code, including tests, has been committed and correctly pushed to the shared Git repository.
+Documentation:
+    -If the User Story involved changes to the previously defined software architecture or introduced significant architectural
+    decisions, the architecture document has been updated accordingly.
+    -Any other relevant technical documentation has been updated.
+
+
+
+DEFINITION OF DONE (ITALIAN)
+Una User Story o un Task si considera "Completato" quando tutti i seguenti criteri sono soddisfatti:
+Soddisfazione dei Criteri di Accettazione:
+    -Tutti i criteri di accettazione definiti per la User Story sono stati verificati e pienamente soddisfatti.
+Codice Sorgente e Funzionalità:
+    -L'applicazione si compila senza errori o avvisi critici.
+    -La nuova funzionalità è integrata correttamente, l'applicazione si avvia senza problemi e la funzionalità è utilizzabile.
+Qualità del Codice e Standard:
+    -Il codice rispetta le convenzioni di codifica stabilite e documentate.
+    -Il codice è adeguatamente commentato: i commenti spiegano la logica complessa e non sono ridondanti o superflui.
+Testing:
+    -Unit Test (JUnit):
+        -Sono stati scritti test automatici con JUnit per tutta la logica di business appena implementata e per le sezioni di codice
+        significativamente modificate.
+        -Tutti i test unitari (sia nuovi che esistenti, se rilevanti) sono superati con successo.
+    -Specificità:
+        -I casi di test coprono vari scenari, inclusi: Valori limite (boundary values), input tipici, condizioni speciali o eccezionali
+    -Test di Integrazione e Regressione (Verifica Funzionale):
+        -È stato verificato che la nuova funzionalità si integra correttamente con i componenti esistenti.
+    -Le funzionalità preesistenti potenzialmente impattate funzionano ancora correttamente (verificato eseguendo i test unitari e altri
+    test mirati se necessari).
+Revisione del Codice (Code Review):
+    -Il codice e la funzionalità implementata sono stati revisionati da almeno un altro membro del team (diverso dall'autore principale).
+    Le modalità di revisione possono includere: pair programming, code review formale o peer-review informale (verifica rapida),
+    in base alle necessità.
+    -Eventuali problemi critici o suggerimenti rilevanti emersi durante la revisione sono stati discussi, corretti e verificati nuovamente.
+Controllo di Versione (Git):
+    -Il codice sorgente, inclusi i test, è stato committato e pushato correttamente nel repository Git condiviso.
+Documentazione:
+    -Se la User Story ha comportato modifiche all'architettura del software, i relativi documenti architetturali
+    sono stati aggiornati di conseguenza.
+    -È stata aggiornata qualsiasi altra documentazione tecnica rilevante.
+
