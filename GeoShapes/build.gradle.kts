@@ -27,7 +27,7 @@ tasks.withType<JavaCompile> {
 
 application {
     mainModule.set("com.example.geoshapes")
-    mainClass.set("com.example.geoshapes.HelloApplication")
+    mainClass.set("com.example.geoshapes.GeoShapesApplication")
 }
 
 javafx {

@@ -1,9 +1,9 @@
-package com.example.geoshapes;
+package com.example.geoshapes.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
-public class HelloController {
+public class GeoShapesController {
     @FXML
     private Label welcomeText;
 

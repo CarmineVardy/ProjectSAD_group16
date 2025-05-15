@@ -7,4 +7,6 @@ module com.example.geoshapes {
 
     opens com.example.geoshapes to javafx.fxml;
     exports com.example.geoshapes;
+    exports com.example.geoshapes.controller;
+    opens com.example.geoshapes.controller to javafx.fxml;
 }
