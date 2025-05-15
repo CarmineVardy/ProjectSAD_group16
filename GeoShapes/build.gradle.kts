@@ -27,11 +27,11 @@ tasks.withType<JavaCompile> {
 
 application {
     mainModule.set("com.example.geoshapes")
-    mainClass.set("com.example.geoshapes.GeoShapesApplication")
+    mainClass.set("com.example.geoshapes.MainApplication")
 }
 
 javafx {
-    version = "21"
+    version = "21.0.1"
     modules = listOf("javafx.controls", "javafx.fxml")
 }
 

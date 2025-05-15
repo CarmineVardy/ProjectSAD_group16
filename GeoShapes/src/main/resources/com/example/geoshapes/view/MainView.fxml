@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <center>
+      <StackPane BorderPane.alignment="CENTER">
+         <children>
+            <Canvas height="400.0" width="600.0" />
+         </children>
+      </StackPane>
+   </center>
+   <top>
+      <VBox BorderPane.alignment="CENTER">
+         <children>
+            <MenuBar>
+              <menus>
+                <Menu mnemonicParsing="false" text="File">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="Load" />
+                        <MenuItem mnemonicParsing="false" text="Save" />
+                  </items>
+                </Menu>
+              </menus>
+            </MenuBar>
+            <ToolBar maxHeight="50.0" minHeight="50.0">
+               <items>
+                  <ToggleButton layoutX="20.0" layoutY="97.0" mnemonicParsing="false" text="Selection">
+                     <toggleGroup>
+                        <ToggleGroup fx:id="tools" />
+                     </toggleGroup>
+                  </ToggleButton>
+                  <Separator orientation="VERTICAL" prefHeight="200.0" />
+                  <ToggleButton mnemonicParsing="false" text="Line" toggleGroup="$tools" />
+                  <Separator layoutX="79.0" layoutY="10.0" orientation="VERTICAL" prefHeight="200.0" />
+                  <ToggleButton layoutX="89.0" layoutY="97.0" mnemonicParsing="false" text="Rectangle" toggleGroup="$tools" />
+                  <Separator layoutX="132.0" layoutY="10.0" orientation="VERTICAL" prefHeight="200.0" />
+                  <ToggleButton layoutX="142.0" layoutY="97.0" mnemonicParsing="false" text="Ellipse" toggleGroup="$tools" />
+                  <Separator layoutX="215.0" layoutY="10.0" orientation="VERTICAL" prefHeight="200.0" />
+                  <ColorPicker />
+                  <Separator layoutX="279.0" layoutY="10.0" orientation="VERTICAL" prefHeight="200.0" />
+                  <ColorPicker layoutX="289.0" layoutY="97.0" />
+               </items>
+            </ToolBar>
+         </children>
+      </VBox>
+   </top>
+</BorderPane>

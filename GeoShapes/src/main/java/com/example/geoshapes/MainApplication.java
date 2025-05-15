@@ -1,0 +1,27 @@
+package com.example.geoshapes;
+
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+
+import java.io.IOException;
+
+public class MainApplication extends Application {
+    @Override
+    public void start(Stage stage) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/geoshapes/view/MainView.fxml"));
+        Scene scene = new Scene(fxmlLoader.load());
+        stage.setScene(scene);
+        stage.setTitle("GeoShapes");
+        //stage.initStyle(StageStyle.UNDECORATED);
+        stage.sizeToScene();
+        stage.setResizable(true);
+        stage.show();
+    }
+
+    public static void main(String[] args) {
+        launch();
+    }
+}
