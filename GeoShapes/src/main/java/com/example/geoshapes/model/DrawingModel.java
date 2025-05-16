@@ -64,5 +64,7 @@ public class DrawingModel {
         }
     }
 
-
+    public boolean isDrawing() {
+        return currentShape != null;
+    }
 }

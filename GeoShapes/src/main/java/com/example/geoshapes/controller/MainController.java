@@ -25,6 +25,8 @@ public class MainController {
     private DrawingModel drawingModel;
     private GraphicsContext gc;
     private ShapeFactory lineFactory;
+    private double startX;
+    private double startY;
 
 
     @FXML
@@ -61,21 +63,28 @@ public class MainController {
     private void handleMousePressed(MouseEvent event) {
         if (isLineToolActive()) {
             drawingModel.setCurrentFactory(lineFactory);
-            drawingModel.startDrawing(event.getX(), event.getY());
+            startX = event.getX();
+            startY = event.getY();
+            drawingModel.startDrawing(startX, startY);
         }
     }
 
     private void handleMouseDragged(MouseEvent event) {
         if (isLineToolActive() && drawingModel != null) {
             drawingModel.updateDrawing(event.getX(), event.getY());
-            drawingModel.drawShapes(gc);
+            redraw();
         }
     }
 
     private void handleMouseReleased(MouseEvent event) {
         if (isLineToolActive() && drawingModel != null) {
-            drawingModel.endDrawing(event.getX(), event.getY());
-            drawingModel.drawShapes(gc);
+            double endX = event.getX();
+            double endY = event.getY();
+            // Check if the start and end points are the same
+            if (startX != endX || startY != endY) {
+                drawingModel.endDrawing(endX, endY);
+                redraw();
+            }
         }
     }
 
