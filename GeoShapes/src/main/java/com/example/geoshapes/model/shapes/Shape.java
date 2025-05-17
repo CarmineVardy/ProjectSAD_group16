@@ -26,6 +26,10 @@ public abstract class Shape {
         this.endY = y;
     }
 
+    public Color getFillColor() {
+        return fillColor;
+    }
+
     public abstract void draw(GraphicsContext gc);
     public abstract void drawPreview(GraphicsContext gc);
 

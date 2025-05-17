@@ -1,6 +1,7 @@
 package com.example.geoshapes.controller;
 
 import com.example.geoshapes.model.DrawingModel;
+import com.example.geoshapes.model.factory.EllipseFactory;
 import com.example.geoshapes.model.factory.LineFactory;
 import com.example.geoshapes.model.factory.ShapeFactory;
 import javafx.fxml.FXML;
@@ -10,6 +11,8 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
+import com.example.geoshapes.model.shapes.Shape;
+
 
 public class MainController {
 
@@ -25,6 +28,7 @@ public class MainController {
     private DrawingModel drawingModel;
     private GraphicsContext gc;
     private ShapeFactory lineFactory;
+    private ShapeFactory ellipseFactory;
     private double startX;
     private double startY;
 
@@ -33,6 +37,7 @@ public class MainController {
     public void initialize() {
         drawingModel = new DrawingModel();
         lineFactory = new LineFactory();
+        ellipseFactory = new EllipseFactory();
         gc = drawingCanvas.getGraphicsContext2D();
 
         drawingCanvas.setOnMousePressed(this::handleMousePressed);
@@ -61,26 +66,40 @@ public class MainController {
     }
 
     private void handleMousePressed(MouseEvent event) {
-        if (isLineToolActive()) {
+        ToggleButton selected = (ToggleButton) tools.getSelectedToggle();
+        if (selected == null) return;
+
+        startX = event.getX();
+        startY = event.getY();
+
+        if ("Line".equals(selected.getText())) {
             drawingModel.setCurrentFactory(lineFactory);
-            startX = event.getX();
-            startY = event.getY();
-            drawingModel.startDrawing(startX, startY);
+        } else if ("Ellipse".equals(selected.getText())) {
+            drawingModel.setCurrentFactory(ellipseFactory);
         }
+
+        drawingModel.startDrawing(startX, startY);
     }
+
 
     private void handleMouseDragged(MouseEvent event) {
-        if (isLineToolActive() && drawingModel != null) {
+        if (drawingModel != null) {
             drawingModel.updateDrawing(event.getX(), event.getY());
             redraw();
+
+            // Disegna l'anteprima dell'oggetto attualmente in disegno
+            Shape current = drawingModel.getCurrentShape();
+            if (current != null) {
+                current.drawPreview(gc);
+            }
         }
     }
 
+
     private void handleMouseReleased(MouseEvent event) {
-        if (isLineToolActive() && drawingModel != null) {
+        if (drawingModel != null) {
             double endX = event.getX();
             double endY = event.getY();
-            // Check if the start and end points are the same
             if (startX != endX || startY != endY) {
                 drawingModel.endDrawing(endX, endY);
                 redraw();
@@ -92,4 +111,10 @@ public class MainController {
         ToggleButton selected = (ToggleButton) tools.getSelectedToggle();
         return selected != null && "Line".equals(selected.getText());
     }
+
+    private boolean isEllipseToolActive() {
+        ToggleButton selected = (ToggleButton) tools.getSelectedToggle();
+        return selected != null && "Ellipse".equals(selected.getText());
+    }
+
 }
