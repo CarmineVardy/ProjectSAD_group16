@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
@@ -10,17 +9,10 @@
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.geoshapes.controller.MainController">
-   <center>
-      <StackPane fx:id="canvasContainer" BorderPane.alignment="CENTER">
-         <children>
-            <Canvas fx:id="drawingCanvas" height="400.0" width="600.0" />
-         </children>
-      </StackPane>
-   </center>
    <top>
       <VBox BorderPane.alignment="CENTER">
          <children>
@@ -38,15 +30,15 @@
                <items>
                   <ToggleButton layoutX="20.0" layoutY="97.0" mnemonicParsing="false" text="Selection">
                      <toggleGroup>
-                        <ToggleGroup fx:id="tools" />
+                        <ToggleGroup fx:id="toolToggleGroup" />
                      </toggleGroup>
                   </ToggleButton>
                   <Separator orientation="VERTICAL" prefHeight="200.0" />
-                  <ToggleButton mnemonicParsing="false" text="Line" toggleGroup="$tools" />
+                  <ToggleButton fx:id="lineButton" mnemonicParsing="false" text="Line" toggleGroup="$toolToggleGroup" />
                   <Separator layoutX="79.0" layoutY="10.0" orientation="VERTICAL" prefHeight="200.0" />
-                  <ToggleButton layoutX="89.0" layoutY="97.0" mnemonicParsing="false" text="Rectangle" toggleGroup="$tools" />
+                  <ToggleButton fx:id="rectangleButton" layoutX="89.0" layoutY="97.0" mnemonicParsing="false" text="Rectangle" toggleGroup="$toolToggleGroup" />
                   <Separator layoutX="132.0" layoutY="10.0" orientation="VERTICAL" prefHeight="200.0" />
-                  <ToggleButton layoutX="142.0" layoutY="97.0" mnemonicParsing="false" text="Ellipse" toggleGroup="$tools" />
+                  <ToggleButton fx:id="ellipseButton" layoutX="142.0" layoutY="97.0" mnemonicParsing="false" text="Ellipse" toggleGroup="$toolToggleGroup" />
                   <Separator layoutX="215.0" layoutY="10.0" orientation="VERTICAL" prefHeight="200.0" />
                   <ColorPicker fx:id="borderColorPicker" />
                   <Separator layoutX="279.0" layoutY="10.0" orientation="VERTICAL" prefHeight="200.0" />
@@ -56,4 +48,7 @@
          </children>
       </VBox>
    </top>
+   <center>
+      <Pane fx:id="drawingArea" onMouseDragged="#handleMouseDragged" onMousePressed="#handleMousePressed" onMouseReleased="#handleMouseReleased" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #FFFFFF;" BorderPane.alignment="CENTER" />
+   </center>
 </BorderPane>

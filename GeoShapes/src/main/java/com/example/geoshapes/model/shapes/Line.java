@@ -1,27 +1,40 @@
 package com.example.geoshapes.model.shapes;
 
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
+public class Line implements Shape {
+    private double startX;
+    private double startY;
+    private double endX;
+    private double endY;
+    private javafx.scene.shape.Line javaFXLine;
 
-public class Line extends Shape {
-
-    public Line(double startX, double startY,  Color borderColor) {
-        super(startX, startY, borderColor, null);
+    public Line(double startX, double startY, double endX, double endY) {
+        this.startX = startX;
+        this.startY = startY;
+        this.endX = endX;
+        this.endY = endY;
     }
 
     @Override
-    public void draw(GraphicsContext gc) {
-        gc.setStroke(borderColor);
-        gc.setLineWidth(borderWidth);
-        gc.strokeLine(startX, startY, endX, endY);
+    public javafx.scene.shape.Shape create() {
+        javaFXLine = new javafx.scene.shape.Line(startX, startY, endX, endY);
+        return javaFXLine;
     }
 
-    public void drawPreview(GraphicsContext gc){
-        draw(gc);
+    @Override
+    public void setEndPoint(double x, double y) {
+        this.endX = x;
+        this.endY = y;
+        if (javaFXLine != null) {
+            javaFXLine.setEndX(endX);
+            javaFXLine.setEndY(endY);
+        }
     }
 
-
-
-
-
+    @Override
+    public javafx.scene.shape.Shape getJavaFXShape() {
+        if (javaFXLine == null) {
+            create();
+        }
+        return javaFXLine;
+    }
 }

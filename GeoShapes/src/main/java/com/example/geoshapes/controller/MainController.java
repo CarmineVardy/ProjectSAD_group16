@@ -1,95 +1,97 @@
 package com.example.geoshapes.controller;
 
 import com.example.geoshapes.model.DrawingModel;
-import com.example.geoshapes.model.factory.LineFactory;
-import com.example.geoshapes.model.factory.ShapeFactory;
+import com.example.geoshapes.model.shapes.Shape;
+import com.example.geoshapes.strategy.ToolStrategy;
+import com.example.geoshapes.strategy.LineToolStrategy;
+import com.example.geoshapes.strategy.RectangleToolStrategy;
+import com.example.geoshapes.strategy.EllipseToolStrategy;
+import com.example.geoshapes.command.Command;
+import com.example.geoshapes.command.CreateShapeCommand;
+import com.example.geoshapes.observer.ShapeObserver;
 import javafx.fxml.FXML;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Pane;
+import java.util.HashMap;
+import java.util.Map;
 
-public class MainController {
+public class MainController implements ShapeObserver {
+    @FXML
+    private Pane drawingArea;
 
     @FXML
-    private ToggleGroup tools;
+    private ToggleGroup toolToggleGroup;
 
     @FXML
-    private Canvas drawingCanvas;
+    private ToggleButton lineButton;
 
     @FXML
-    private StackPane canvasContainer;
+    private ToggleButton rectangleButton;
 
-    private DrawingModel drawingModel;
-    private GraphicsContext gc;
-    private ShapeFactory lineFactory;
-    private double startX;
-    private double startY;
+    @FXML
+    private ToggleButton ellipseButton;
 
+    @FXML
+    private ColorPicker borderColorPicker;
+
+    @FXML
+    private ColorPicker fillColorPicker;
+
+    private DrawingModel model;
+    private ToolStrategy currentStrategy;
+    private Map<ToggleButton, ToolStrategy> toolStrategies;
 
     @FXML
     public void initialize() {
-        drawingModel = new DrawingModel();
-        lineFactory = new LineFactory();
-        gc = drawingCanvas.getGraphicsContext2D();
+        model = new DrawingModel();
+        model.attach(this);
 
-        drawingCanvas.setOnMousePressed(this::handleMousePressed);
-        drawingCanvas.setOnMouseDragged(this::handleMouseDragged);
-        drawingCanvas.setOnMouseReleased(this::handleMouseReleased);
+        toolStrategies = new HashMap<>();
+        //toolStrategies.put(selectionButton, new SelectionToolStrategy());
+        toolStrategies.put(lineButton, new LineToolStrategy());
+        toolStrategies.put(rectangleButton, new RectangleToolStrategy());
+        toolStrategies.put(ellipseButton, new EllipseToolStrategy());
 
-        setupCanvasResizeBinding();
+        setupToolListeners();
     }
 
-    private void setupCanvasResizeBinding() {
-        canvasContainer.widthProperty().addListener((obs, oldVal, newVal) -> {
-            drawingCanvas.setWidth(newVal.doubleValue());
-            redraw();
-        });
-        canvasContainer.heightProperty().addListener((obs, oldVal, newVal) -> {
-            drawingCanvas.setHeight(newVal.doubleValue());
-            redraw();
-        });
-        drawingCanvas.setWidth(canvasContainer.getWidth());
-        drawingCanvas.setHeight(canvasContainer.getHeight());
-    }
-
-    private void redraw() {
-        gc.clearRect(0, 0, drawingCanvas.getWidth(), drawingCanvas.getHeight());
-        drawingModel.drawShapes(gc);
-    }
-
-    private void handleMousePressed(MouseEvent event) {
-        if (isLineToolActive()) {
-            drawingModel.setCurrentFactory(lineFactory);
-            startX = event.getX();
-            startY = event.getY();
-            drawingModel.startDrawing(startX, startY);
-        }
-    }
-
-    private void handleMouseDragged(MouseEvent event) {
-        if (isLineToolActive() && drawingModel != null) {
-            drawingModel.updateDrawing(event.getX(), event.getY());
-            redraw();
-        }
-    }
-
-    private void handleMouseReleased(MouseEvent event) {
-        if (isLineToolActive() && drawingModel != null) {
-            double endX = event.getX();
-            double endY = event.getY();
-            // Check if the start and end points are the same
-            if (startX != endX || startY != endY) {
-                drawingModel.endDrawing(endX, endY);
-                redraw();
+    private void setupToolListeners() {
+        toolToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == null) {
+                // Se nessuno strumento è selezionato, imposta la selezione come default
+                // Ancora da implementare
+            } else {
+                currentStrategy = toolStrategies.get((ToggleButton) newValue);
             }
-        }
+        });
     }
 
-    private boolean isLineToolActive() {
-        ToggleButton selected = (ToggleButton) tools.getSelectedToggle();
-        return selected != null && "Line".equals(selected.getText());
+    @FXML
+    private void handleMousePressed(MouseEvent event) {
+        currentStrategy.handlePressed(event);
+
+
     }
+
+    @FXML
+    private void handleMouseDragged(MouseEvent event) {
+        currentStrategy.handleDragged(event);
+    }
+
+    @FXML
+    private void handleMouseReleased(MouseEvent event) {
+        currentStrategy.handleReleased(event);
+
+        Command command = new CreateShapeCommand(model, currentStrategy);
+        command.execute();
+    }
+
+    @Override
+    public void update(Shape shape) {
+        drawingArea.getChildren().add(shape.getJavaFXShape());
+    }
+
 }

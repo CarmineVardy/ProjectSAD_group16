@@ -1,70 +1,45 @@
 package com.example.geoshapes.model;
 
-import com.example.geoshapes.model.factory.ShapeFactory;
+import com.example.geoshapes.observer.ShapeObserver;
+import com.example.geoshapes.observer.ShapeSubject;
 import com.example.geoshapes.model.shapes.Shape;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DrawingModel {
-    
-    private List<Shape> shapes;
-    private Shape currentShape;
-    private ShapeFactory currentFactory;
-    private Color borderColor;
-    private Color fillColor;
+public class DrawingModel implements ShapeSubject {
+
+    private final List<Shape> shapes;
+    private final List<ShapeObserver> observers;
 
     public DrawingModel() {
-        this.shapes = new ArrayList<>();
-        this.borderColor = Color.BLACK;
-        this.fillColor = Color.TRANSPARENT;
+        shapes = new ArrayList<>();
+        observers = new ArrayList<>();
     }
 
-    public void setCurrentFactory(ShapeFactory currentFactory) {
-        this.currentFactory = currentFactory;
+    public void addShape(Shape shape) {
+        shapes.add(shape);
+        notifyObservers(shape);
     }
 
-    public void setBorderColor(Color borderColor) {
-        this.borderColor = borderColor;
+    public List<Shape> getShapes() {
+        return new ArrayList<>(shapes);
     }
 
-    public void setFillColor(Color fillColor) {
-        this.fillColor = fillColor;
+    @Override
+    public void attach(ShapeObserver observer) {
+        observers.add(observer);
     }
 
-    public void startDrawing(double x, double y) {
-        if(currentFactory != null)
-            currentShape = currentFactory. createShape(x,y,borderColor,fillColor);
+    @Override
+    public void detach(ShapeObserver observer) {
+        observers.remove(observer);
     }
 
-    public void updateDrawing(double x, double y) {
-        if(currentShape != null){
-            currentShape.setEndPoint(x,y);
+    @Override
+    public void notifyObservers(Shape shape) {
+        for (ShapeObserver observer : observers) {
+            observer.update(shape);
         }
-    }
-
-    public void endDrawing(double x, double y) {
-        currentShape.setEndPoint(x,y);
-        shapes.add(currentShape);
-        currentShape = null;
-    }
-
-    public void drawShapes(GraphicsContext gc){
-
-        gc.clearRect(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
-
-        for (Shape shape : shapes) {
-            shape.draw(gc);
-        }
-
-        if(currentShape != null){
-            currentShape.drawPreview(gc);
-        }
-    }
-
-    public boolean isDrawing() {
-        return currentShape != null;
     }
 }

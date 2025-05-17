@@ -19,10 +19,10 @@ public class MainApplication extends Application {
         stage.sizeToScene();
         stage.setResizable(true);
         stage.show();
-
     }
 
     public static void main(String[] args) {
         launch();
     }
 }
+
