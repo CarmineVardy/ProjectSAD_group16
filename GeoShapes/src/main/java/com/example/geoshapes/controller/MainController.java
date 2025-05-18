@@ -15,6 +15,8 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Rectangle;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,6 +44,7 @@ public class MainController implements ShapeObserver {
 
     private DrawingModel model;
     private ToolStrategy currentStrategy;
+    private Rectangle clipRect; // Rectangle for defining the clipping area
     private Map<ToggleButton, ToolStrategy> toolStrategies;
 
     @FXML
@@ -56,6 +59,7 @@ public class MainController implements ShapeObserver {
         toolStrategies.put(ellipseButton, new EllipseToolStrategy());
 
         setupToolListeners();
+        setupClipping();
     }
 
     private void setupToolListeners() {
@@ -68,7 +72,13 @@ public class MainController implements ShapeObserver {
             }
         });
     }
+    private void setupClipping() {
+        clipRect = new Rectangle();
+        drawingArea.setClip(clipRect);
 
+        clipRect.widthProperty().bind(drawingArea.widthProperty());
+        clipRect.heightProperty().bind(drawingArea.heightProperty());
+    }
     @FXML
     private void handleMousePressed(MouseEvent event) {
         currentStrategy.handlePressed(event);
