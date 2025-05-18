@@ -1,4 +1,4 @@
-package com.example.geoshapes.strategy;
+package com.example.geoshapes.controller.strategy;
 
 import com.example.geoshapes.model.shapes.Shape;
 import javafx.scene.input.MouseEvent;

@@ -2,12 +2,12 @@ package com.example.geoshapes.controller;
 
 import com.example.geoshapes.model.DrawingModel;
 import com.example.geoshapes.model.shapes.Shape;
-import com.example.geoshapes.strategy.ToolStrategy;
-import com.example.geoshapes.strategy.LineToolStrategy;
-import com.example.geoshapes.strategy.RectangleToolStrategy;
-import com.example.geoshapes.strategy.EllipseToolStrategy;
-import com.example.geoshapes.command.Command;
-import com.example.geoshapes.command.CreateShapeCommand;
+import com.example.geoshapes.controller.strategy.ToolStrategy;
+import com.example.geoshapes.controller.strategy.LineToolStrategy;
+import com.example.geoshapes.controller.strategy.RectangleToolStrategy;
+import com.example.geoshapes.controller.strategy.EllipseToolStrategy;
+import com.example.geoshapes.controller.command.Command;
+import com.example.geoshapes.controller.command.CreateShapeCommand;
 import com.example.geoshapes.observer.ShapeObserver;
 import javafx.fxml.FXML;
 import javafx.scene.control.ColorPicker;
@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainController implements ShapeObserver {
+
     @FXML
     private Pane drawingArea;
 
@@ -36,31 +37,50 @@ public class MainController implements ShapeObserver {
     @FXML
     private ToggleButton ellipseButton;
 
-    @FXML
-    private ColorPicker borderColorPicker;
+    //@FXML
+    //private ColorPicker borderColorPicker;
 
-    @FXML
-    private ColorPicker fillColorPicker;
+    //@FXML
+    //private ColorPicker fillColorPicker;
+
+    private Rectangle clipRect;
 
     private DrawingModel model;
     private ToolStrategy currentStrategy;
-    private Rectangle clipRect; // Rectangle for defining the clipping area
     private Map<ToggleButton, ToolStrategy> toolStrategies;
+
+
 
     @FXML
     public void initialize() {
+
+        setupClipping();
+
         model = new DrawingModel();
         model.attach(this);
 
         toolStrategies = new HashMap<>();
-        //toolStrategies.put(selectionButton, new SelectionToolStrategy());
-        toolStrategies.put(lineButton, new LineToolStrategy());
-        toolStrategies.put(rectangleButton, new RectangleToolStrategy());
-        toolStrategies.put(ellipseButton, new EllipseToolStrategy());
+        //toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea));
+        toolStrategies.put(lineButton, new LineToolStrategy(drawingArea));
+        toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea));
+        toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea));
+
+        // Selezione come default
+        // Da implementare
+        // lineButton.setSelected(true);
 
         setupToolListeners();
-        setupClipping();
+
     }
+
+    private void setupClipping() {
+        clipRect = new Rectangle();
+        drawingArea.setClip(clipRect);
+
+        clipRect.widthProperty().bind(drawingArea.widthProperty());
+        clipRect.heightProperty().bind(drawingArea.heightProperty());
+    }
+
 
     private void setupToolListeners() {
         toolToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
@@ -72,31 +92,31 @@ public class MainController implements ShapeObserver {
             }
         });
     }
-    private void setupClipping() {
-        clipRect = new Rectangle();
-        drawingArea.setClip(clipRect);
 
-        clipRect.widthProperty().bind(drawingArea.widthProperty());
-        clipRect.heightProperty().bind(drawingArea.heightProperty());
-    }
     @FXML
     private void handleMousePressed(MouseEvent event) {
-        currentStrategy.handlePressed(event);
-
-
+        if (currentStrategy != null) {
+            currentStrategy.handlePressed(event);
+        }
     }
 
     @FXML
     private void handleMouseDragged(MouseEvent event) {
-        currentStrategy.handleDragged(event);
+        if (currentStrategy != null) {
+            currentStrategy.handleDragged(event);
+        }
     }
 
     @FXML
     private void handleMouseReleased(MouseEvent event) {
-        currentStrategy.handleReleased(event);
 
-        Command command = new CreateShapeCommand(model, currentStrategy);
-        command.execute();
+        if (currentStrategy != null) {
+            currentStrategy.handleReleased(event);
+
+            Command command = new CreateShapeCommand(model, currentStrategy.getFinalShape());
+            command.execute();
+
+        }
     }
 
     @Override
