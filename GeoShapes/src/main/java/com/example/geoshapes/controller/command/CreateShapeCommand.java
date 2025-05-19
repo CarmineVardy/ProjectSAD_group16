@@ -1,20 +1,19 @@
 package com.example.geoshapes.controller.command;
 
 import com.example.geoshapes.model.DrawingModel;
-import com.example.geoshapes.controller.strategy.ToolStrategy;
-import com.example.geoshapes.model.shapes.Shape;
+import com.example.geoshapes.model.shapes.MyShape;
 
 public class CreateShapeCommand implements Command {
     private final DrawingModel model;
-    private final Shape newShape;
+    private final MyShape newMyShape;
 
-    public CreateShapeCommand(DrawingModel model, Shape newShape) {
+    public CreateShapeCommand(DrawingModel model, MyShape newMyShape) {
         this.model = model;
-        this.newShape = newShape;
+        this.newMyShape = newMyShape;
     }
 
     @Override
     public void execute() {
-        model.addShape(newShape);
+        model.addShape(newMyShape);
     }
 }

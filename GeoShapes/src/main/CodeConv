@@ -12,8 +12,8 @@ Developing technologies : Java , JavaFX, JUnit, SceneBuilder.
 NAMING CONVENTIONS
 Packages:
     Packages must be written in lowercase and have names that clearly represent their content.
-    For example, the guipackage contains all graphic components (Scene and Controller), while shapes groups the classes representing
-    geometric shapes etc.
+    For example, the guipackage contains all graphic components (Scene and Controller), while myShapes groups the classes representing
+    geometric myShapes etc.
 Classes and Interfaces:
     Class names follow the UpperCamelCase style, where each word starts with a capital letter.
     The chosen names must be clear and representative of the object or concept they implement, such as “Shape” or “ColorPalette”
@@ -71,7 +71,7 @@ Package
     I nomi devono rappresentare chiaramente il contenuto.
     Esempio:
     gui contiene tutti i componenti grafici (Scene e Controller)
-    shapes raggruppa le classi che rappresentano le forme geometriche
+    myShapes raggruppa le classi che rappresentano le forme geometriche
 Classi e Interfacce
     I nomi devono usare lo stile UpperCamelCase (ogni parola inizia con una maiuscola).
     Devono essere chiari e rappresentativi dell’oggetto o concetto implementato.

@@ -1,8 +1,9 @@
 package com.example.geoshapes.model.shapes;
 
-public interface Shape {
+import java.io.Serializable;
+
+public interface MyShape extends Serializable {
 
     void setEndPoint(double x, double y);
-    javafx.scene.shape.Shape getJavaFXShape();
 
 }

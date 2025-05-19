@@ -1,14 +1,15 @@
 package com.example.geoshapes.model.factory;
 
-import com.example.geoshapes.model.shapes.Ellipse;
-import com.example.geoshapes.model.shapes.Shape;
+import com.example.geoshapes.model.shapes.MyEllipse;
+import com.example.geoshapes.model.shapes.MyShape;
+import com.example.geoshapes.model.util.MyColor;
 
 public class EllipseFactory implements ShapeFactory {
 
     @Override
-    public Shape createShape(double startX, double startY, double endX, double endY) {
+    public MyShape createShape(double startX, double startY, double endX, double endY, MyColor borderMyColor, MyColor fillMyColor) {
 
-        Ellipse ellipse = new Ellipse(startX, startY, endX, endY);
-        return ellipse;
+        MyEllipse myEllipse = new MyEllipse(startX, startY, endX, endY, borderMyColor, fillMyColor);
+        return myEllipse;
     }
 }

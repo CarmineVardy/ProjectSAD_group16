@@ -2,24 +2,36 @@ package com.example.geoshapes.controller.strategy;
 
 import com.example.geoshapes.model.factory.RectangleFactory;
 import com.example.geoshapes.model.factory.ShapeFactory;
-import com.example.geoshapes.model.shapes.Shape;
+import com.example.geoshapes.model.shapes.MyShape;
+import com.example.geoshapes.model.util.MyColor;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 
 public class RectangleToolStrategy implements ToolStrategy {
 
     private Pane drawingArea;
+    private ColorPicker borderColorPicker;
+    private ColorPicker fillColorPicker;
+
     private final ShapeFactory factory;
-    private javafx.scene.shape.Shape previewFxShape;
-    private Shape currentModelShape;
+
+    private Shape previewFxShape;
+    private MyShape currentModelMyShape;
+
     private double startX;
     private double startY;
     private double endX;
     private double endY;
 
-    public RectangleToolStrategy(Pane drawingArea) {
+
+    public RectangleToolStrategy(Pane drawingArea, ColorPicker borderColorPicker, ColorPicker fillColorPicker) {
         this.drawingArea = drawingArea;
+        this.borderColorPicker = borderColorPicker;
+        this.fillColorPicker = fillColorPicker;
         this.factory = new RectangleFactory();
     }
 
@@ -30,7 +42,9 @@ public class RectangleToolStrategy implements ToolStrategy {
         endX = startX;
         endY = startY;
 
-        previewFxShape = new javafx.scene.shape.Rectangle(startX, startY, 0, 0);;
+        previewFxShape = new Rectangle(startX, startY, 0, 0);
+        previewFxShape.setStroke(borderColorPicker.getValue());
+        previewFxShape.setFill(fillColorPicker.getValue());
 
         drawingArea.getChildren().add(previewFxShape);
     }
@@ -42,10 +56,10 @@ public class RectangleToolStrategy implements ToolStrategy {
             endX = event.getX();
             endY = event.getY();
 
-            ((javafx.scene.shape.Rectangle) previewFxShape).setX(Math.min(startX, endX));
-            ((javafx.scene.shape.Rectangle) previewFxShape).setY(Math.min(startY, endY));
-            ((javafx.scene.shape.Rectangle) previewFxShape).setWidth(Math.abs(endX - startX));
-            ((javafx.scene.shape.Rectangle) previewFxShape).setHeight(Math.abs(endY - startY));
+            ((Rectangle) previewFxShape).setX(Math.min(startX, endX));
+            ((Rectangle) previewFxShape).setY(Math.min(startY, endY));
+            ((Rectangle) previewFxShape).setWidth(Math.abs(endX - startX));
+            ((Rectangle) previewFxShape).setHeight(Math.abs(endY - startY));
         }
     }
 
@@ -59,12 +73,14 @@ public class RectangleToolStrategy implements ToolStrategy {
             drawingArea.getChildren().remove(previewFxShape);
             previewFxShape = null;
 
-            currentModelShape = factory.createShape(startX, startY, endX, endY);
+            Color borderColor = borderColorPicker.getValue();
+            Color fillColor = fillColorPicker.getValue();
+            currentModelMyShape = factory.createShape(startX / drawingArea.getWidth(), startY / drawingArea.getHeight(), endX / drawingArea.getWidth(), endY / drawingArea.getHeight(), new MyColor(borderColor.getRed(), borderColor.getGreen(), borderColor.getBlue(), borderColor.getOpacity()), new MyColor(fillColor.getRed(), fillColor.getGreen(), fillColor.getBlue(), fillColor.getOpacity()));
 
         }
     }
 
-    public Shape getFinalShape() {
-        return currentModelShape;
+    public MyShape getFinalShape() {
+        return currentModelMyShape;
     }
 }
