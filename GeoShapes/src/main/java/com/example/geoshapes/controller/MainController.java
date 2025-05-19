@@ -4,6 +4,7 @@ import com.example.geoshapes.adapter.EllipseAdapter;
 import com.example.geoshapes.adapter.LineAdapter;
 import com.example.geoshapes.adapter.RectangleAdapter;
 import com.example.geoshapes.adapter.ShapeAdapter;
+import com.example.geoshapes.controller.command.DeleteShapeCommand;
 import com.example.geoshapes.model.DrawingModel;
 import com.example.geoshapes.model.shapes.MyEllipse;
 import com.example.geoshapes.model.shapes.MyLine;
@@ -21,20 +22,19 @@ import com.example.geoshapes.service.PersistenceService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
 
 
 public class MainController implements ShapeObserver {
@@ -53,6 +53,8 @@ public class MainController implements ShapeObserver {
 
     @FXML
     private ToggleButton selectionButton;
+
+    private ContextMenu shapeContextMenu;
 
     @FXML
     private ToggleButton lineButton;
@@ -76,10 +78,13 @@ public class MainController implements ShapeObserver {
 
     private DrawingModel model;
 
+    private ShapeMapping shapeMapping;
+
     private ToolStrategy currentStrategy;
     private Map<ToggleButton, ToolStrategy> toolStrategies;
 
     private ShapeAdapter adapter;
+
 
     private PersistenceService persistenceService;
     private File currentFile = null;
@@ -87,83 +92,140 @@ public class MainController implements ShapeObserver {
     @FXML
     public void initialize() {
 
-        setupDefaultUIState();
-        initializeToolStrategies();
-
-        // Da gestire meglio nel servizio dei dati
-        this.persistenceService = new PersistenceService();
-        currentFile = null;
-
         model = new DrawingModel();
         model.attach(this);
 
+        shapeMapping = new ShapeMapping();
+
+        /*
+        this.persistenceService = new PersistenceService();
+        currentFile = null;
+         */
+
+        setupDefaultUIState();
         setupPanel();
+        initializeToolStrategies();
         setupToolListeners();
+        setupContextMenu();
+    }
+
+    private void setupDefaultUIState() {
+        selectionButton.setSelected(true);
+        borderColorPicker.setValue(Color.BLACK);
+        fillColorPicker.setValue(Color.TRANSPARENT);
     }
 
     private void setupPanel() {
-
         clipRect = new Rectangle();
         drawingArea.setClip(clipRect);
         clipRect.widthProperty().bind(drawingArea.widthProperty());
         clipRect.heightProperty().bind(drawingArea.heightProperty());
-
         drawingArea.widthProperty().addListener((obs, oldVal, newVal) -> rebuildShapes());
         drawingArea.heightProperty().addListener((obs, oldVal, newVal) -> rebuildShapes());
     }
 
     private void rebuildShapes() {
+
         drawingArea.getChildren().clear();
+        shapeMapping.clear();
 
         for (MyShape shape : model.getShapes()) {
-            addShapeToView(shape);
+            setAdapter(shape);
+            if (adapter != null) {
+                Shape fxShape = adapter.getFxShape(shape, drawingArea.getWidth(), drawingArea.getHeight());
+                drawingArea.getChildren().add(fxShape);
+                shapeMapping.register(shape, fxShape);
+            }
         }
-    }
 
-    private void setupDefaultUIState() {
+        if (currentStrategy instanceof SelectionToolStrategy) {
+            ((SelectionToolStrategy) currentStrategy).resetSelection();
+        }
 
-        selectionButton.setSelected(true);
-
-        borderColorPicker.setValue(Color.BLACK);
-        fillColorPicker.setValue(Color.TRANSPARENT);
     }
 
     private void initializeToolStrategies() {
         toolStrategies = new HashMap<>();
-        toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea));
+        toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea, shapeMapping, model));
         toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, borderColorPicker, fillColorPicker));
         toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, borderColorPicker, fillColorPicker));
         toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, borderColorPicker, fillColorPicker));
-    }
 
+        currentStrategy = toolStrategies.get(selectionButton);
+
+    }
 
     private void setupToolListeners() {
         toolToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+
+            if (shapeContextMenu != null && shapeContextMenu.isShowing()) {
+                shapeContextMenu.hide(); // Nascondi il menu contestuale se si cambia strumento
+            }
+            if (currentStrategy instanceof SelectionToolStrategy) {
+                ((SelectionToolStrategy) currentStrategy).resetSelection(); // Rimuovi la decorazione dalla forma precedentemente selezionata quando si cambia strumento
+            }
+
             if (newValue == null) {
-                currentStrategy = toolStrategies.get(selectionButton);
+                toolToggleGroup.selectToggle(selectionButton);
             } else {
                 currentStrategy = toolStrategies.get((ToggleButton) newValue);
             }
         });
     }
 
+    private void setupContextMenu() {
+        shapeContextMenu = new ContextMenu();
+        MenuItem deleteItem = new MenuItem("Delete");
+        deleteItem.setOnAction(event -> {
+            if (currentStrategy instanceof SelectionToolStrategy) {
+                MyShape selectedShape = ((SelectionToolStrategy) currentStrategy).getSelectedModelShape();
+                if (selectedShape != null) {
+                    Command deleteCommand = new DeleteShapeCommand(model, selectedShape);
+                    deleteCommand.execute();
+                }
+            }
+            shapeContextMenu.hide(); // Nascondi sempre il menu dopo un'azione
+        });
+        shapeContextMenu.getItems().add(deleteItem);
+
+    }
+
     @FXML
     private void handleMousePressed(MouseEvent event) {
+        if (shapeContextMenu.isShowing()) {
+            shapeContextMenu.hide(); // Nascondi se già visibile e l'utente clicca altrove
+        }
+
         if (currentStrategy != null) {
             currentStrategy.handlePressed(event);
+        }
+
+        // Ora, il Controller decide se mostrare il menu contestuale
+        if (event.getButton() == MouseButton.SECONDARY && currentStrategy instanceof SelectionToolStrategy) {
+            SelectionToolStrategy selectionStrategy = (SelectionToolStrategy) currentStrategy;
+            MyShape selectedModelShape = selectionStrategy.getSelectedModelShape();
+            Shape selectedFxShape = selectionStrategy.getSelectedJavaFxShape(); // JavaFX shape selezionato dalla strategy
+
+            // Mostra il menu solo se il click destro è avvenuto sulla forma attualmente selezionata
+            if (selectedModelShape != null && selectedFxShape != null && selectedFxShape.contains(event.getX(), event.getY())) {
+                shapeContextMenu.show(drawingArea, event.getScreenX(), event.getScreenY());
+            } else if (selectedModelShape != null) {
+                // Clic destro fuori dalla forma attualmente selezionata, ma una forma è selezionata: deseleziona.
+                selectionStrategy.resetSelection();
+            }
         }
     }
 
     @FXML
     private void handleMouseDragged(MouseEvent event) {
-        if (currentStrategy != null) {
+        if (currentStrategy != null && (shapeContextMenu == null || !shapeContextMenu.isShowing())) {
             currentStrategy.handleDragged(event);
         }
     }
 
     @FXML
     private void handleMouseReleased(MouseEvent event) {
-        if (currentStrategy != null) {
+        if (currentStrategy != null && (shapeContextMenu == null || !shapeContextMenu.isShowing())) {
             currentStrategy.handleReleased(event);
 
             if (!(currentStrategy instanceof SelectionToolStrategy)) {
@@ -176,23 +238,49 @@ public class MainController implements ShapeObserver {
         }
     }
 
-    private void addShapeToView(MyShape shape) {
+
+    private void setAdapter(MyShape shape) {
         if (shape instanceof MyLine) {
-            adapter = new LineAdapter((MyLine) shape, drawingArea);
+            adapter = new LineAdapter();
         } else if (shape instanceof MyRectangle) {
-            adapter = new RectangleAdapter((MyRectangle) shape, drawingArea);
+            adapter = new RectangleAdapter();
         } else if (shape instanceof MyEllipse) {
-            adapter = new EllipseAdapter((MyEllipse) shape, drawingArea);
-        }
-        if (adapter != null) {
-            drawingArea.getChildren().add(adapter.getFxShape());
+            adapter = new EllipseAdapter();
+        } else {
+            adapter = null;
         }
     }
 
-
     @Override
-    public void update(MyShape shape) {
-        addShapeToView(shape);
+    public void update(String event, MyShape shape) {
+
+        if (Objects.equals(event, "CREATE")) {
+            setAdapter(shape);
+            if (adapter != null) {
+                Shape fxShape = adapter.getFxShape(shape, drawingArea.getWidth(), drawingArea.getHeight());
+                drawingArea.getChildren().add(fxShape);
+                shapeMapping.register(shape, fxShape);
+            }
+        } else if (Objects.equals(event, "DELETE")) {
+            Shape fxShape = shapeMapping.getViewShape(shape);
+            if (fxShape != null) {
+                drawingArea.getChildren().remove(fxShape);
+                shapeMapping.unregister(shape);
+            }
+            if (currentStrategy instanceof SelectionToolStrategy) {
+                SelectionToolStrategy selectionStrategy = (SelectionToolStrategy) currentStrategy;
+                if (selectionStrategy.getSelectedModelShape() == shape) {
+                    selectionStrategy.resetSelection(); // Resetta lo stato della strategia di selezione
+                }
+            }
+            if (shapeContextMenu != null && shapeContextMenu.isShowing()) {
+                shapeContextMenu.hide(); // Nascondi il menu se la forma target viene eliminata
+            }
+        } else if (Objects.equals(event, "MODIFY")) {
+            // Da implementare
+
+        }
+
     }
 
     @FXML

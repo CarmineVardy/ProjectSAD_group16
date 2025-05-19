@@ -1,34 +1,30 @@
 package com.example.geoshapes.adapter;
 
+import com.example.geoshapes.model.shapes.MyShape;
 import com.example.geoshapes.model.shapes.MyRectangle;
-import javafx.scene.layout.Pane;
-import javafx.scene.shape.Rectangle;
+
 import javafx.scene.shape.Shape;
+import javafx.scene.shape.Rectangle;
 
 public class RectangleAdapter implements ShapeAdapter {
 
-    private MyRectangle modelRectangle; // Adaptee
-    private Rectangle fxRectangle; // Cache
+    @Override
+    public Shape getFxShape(MyShape modelShape, double width, double height) {
 
-    public RectangleAdapter(MyRectangle modelRectangle, Pane drawingArea) {
-        this.modelRectangle = modelRectangle;
-        this.fxRectangle = new Rectangle(
-                modelRectangle.getTopLeftX() * drawingArea.getWidth(),
-                modelRectangle.getTopLeftY() * drawingArea.getHeight(),
-                modelRectangle.getWidth() * drawingArea.getWidth(),
-                modelRectangle.getHeight() * drawingArea.getHeight()
+        if (!(modelShape instanceof MyRectangle)) {
+            throw new IllegalArgumentException("Expected MyRectangle");
+        }
+        MyRectangle modelRectangle = (MyRectangle) modelShape;
+        Rectangle fxRectangle = new Rectangle(
+                modelRectangle.getTopLeftX() * width,
+                modelRectangle.getTopLeftY() * height,
+                modelRectangle.getWidth() * width,
+                modelRectangle.getHeight() * height
         );
-
         fxRectangle.setStroke(convertToJavaFxColor(modelRectangle.getBorderColor()));
         fxRectangle.setFill(convertToJavaFxColor(modelRectangle.getFillColor()));
-    }
 
-    @Override
-    public Shape getFxShape() {
         return fxRectangle;
     }
 
-    public MyRectangle getModelRectangle() {
-        return modelRectangle;
-    }
 }

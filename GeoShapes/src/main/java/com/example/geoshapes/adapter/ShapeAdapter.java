@@ -1,12 +1,14 @@
 package com.example.geoshapes.adapter;
 
-import javafx.scene.paint.Color;
+import com.example.geoshapes.model.shapes.MyShape;
 import javafx.scene.shape.Shape;
+
 import com.example.geoshapes.model.util.MyColor;
+import javafx.scene.paint.Color;
 
 public interface ShapeAdapter {
 
-    Shape getFxShape();
+    Shape getFxShape(MyShape modelShape, double width, double height);
 
     default Color convertToJavaFxColor(MyColor modelColor) {
         return new Color(

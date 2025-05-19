@@ -4,6 +4,8 @@ import com.example.geoshapes.model.shapes.MyShape;
 
 public interface ShapeSubject {
     void attach(ShapeObserver observer);
+
     void detach(ShapeObserver observer);
-    void notifyObservers(MyShape myShape);
+
+    void notifyObservers(String event, MyShape myShape);
 }

@@ -17,23 +17,33 @@ public class DrawingModel implements ShapeSubject {
         observers = new ArrayList<>();
     }
 
+
     public void addShape(MyShape myShape) {
         shapes.add(myShape);
-        notifyObservers(myShape);
+        notifyObservers("CREATE", myShape);
     }
+
+    public void removeShape(MyShape myShape) {
+        shapes.remove(myShape);
+        notifyObservers("DELETE", myShape);
+    }
+
+    /*
+    public modifyShape(MyShape myShape){
+
+        //notifyObservers("MODIFY", myShape);
+    }
+    */
+
 
     public void clearShapes() {
         shapes.clear();
-        // Notifica gli observer che il modello è stato pulito.
-        // Un modo semplice è notificare con un "null" o un oggetto speciale,
-        // oppure aggiungere un metodo specifico all'observer.
-        // Per ora, il controller gestirà la pulizia della vista direttamente.
-        // Potremmo aggiungere: notifyClear(); se avessimo un metodo onClear() in ShapeObserver.
     }
 
     public List<MyShape> getShapes() {
         return new ArrayList<>(shapes);
     }
+
 
     @Override
     public void attach(ShapeObserver observer) {
@@ -46,9 +56,9 @@ public class DrawingModel implements ShapeSubject {
     }
 
     @Override
-    public void notifyObservers(MyShape myShape) {
+    public void notifyObservers(String event, MyShape myShape) {
         for (ShapeObserver observer : observers) {
-            observer.update(myShape);
+            observer.update(event, myShape);
         }
     }
 }

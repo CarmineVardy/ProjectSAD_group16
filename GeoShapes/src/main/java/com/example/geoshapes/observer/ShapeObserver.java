@@ -3,5 +3,5 @@ package com.example.geoshapes.observer;
 import com.example.geoshapes.model.shapes.MyShape;
 
 public interface ShapeObserver {
-    void update(MyShape myShape);
+    void update(String event, MyShape myShape);
 }
