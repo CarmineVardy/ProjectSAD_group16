@@ -105,7 +105,7 @@
                                         <VBox alignment="CENTER" spacing="2">
                                             <children>
                                                 <ImageView fitHeight="20" fitWidth="20">
-                                                    <image> <Image url="@../../../../styles/icons/colpicker.png" /> </image>
+                                                    <image> <Image url="@../../../../styles/icons/border_color.png" /> </image>
                                                 </ImageView>
                                                 <Label text="Border color" styleClass="color-label" />
                                             </children>

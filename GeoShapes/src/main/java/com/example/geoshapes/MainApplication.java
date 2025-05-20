@@ -3,6 +3,7 @@ package com.example.geoshapes;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -12,6 +13,8 @@ public class MainApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/geoshapes/view/MainView.fxml"));
+        Image icon = new Image(getClass().getResourceAsStream("/styles/icons/logo.png"));
+        stage.getIcons().add(icon);
         Scene scene = new Scene(fxmlLoader.load());
         stage.setScene(scene);
         stage.setTitle("GeoShapes");
