@@ -1,106 +1,100 @@
 package com.example.geoshapes.controller.strategy;
 
 import com.example.geoshapes.controller.ShapeMapping;
-import com.example.geoshapes.model.DrawingModel;
-import com.example.geoshapes.model.shapes.MyShape;
-import com.example.geoshapes.decorator.ShapeDecorator;
 import com.example.geoshapes.decorator.SelectionDecorator;
+import com.example.geoshapes.decorator.ShapeDecorator;
+import com.example.geoshapes.model.shapes.MyShape;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Shape;
 
+import java.util.List;
+
 public class SelectionToolStrategy implements ToolStrategy {
 
-    private final Pane drawingArea;
+    private final Pane drawingArea; // Still needed for findShapeAt
     private final ShapeMapping shapeMapping;
-    private final DrawingModel model;
 
     private ShapeDecorator currentDecorator;
     private MyShape selectedModelShape;
     private Shape selectedJavaFxShape;
 
-    public SelectionToolStrategy(Pane drawingArea, ShapeMapping shapeMapping, DrawingModel model) {
+    public SelectionToolStrategy(Pane drawingArea, ShapeMapping shapeMapping) {
         this.drawingArea = drawingArea;
         this.shapeMapping = shapeMapping;
-        this.model = model;
     }
 
     @Override
     public void handlePressed(MouseEvent event) {
         double x = event.getX();
         double y = event.getY();
+        Shape targetViewShape = findShapeAt(x, y);
+        MyShape targetModelShape = (targetViewShape != null) ? shapeMapping.getModelShape(targetViewShape) : null;
 
-        Shape clickedShapeView = findShapeAt(x, y); // Trova la JavaFX Shape cliccata
+        // Case 1: Right-click on the currently selected shape.
+        // The strategy does not change the selection state here.
+        // The controller will query getSelectedModelShape() and decide to show the context menu.
+        if (event.getButton() == MouseButton.SECONDARY &&
+                targetModelShape != null &&
+                selectedModelShape == targetModelShape) {
+            return; // Do nothing to selection state, controller handles menu visibility
+        }
 
-        if (event.getButton() == MouseButton.PRIMARY) { // Click sinistro
-            if (currentDecorator != null) {
-                currentDecorator.removeDecoration(); // Rimuovi decorazione precedente
-                currentDecorator = null;
-            }
+        // Case 2: Any other click (left click, or right click on a new shape/empty area).
+        // First, clear any existing selection decoration and state if:
+        // a) a different shape is clicked
+        // b) empty space is clicked
+        // c) it's a primary click (which always aims to select anew or deselect)
+        if (selectedModelShape != null && (targetModelShape != selectedModelShape || event.getButton() == MouseButton.PRIMARY)) {
+            clearCurrentSelectionInternally();
+        }
 
-            if (clickedShapeView != null) {
-                selectedJavaFxShape = clickedShapeView;
-                selectedModelShape = shapeMapping.getModelShape(selectedJavaFxShape);
-
-                if (selectedModelShape != null) {
-                    currentDecorator = new SelectionDecorator(selectedJavaFxShape);
-                    currentDecorator.applyDecoration();
-                } else {
-                    // Cliccato su una JavaFX shape non mappata (non dovrebbe succedere)
-                    resetSelectionState();
-                }
-            } else {
-                // Click su area vuota, deseleziona tutto
-                resetSelectionState();
-            }
-        } else if (event.getButton() == MouseButton.SECONDARY) { // Click destro
-            // Se il click destro è su una forma
-            if (clickedShapeView != null) {
-                // Se la forma cliccata con il destro è diversa da quella attualmente selezionata,
-                // o se nessuna forma è selezionata, allora seleziona la nuova forma.
-                if (selectedJavaFxShape != clickedShapeView) {
-                    if (currentDecorator != null) {
-                        currentDecorator.removeDecoration();
-                        currentDecorator = null;
-                    }
-                    selectedJavaFxShape = clickedShapeView;
-                    selectedModelShape = shapeMapping.getModelShape(selectedJavaFxShape);
-
-                    if (selectedModelShape != null) {
-                        currentDecorator = new SelectionDecorator(selectedJavaFxShape);
-                        currentDecorator.applyDecoration();
-                    } else {
-                        resetSelectionState(); // Forma vista non mappata
-                    }
-                }
-                // Se è la stessa forma già selezionata, non fare nulla qui,
-                // il controller gestirà la visualizzazione del menu.
-            } else {
-                // Click destro su area vuota: deseleziona la forma corrente (se ce n'è una)
-                // Il controller non mostrerà il menu perché selectedModelShape sarà null.
-                if (currentDecorator != null) {
-                    currentDecorator.removeDecoration();
-                    currentDecorator = null;
-                }
-                resetSelectionState();
+        // If we cleared due to primary click, or if it's a secondary click on a new shape,
+        // and a valid model shape was under the cursor, select it.
+        if (targetModelShape != null && selectedModelShape == null) { // select if a shape was clicked and nothing is selected (or was just deselected)
+            selectedModelShape = targetModelShape;
+            selectedJavaFxShape = targetViewShape;
+            if (selectedJavaFxShape != null) {
+                currentDecorator = new SelectionDecorator(selectedJavaFxShape);
+                currentDecorator.applyDecoration();
             }
         }
+        // If targetModelShape is null (empty space) or unmapped, selection remains cleared.
+    }
+
+    private void clearCurrentSelectionInternally() {
+        if (currentDecorator != null) {
+            currentDecorator.removeDecoration();
+            currentDecorator = null;
+        }
+        selectedModelShape = null;
+        selectedJavaFxShape = null;
+    }
+
+    /**
+     * Resets the selection state. Called by the controller when changing tools
+     * or when a shape is deleted externally.
+     */
+    public void resetSelection() {
+        clearCurrentSelectionInternally();
     }
 
 
     @Override
     public void handleDragged(MouseEvent event) {
-        // Drag functionality could be implemented here
+        // Future drag functionality for moving/resizing selected shape
     }
 
     @Override
     public void handleReleased(MouseEvent event) {
-        // Release functionality could be implemented here
+        // Future release functionality
     }
 
     @Override
     public MyShape getFinalShape() {
+        // For SelectionTool, this might not be directly used for creation,
+        // but the interface requires it. It returns the selected shape.
         return selectedModelShape;
     }
 
@@ -112,24 +106,14 @@ public class SelectionToolStrategy implements ToolStrategy {
         return selectedJavaFxShape;
     }
 
-    public void resetSelection() {
-        if (currentDecorator != null) {
-            currentDecorator.removeDecoration();
-            currentDecorator = null;
-        }
-        resetSelectionState();
-    }
-
-    private void resetSelectionState() {
-        selectedModelShape = null;
-        selectedJavaFxShape = null;
-    }
-
     private Shape findShapeAt(double x, double y) {
-        for (int i = drawingArea.getChildren().size() - 1; i >= 0; i--) {
-            if (drawingArea.getChildren().get(i) instanceof Shape) {
-                Shape shape = (Shape) drawingArea.getChildren().get(i);
-                if (shape.contains(x, y)) {
+        // Iterate from top-most shapes to bottom
+        List<javafx.scene.Node> children = drawingArea.getChildren();
+        for (int i = children.size() - 1; i >= 0; i--) {
+            javafx.scene.Node node = children.get(i);
+            if (node instanceof Shape) {
+                Shape shape = (Shape) node;
+                if (shape.isVisible() && shape.contains(x, y)) {
                     return shape;
                 }
             }
@@ -137,29 +121,30 @@ public class SelectionToolStrategy implements ToolStrategy {
         return null;
     }
 
+    /**
+     * Updates the JavaFX shape reference and re-applies decoration if a shape
+     * was selected and its view component is recreated (e.g., during a full redraw).
+     *
+     * @param newFxShape The new JavaFX Shape instance corresponding to the selected MyShape.
+     */
     public void updateSelectedFxShape(Shape newFxShape) {
-        // Questo metodo è cruciale se una forma viene modificata MENTRE è selezionata.
-        // La vecchia istanza di selectedJavaFxShape potrebbe non essere più nella scena.
-        if (selectedModelShape != null) { // Se c'era una MyShape selezionata
+        if (selectedModelShape != null) { // If a MyShape was indeed selected
             if (currentDecorator != null) {
-                // La vecchia decorazione era sulla vecchia selectedJavaFxShape.
-                // Non è strettamente necessario chiamare removeDecoration() sulla vecchia shape
-                // se è già stata rimossa dalla scena, ma è buona norma.
-                // Tuttavia, la SelectionDecorator conserva riferimenti interni.
-                // È più sicuro creare un nuovo decoratore per la newFxShape.
-                currentDecorator.removeDecoration(); // Rimuove la decorazione dalla vecchia FxShape se ancora possibile
+                // Attempt to remove decoration from the old FxShape if it's still somehow relevant,
+                // though typically it's already removed from scene. More importantly, nullify old decorator.
+                currentDecorator.removeDecoration(); // This might do nothing if old shape is gone
             }
 
-            selectedJavaFxShape = newFxShape; // Aggiorna il riferimento alla JavaFX shape
-            if (selectedJavaFxShape != null) { // Se la nuova FxShape esiste
-                currentDecorator = new SelectionDecorator(selectedJavaFxShape); // Crea un nuovo decoratore
-                currentDecorator.applyDecoration(); // Applica la decorazione alla nuova FxShape
+            selectedJavaFxShape = newFxShape; // Update to the new JavaFX shape
+
+            if (selectedJavaFxShape != null) { // If a valid new FxShape is provided
+                currentDecorator = new SelectionDecorator(selectedJavaFxShape);
+                currentDecorator.applyDecoration();
             } else {
-                // Se newFxShape è null (improbabile se MyShape esiste ancora), resetta
+                // The selected MyShape no longer has a valid view. Clear selection.
                 currentDecorator = null;
-                selectedModelShape = null; // MyShape non ha più una vista valida
+                selectedModelShape = null; // MyShape is effectively deselected as it has no view
             }
         }
     }
-
 }

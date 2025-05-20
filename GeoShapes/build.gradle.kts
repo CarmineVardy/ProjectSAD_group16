@@ -40,6 +40,10 @@ dependencies {
     implementation("org.kordamp.ikonli:ikonli-javafx:12.3.1")
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+    implementation("org.kordamp.ikonli:ikonli-core:12.3.1")
+    implementation("org.kordamp.ikonli:ikonli-fontawesome5-pack:12.3.1")
+    implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.3.1")
+    implementation("org.kordamp.ikonli:ikonli-materialdesign-pack:12.3.1")
 }
 
 tasks.withType<Test> {

@@ -1,4 +1,4 @@
-package com.example.geoshapes.service;
+package com.example.geoshapes.perstistence;
 
 import com.example.geoshapes.model.shapes.MyShape;
 
@@ -8,34 +8,51 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class PersistenceService {
 
+    private File currentFile;
 
-    public void saveDrawing(File file, List<MyShape> myShapes) throws IOException {
+    public PersistenceService() {
+        this.currentFile = null;
+    }
+
+    public File getCurrentFile() {
+        return currentFile;
+    }
+
+    public void setCurrentFile(File currentFile) {
+        this.currentFile = currentFile;
+    }
+
+    public void saveDrawing(List<MyShape> shapes, File file) throws IOException {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
-            oos.writeObject(myShapes);
+            oos.writeObject(shapes);
         }
     }
 
-    @SuppressWarnings("unchecked") // Per il cast da Object a List<MyShape>
     public List<MyShape> loadDrawing(File file) throws IOException, ClassNotFoundException {
+        this.currentFile = file;
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             Object data = ois.readObject();
-            if (data instanceof List) {
-                // Verifica che tutti gli elementi siano MyShape (opzionale, ma più sicuro)
-                for (Object item : (List<?>) data) {
-                    if (!(item instanceof MyShape)) {
-                        throw new IOException("File contains non-MyShape data in the list.");
-                    }
+            if (!(data instanceof List<?>)) {
+                if (data == null) {
+                    return new ArrayList<>();
                 }
-                return (List<MyShape>) data;
-            } else if (data == null) {
-                return new ArrayList<>(); // File vuoto o solo null scritto
+                throw new IOException("File content is not a List of Shapes.");
             }
-            throw new IOException("File content is not a List of Shapes.");
+            List<?> rawList = (List<?>) data;
+            List<MyShape> shapeList = new ArrayList<>(rawList.size());
+            for (Object item : rawList) {
+                if (item instanceof MyShape) {
+                    shapeList.add((MyShape) item);
+                } else {
+                    throw new IOException("File contains non-MyShape data in the list.");
+                }
+            }
+            return shapeList;
         }
     }
 }

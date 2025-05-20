@@ -13,7 +13,7 @@ public class ShapeMapping {
     private Map<Shape, MyShape> viewToModel;
 
     public ShapeMapping() {
-        this.modelToView =  new HashMap<>();
+        this.modelToView = new HashMap<>();
         this.viewToModel = new HashMap<>();
     }
 
@@ -59,10 +59,6 @@ public class ShapeMapping {
             modelToView.remove(modelShape);
         }
     }
-
-
-
-
 
 
 }

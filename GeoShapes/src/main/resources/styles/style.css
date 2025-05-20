@@ -1,0 +1,51 @@
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+.menu-bar {
+    -fx-background-color: #f0f0f0;
+}
+
+.tool-bar {
+    -fx-background-color: #e8e8e8;
+    -fx-padding: 5;
+}
+
+.toggle-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 6;
+    -fx-cursor: hand;
+}
+
+.tool-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+
+.toggle-button:selected {
+    -fx-background-color: #2196f3;
+    -fx-text-fill: white;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.color-picker {
+    -fx-cursor: hand;
+    -fx-background-radius: 50%;
+    -fx-border-radius: 50%;
+    -fx-padding: 0;
+    -fx-pref-width: 44px;
+    -fx-pref-height: 45px;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+    -fx-background-size: 45px 45px;
+    -fx-color-label-visible: false;
+}
+
+.color-label {
+    -fx-font-size: 10px;
+}

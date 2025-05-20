@@ -4,6 +4,9 @@ module com.example.geoshapes {
 
     requires org.controlsfx.controls;
     requires org.kordamp.ikonli.javafx;
+    requires org.kordamp.ikonli.fontawesome5;
+    requires org.kordamp.ikonli.materialdesign;
+    requires org.kordamp.ikonli.bootstrapicons;
     requires javafx.graphics;
 
     opens com.example.geoshapes to javafx.fxml;

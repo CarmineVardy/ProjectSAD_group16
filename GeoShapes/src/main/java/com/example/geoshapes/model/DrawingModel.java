@@ -35,9 +35,9 @@ public class DrawingModel implements ShapeSubject {
     }
     */
 
-
     public void clearShapes() {
         shapes.clear();
+        notifyObservers("CLEAR_ALL", null);
     }
 
     public List<MyShape> getShapes() {
