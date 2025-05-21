@@ -18,4 +18,7 @@ public interface InteractionCallback {
 
     void onChangeFillColor(MyShape modelShape, Color color);
 
+    void setLineSelected(boolean value);
+
+
 }

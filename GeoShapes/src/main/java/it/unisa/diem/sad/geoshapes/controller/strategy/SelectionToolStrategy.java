@@ -9,6 +9,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
 
 import java.util.List;
@@ -44,6 +45,9 @@ public class SelectionToolStrategy implements ToolStrategy {
             return;
         }
 
+
+        callback.setLineSelected(shapeAtPosition instanceof Line);
+
         if (shapeAtPosition != selectedJavaFxShape) {
             reset();
             selectedJavaFxShape = shapeAtPosition;
@@ -51,6 +55,8 @@ public class SelectionToolStrategy implements ToolStrategy {
 
             currentDecorator = new SelectionDecorator(selectedJavaFxShape);
             currentDecorator.applyDecoration();
+
+            callback.setLineSelected(selectedJavaFxShape instanceof Line);
         }
 
         if (event.getButton() == MouseButton.SECONDARY && selectedJavaFxShape != null) {
@@ -92,6 +98,8 @@ public class SelectionToolStrategy implements ToolStrategy {
         selectedModelShape = null;
         selectedJavaFxShape = null;
 
+        callback.setLineSelected(false);
+
         callback.onSelectionMenuClosed();
     }
 
@@ -108,6 +116,5 @@ public class SelectionToolStrategy implements ToolStrategy {
         }
         return null;
     }
-
 
 }

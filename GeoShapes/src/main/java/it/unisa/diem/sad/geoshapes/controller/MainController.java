@@ -15,6 +15,9 @@ import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import it.unisa.diem.sad.geoshapes.model.util.MyColor;
 import it.unisa.diem.sad.geoshapes.observer.ShapeObserver;
 import it.unisa.diem.sad.geoshapes.perstistence.PersistenceService;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
@@ -85,6 +88,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
     //Utility Class for UI elements
     private UIUtils uiUtils;
 
+    private final BooleanProperty isLineSelectedProperty = new SimpleBooleanProperty(false);
+
+
     @FXML
     public void initialize() {
 
@@ -113,6 +119,18 @@ public class MainController implements ShapeObserver, InteractionCallback {
         borderColorPicker.setValue(Color.BLACK);
         fillColorPicker.setValue(Color.TRANSPARENT);
         uiUtils.setupSelectionContextMenu(); // Initialize context menu for selection tool
+        if (fillColorPicker.disableProperty().isBound()) {
+            fillColorPicker.disableProperty().unbind();
+        }
+
+        fillColorPicker.disableProperty().bind(
+                Bindings.or(lineButton.selectedProperty(), isLineSelectedProperty)
+        );
+    }
+
+    @Override
+    public void setLineSelected(boolean value) {
+        isLineSelectedProperty.set(value);
     }
 
     private void setupPanel() {
