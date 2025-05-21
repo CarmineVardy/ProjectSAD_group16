@@ -6,7 +6,7 @@ plugins {
     id("org.beryx.jlink") version "2.25.0"
 }
 
-group = "com.example"
+group = "it.unisa.diem.sad"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -26,8 +26,8 @@ tasks.withType<JavaCompile> {
 }
 
 application {
-    mainModule.set("com.example.geoshapes")
-    mainClass.set("com.example.geoshapes.MainApplication")
+    mainModule.set("it.unisa.diem.sad.geoshapes")
+    mainClass.set("it.unisa.diem.sad.geoshapes.MainApplication")
 }
 
 javafx {
