@@ -105,12 +105,13 @@ public class MainController implements ShapeObserver, InteractionCallback {
         uiUtils = new UIUtils(); // Instantiate UIUtils
 
         setupPanel();
-        setupDefaultUIState();
 
         initializeShapeAdapters();
 
         initializeToolStrategies();
         setupToolListeners();
+        setupDefaultUIState();
+
         setupColoPickerListeners();
     }
 
@@ -387,7 +388,8 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 try {
                     List<MyShape> loadedShapes = persistenceService.loadDrawing(file);
                     model.clearShapes(); //Clear Model
-                    currentStrategy.reset(); //Reset Strategy
+                    if(currentStrategy != null)
+                        currentStrategy.reset(); //Reset Strategy
                     for (MyShape shape : loadedShapes) {
                         model.addShape(shape);
                     }
