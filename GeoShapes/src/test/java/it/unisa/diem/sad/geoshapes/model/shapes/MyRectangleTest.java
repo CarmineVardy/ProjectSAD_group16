@@ -29,4 +29,15 @@ public class MyRectangleTest {
         assertEquals(100, rect.getEndX(), 0.001);
         assertEquals(80, rect.getEndY(), 0.001);
     }
+
+    @Test
+    public void testTransparentFillColor() {
+        MyColor border = new MyColor(0.0, 0.0, 0.0, 1.0);         // Nero opaco
+        MyColor transparentFill = new MyColor(1.0, 0.0, 0.0, 0.0); // Trasparente
+
+        MyRectangle rect = new MyRectangle(0, 0, 50, 50, border, transparentFill);
+
+        assertEquals(transparentFill, rect.getFillColor(), "The transparent fill color should be stored correctly");
+    }
+
 }

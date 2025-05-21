@@ -29,10 +29,11 @@ public class SelectionDecorator implements ShapeDecorator {
         shape.setStrokeWidth(originalStrokeWidth + 0.5);
         shape.setStrokeType(StrokeType.OUTSIDE);
 
-        if (originalFill instanceof Color) {
-            Color originalColor = (Color) originalFill;
-            Color newColor = new Color( originalColor.getRed(),  originalColor.getGreen(),  originalColor.getBlue(),  0.7 );
-            shape.setFill(newColor);
+        if (originalFill instanceof Color originalColor) {
+            if (originalColor.getOpacity() > 0.0) {
+                Color newColor = new Color(originalColor.getRed(), originalColor.getGreen(), originalColor.getBlue(), 0.7);
+                shape.setFill(newColor);
+            }
         }
     }
 
