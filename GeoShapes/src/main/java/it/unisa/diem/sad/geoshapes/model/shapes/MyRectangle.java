@@ -68,5 +68,15 @@ public class MyRectangle implements MyShape {
         return fillMyColor;
     }
 
+    @Override
+    public void setStartPoint(double x, double y) {
+        this.startX = x;
+        this.startY = y;
+    }
+
+    @Override
+    public MyShape clone() {
+        return new MyRectangle(startX, startY, endX, endY, borderMyColor, fillMyColor);
+    }
 
 }

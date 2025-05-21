@@ -69,4 +69,15 @@ public class MyEllipse implements MyShape {
         return fillColor;
     }
 
+    @Override
+    public void setStartPoint(double x, double y) {
+        this.startX = x;
+        this.startY = y;
+    }
+
+    @Override
+    public MyShape clone() {
+        return new MyEllipse(startX, startY, endX, endY, borderColor, fillColor);
+    }
+
 }
