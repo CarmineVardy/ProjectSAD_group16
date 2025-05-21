@@ -105,6 +105,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
         initializeToolStrategies();
         setupToolListeners();
+        setupColoPickerListeners();
     }
 
     private void setupDefaultUIState() {
@@ -137,6 +138,24 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 currentStrategy.reset();
             currentStrategy = toolStrategies.get((ToggleButton) newValue);
         });
+    }
+
+    private void setupColoPickerListeners() {
+
+        borderColorPicker.valueProperty().addListener((obs, oldColor, newColor) -> {
+
+            if (currentStrategy != null) {
+                currentStrategy.handleBorderColorChange(newColor);
+            }
+        });
+
+        fillColorPicker.valueProperty().addListener((obs, oldColor, newColor) -> {
+            if (currentStrategy != null) {
+                currentStrategy.handleFillColorChange(newColor);
+            }
+        });
+
+
     }
 
     private void initializeShapeAdapters() {
@@ -338,7 +357,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 break;
         }
     }
-
 
 
     @FXML

@@ -8,6 +8,7 @@ import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 
 import java.util.List;
@@ -66,6 +67,20 @@ public class SelectionToolStrategy implements ToolStrategy {
     @Override
     public void handleReleased(MouseEvent event) {
         // Future release functionality
+    }
+
+    @Override
+    public void handleBorderColorChange(Color color) {
+        if (selectedModelShape != null){
+            this.callback.onChangeBorderColor(selectedModelShape, color);
+        }
+    }
+
+    @Override
+    public void handleFillColorChange(Color color) {
+        if (selectedModelShape != null){
+            this.callback.onChangeFillColor(selectedModelShape, color);
+        }
     }
 
     @Override
