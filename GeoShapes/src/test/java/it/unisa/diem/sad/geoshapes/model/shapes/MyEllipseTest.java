@@ -4,6 +4,8 @@ import it.unisa.diem.sad.geoshapes.model.DrawingModel;
 import it.unisa.diem.sad.geoshapes.model.factory.EllipseFactory;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyEllipse;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
+import it.unisa.diem.sad.geoshapes.model.util.MyColor;
+import javafx.scene.shape.Ellipse;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,5 +49,38 @@ public class MyEllipseTest {
         MyEllipse circle = (MyEllipse) shape;
         double width = circle.getEndX() - circle.getStartX();
         double height = circle.getEndY() - circle.getStartY();
+    }
+
+    @Test
+    public void testColorAssignment() {
+        int r = 255;
+        int g = 128;
+        int b = 0;
+
+        MyColor borderColor = new MyColor(r / 255.0, 0, 0); // Rosso
+        MyColor fillColor = new MyColor(0, g / 255.0, 0);   // Verde
+
+        MyEllipse ellipse = new MyEllipse(10, 20, 30, 40, borderColor, fillColor);
+
+        assertEquals(borderColor, ellipse.getBorderColor(), "Border color should be correctly assigned");
+        assertEquals(fillColor, ellipse.getFillColor(), "Fill color should be correctly assigned");
+    }
+
+    @Test
+    public void testColorPersistenceAfterEndPointChange() {
+        int r = 255;
+        int g = 128;
+        int b = 0;
+
+        MyColor borderColor = new MyColor(0, 0, b / 255.0); // Blu
+        MyColor fillColor = new MyColor(r / 255.0, g / 255.0, 0); // Giallo
+
+        MyEllipse ellipse = new MyEllipse(0, 0, 50, 50, borderColor, fillColor);
+
+        ellipse.setEndPoint(100, 100); // Modifica i punti
+
+        // I colori devono restare invariati
+        assertEquals(borderColor, ellipse.getBorderColor(), "Border color should persist");
+        assertEquals(fillColor, ellipse.getFillColor(), "Fill color should persist");
     }
 }

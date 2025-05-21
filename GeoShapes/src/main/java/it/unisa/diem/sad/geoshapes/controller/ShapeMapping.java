@@ -1,11 +1,11 @@
 package it.unisa.diem.sad.geoshapes.controller;
 
-
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.scene.shape.Shape;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class ShapeMapping {
 
@@ -38,10 +38,26 @@ public class ShapeMapping {
         viewToModel.clear();
     }
 
-
     public void register(MyShape modelShape, Shape viewShape) {
         modelToView.put(modelShape, viewShape);
         viewToModel.put(viewShape, modelShape);
+    }
+
+    public void updateViewMapping(MyShape modelShape, Shape newViewShape) {
+        Shape oldViewShape = modelToView.get(modelShape);
+        if (oldViewShape != null) {
+            viewToModel.remove(oldViewShape);
+        }
+        modelToView.put(modelShape, newViewShape);
+        viewToModel.put(newViewShape, modelShape);
+    }
+
+    public Set<MyShape> getAllModelShapes() {
+        return modelToView.keySet();
+    }
+
+    public Set<Shape> getAllViewShapes() {
+        return viewToModel.keySet();
     }
 
     public void unregister(MyShape modelShape) {
@@ -59,9 +75,4 @@ public class ShapeMapping {
             modelToView.remove(modelShape);
         }
     }
-
-
 }
-
-
-

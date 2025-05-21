@@ -9,7 +9,6 @@ import javafx.scene.shape.StrokeType;
 public class SelectionDecorator implements ShapeDecorator {
     private final Shape shape;
 
-    // Original properties to restore later
     private Color originalStrokeColor;
     private double originalStrokeWidth;
     private StrokeType originalStrokeType;
@@ -30,28 +29,24 @@ public class SelectionDecorator implements ShapeDecorator {
         shape.setStrokeWidth(originalStrokeWidth + 0.5);
         shape.setStrokeType(StrokeType.OUTSIDE);
 
-        // Set fill opacity to 70% while maintaining the original fill color
         if (originalFill instanceof Color) {
             Color originalColor = (Color) originalFill;
-            Color newColor = new Color(
-                    originalColor.getRed(),
-                    originalColor.getGreen(),
-                    originalColor.getBlue(),
-                    0.7
-            );
+            Color newColor = new Color( originalColor.getRed(),  originalColor.getGreen(),  originalColor.getBlue(),  0.7 );
             shape.setFill(newColor);
         }
     }
 
     @Override
     public void removeDecoration() {
-        // Restore original properties
+
         shape.setStroke(originalStrokeColor);
         shape.setStrokeWidth(originalStrokeWidth);
         shape.setStrokeType(originalStrokeType);
         shape.setFill(originalFill);
         shape.setOpacity(originalOpacity);
     }
+
+
 
     @Override
     public Shape getDecoratedShape() {

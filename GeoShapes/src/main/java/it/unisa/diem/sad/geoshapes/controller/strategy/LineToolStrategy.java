@@ -1,5 +1,6 @@
 package it.unisa.diem.sad.geoshapes.controller.strategy;
 
+import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
 import it.unisa.diem.sad.geoshapes.model.factory.LineFactory;
@@ -11,60 +12,65 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-// Removed unused import javafx.scene.shape.Shape;
+import javafx.scene.shape.Shape;
+import javafx.scene.Cursor;
 
 public class LineToolStrategy implements ToolStrategy {
 
     private final Pane drawingArea;
+
     private final ColorPicker borderColorPicker;
-    // fillColorPicker is not typically used for Line, but kept for consistency if model changes
     private final ColorPicker fillColorPicker;
+
     private final ShapeFactory factory;
 
-    private javafx.scene.shape.Shape previewFxShape; // This will be the decorated shape
+    private Shape previewFxShape;
+
     private ShapeDecorator previewDecorator;
-    private MyShape currentModelMyShape;
 
     private double startX, startY, endX, endY;
+
     private static final double MIN_LENGTH = 2.0; // Minimum length to consider a line valid
 
+    private InteractionCallback callback;
 
-    public LineToolStrategy(Pane drawingArea, ColorPicker borderColorPicker, ColorPicker fillColorPicker) {
+
+    public LineToolStrategy(Pane drawingArea, ColorPicker borderColorPicker, ColorPicker fillColorPicker, InteractionCallback callback) {
         this.drawingArea = drawingArea;
         this.borderColorPicker = borderColorPicker;
-        this.fillColorPicker = fillColorPicker; // Retained for interface consistency or future use
+        this.fillColorPicker = fillColorPicker;
         this.factory = new LineFactory();
+        this.callback = callback;
     }
 
     @Override
     public void handlePressed(MouseEvent event) {
-        reset(); // Clear any previous unfinished drawing
+        reset();
+
+        drawingArea.setCursor(Cursor.CROSSHAIR);
 
         startX = event.getX();
         startY = event.getY();
-        endX = startX; // Initialize end to start
+        endX = startX;
         endY = startY;
 
-        Line rawLine = new Line(startX, startY, endX, endY);
-        rawLine.setStroke(borderColorPicker.getValue());
-        // Line typically doesn't have a fill. If it did, set it here before decoration.
-        // rawLine.setFill(null); or fillColorPicker.getValue() if applicable
+        previewFxShape = new Line(startX, startY, endX, endY);
 
-        previewDecorator = new PreviewDecorator(rawLine);
+        previewFxShape.setStroke(borderColorPicker.getValue());
+        previewFxShape.setStrokeWidth(2.0);
+
+        previewDecorator = new PreviewDecorator(previewFxShape);
         previewDecorator.applyDecoration();
 
-        previewFxShape = rawLine; // Or previewDecorator.getDecoratedShape();
         drawingArea.getChildren().add(previewFxShape);
     }
 
     @Override
     public void handleDragged(MouseEvent event) {
-        if (previewFxShape instanceof Line) {
-            endX = event.getX();
-            endY = event.getY();
-            ((Line) previewFxShape).setEndX(endX);
-            ((Line) previewFxShape).setEndY(endY);
-        }
+        endX = event.getX();
+        endY = event.getY();
+        ((Line) previewFxShape).setEndX(endX);
+        ((Line) previewFxShape).setEndY(endY);
     }
 
     @Override
@@ -74,46 +80,47 @@ public class LineToolStrategy implements ToolStrategy {
             endX = event.getX();
             endY = event.getY();
 
-            // Calculate length
             double dx = endX - startX;
             double dy = endY - startY;
             double length = Math.sqrt(dx * dx + dy * dy);
 
-            // Remove preview from drawing area
-            if (previewDecorator != null) {
-                previewDecorator.removeDecoration(); // Clean up decoration
-            }
-            drawingArea.getChildren().remove(previewFxShape);
-
-            previewFxShape = null;
-            previewDecorator = null;
-
-            if (length >= MIN_LENGTH) { // Check for minimum length
+            if (length >= MIN_LENGTH) {
                 Color borderColor = borderColorPicker.getValue();
-                // For Line, fill color is often ignored or transparent in the model/adapter
-                Color fillColor = Color.TRANSPARENT; // Default for Line unless model explicitly uses fillColorPicker
-                // Color fillColor = fillColorPicker.getValue(); // If lines can have fill
+                Color fillColor = fillColorPicker.getValue(); // Usa il fill color picker invece di TRANSPARENT
 
-                currentModelMyShape = factory.createShape(
-                        startX / drawingArea.getWidth(), startY / drawingArea.getHeight(),
-                        endX / drawingArea.getWidth(), endY / drawingArea.getHeight(),
-                        new MyColor(borderColor.getRed(), borderColor.getGreen(), borderColor.getBlue(), borderColor.getOpacity()),
-                        new MyColor(fillColor.getRed(), fillColor.getGreen(), fillColor.getBlue(), fillColor.getOpacity())
+                MyColor borderMyColor = new MyColor(
+                        borderColor.getRed(),
+                        borderColor.getGreen(),
+                        borderColor.getBlue(),
+                        borderColor.getOpacity()
                 );
-            } else {
-                currentModelMyShape = null; // Line is too short, not created
+
+                MyColor fillMyColor = new MyColor(
+                        fillColor.getRed(),
+                        fillColor.getGreen(),
+                        fillColor.getBlue(),
+                        fillColor.getOpacity()
+                );
+
+                MyShape newShape = factory.createShape(
+                        startX / drawingArea.getWidth(),
+                        startY / drawingArea.getHeight(),
+                        endX / drawingArea.getWidth(),
+                        endY / drawingArea.getHeight(),
+                        borderMyColor,
+                        fillMyColor
+                );
+
+                callback.onCreateShape(newShape);
             }
+
+            reset();
         }
     }
 
     @Override
-    public MyShape getFinalShape() {
-        MyShape shapeToReturn = currentModelMyShape;
-        currentModelMyShape = null; // Consume the shape
-        return shapeToReturn;
-    }
-
     public void reset() {
+        drawingArea.setCursor(Cursor.DEFAULT);
         if (previewFxShape != null) {
             if (previewDecorator != null) {
                 previewDecorator.removeDecoration();
@@ -122,8 +129,9 @@ public class LineToolStrategy implements ToolStrategy {
         }
         previewFxShape = null;
         previewDecorator = null;
-        currentModelMyShape = null;
-        // Reset coordinates if desired, though handlePressed usually re-initializes them
-        startX = 0; startY = 0; endX = 0; endY = 0;
+        startX = 0;
+        startY = 0;
+        endX = 0;
+        endY = 0;
     }
 }

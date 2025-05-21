@@ -60,13 +60,26 @@ public class MyRectangle implements MyShape {
         return Math.abs(endY - startY);
     }
 
+    @Override
     public MyColor getBorderColor() {
         return borderMyColor;
     }
 
+    @Override
     public MyColor getFillColor() {
         return fillMyColor;
     }
+
+    @Override
+    public void setBorderColor(MyColor borderColor) {
+        this.borderMyColor = borderColor;
+    }
+
+    @Override
+    public void setFillColor(MyColor fillColor) {
+        this.fillMyColor = fillColor;
+    }
+
 
 
 }

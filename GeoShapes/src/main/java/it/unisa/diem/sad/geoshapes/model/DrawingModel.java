@@ -1,6 +1,7 @@
 package it.unisa.diem.sad.geoshapes.model;
 
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
+import it.unisa.diem.sad.geoshapes.model.util.MyColor;
 import it.unisa.diem.sad.geoshapes.observer.ShapeObserver;
 import it.unisa.diem.sad.geoshapes.observer.ShapeSubject;
 
@@ -28,16 +29,20 @@ public class DrawingModel implements ShapeSubject {
         notifyObservers("DELETE", myShape);
     }
 
-    /*
-    public modifyShape(MyShape myShape){
-
-        //notifyObservers("MODIFY", myShape);
+    public void changeBorderColor(MyShape shape, MyColor newColor) {
+        shape.setBorderColor(newColor);
+        notifyObservers("MODIFYBORDERCOLOR", shape);
     }
-    */
+
+    public void changeFillColor(MyShape shape, MyColor newColor) {
+        shape.setFillColor(newColor);
+        notifyObservers("MODIFYFILLCOLOR", shape);
+    }
+
 
     public void clearShapes() {
         shapes.clear();
-        notifyObservers("CLEAR_ALL", null);
+        notifyObservers("CLEARALL", null);
     }
 
     public List<MyShape> getShapes() {

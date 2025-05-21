@@ -23,6 +23,7 @@ public class EllipseAdapter implements ShapeAdapter {
         );
         fxEllipse.setStroke(convertToJavaFxColor(modelEllipse.getBorderColor()));
         fxEllipse.setFill(convertToJavaFxColor(modelEllipse.getFillColor()));
+        fxEllipse.setStrokeWidth(2.0);
 
         return fxEllipse;
     }

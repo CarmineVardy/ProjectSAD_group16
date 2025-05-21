@@ -23,6 +23,7 @@ public class LineAdapter implements ShapeAdapter {
                 modelLine.getEndY() * height
         );
         fxLine.setStroke(convertToJavaFxColor(modelLine.getBorderColor()));
+        fxLine.setStrokeWidth(2.0);
 
         return fxLine;
 

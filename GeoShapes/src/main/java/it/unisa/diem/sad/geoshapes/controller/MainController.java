@@ -4,10 +4,7 @@ import it.unisa.diem.sad.geoshapes.adapter.EllipseAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.LineAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.RectangleAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.ShapeAdapter;
-import it.unisa.diem.sad.geoshapes.controller.command.Command;
-import it.unisa.diem.sad.geoshapes.controller.command.CreateShapeCommand;
-import it.unisa.diem.sad.geoshapes.controller.command.DeleteShapeCommand;
-import it.unisa.diem.sad.geoshapes.controller.strategy.*;
+import it.unisa.diem.sad.geoshapes.controller.command.*;
 import it.unisa.diem.sad.geoshapes.controller.strategy.*;
 import it.unisa.diem.sad.geoshapes.controller.util.UIUtils;
 import it.unisa.diem.sad.geoshapes.model.DrawingModel;
@@ -15,16 +12,16 @@ import it.unisa.diem.sad.geoshapes.model.shapes.MyEllipse;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyLine;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyRectangle;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
+import it.unisa.diem.sad.geoshapes.model.util.MyColor;
 import it.unisa.diem.sad.geoshapes.observer.ShapeObserver;
 import it.unisa.diem.sad.geoshapes.perstistence.PersistenceService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
-import javafx.scene.input.MouseButton;
+import javafx.geometry.Point2D;
+import javafx.scene.Node;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -32,13 +29,12 @@ import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 
-public class MainController implements ShapeObserver {
+public class MainController implements ShapeObserver, InteractionCallback {
 
     @FXML
     private MenuItem menuItemLoad;
@@ -77,7 +73,11 @@ public class MainController implements ShapeObserver {
     private Map<ToggleButton, ToolStrategy> toolStrategies;
 
     //Pattern Adapter
-    private ShapeAdapter adapter;
+    private ShapeAdapter currentAdapter;
+    private Map<Class<? extends MyShape>, ShapeAdapter> shapeAdapters;
+
+    //Pattern Command
+    private CommandInvoker commandInvoker;
 
     //Service for Load and Save
     private PersistenceService persistenceService;
@@ -95,10 +95,14 @@ public class MainController implements ShapeObserver {
         //Initialize Mapping, PersistenceService and UIUtils
         shapeMapping = new ShapeMapping();
         persistenceService = new PersistenceService();
+        commandInvoker = new CommandInvoker();
         uiUtils = new UIUtils(); // Instantiate UIUtils
 
-        setupDefaultUIState();
         setupPanel();
+        setupDefaultUIState();
+
+        initializeShapeAdapters();
+
         initializeToolStrategies();
         setupToolListeners();
     }
@@ -107,7 +111,7 @@ public class MainController implements ShapeObserver {
         selectionButton.setSelected(true); // Set selection tool as default
         borderColorPicker.setValue(Color.BLACK);
         fillColorPicker.setValue(Color.TRANSPARENT);
-        uiUtils.setupSelectionContextMenu(); // Setup context menu for selection tool
+        uiUtils.setupSelectionContextMenu(); // Initialize context menu for selection tool
     }
 
     private void setupPanel() {
@@ -121,156 +125,194 @@ public class MainController implements ShapeObserver {
 
     private void initializeToolStrategies() {
         toolStrategies = new HashMap<>();
-        toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea, shapeMapping));
-        toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, borderColorPicker, fillColorPicker));
-        toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, borderColorPicker, fillColorPicker));
-        toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, borderColorPicker, fillColorPicker));
+        toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea, shapeMapping, this));
+        toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, borderColorPicker, fillColorPicker, this));
+        toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, borderColorPicker, fillColorPicker, this));
+        toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, borderColorPicker, fillColorPicker, this));
     }
 
     private void setupToolListeners() {
         toolToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
-            uiUtils.hideSelectionShapeMenu();
+            if (currentStrategy != null)
+                currentStrategy.reset();
             currentStrategy = toolStrategies.get((ToggleButton) newValue);
         });
     }
 
-    private void rebuildShapes() {
-        MyShape previouslySelectedModel = null;
-        SelectionToolStrategy selectionStrategy = null;
+    private void initializeShapeAdapters() {
+        shapeAdapters = new HashMap<>();
+        shapeAdapters.put(MyLine.class, new LineAdapter());
+        shapeAdapters.put(MyRectangle.class, new RectangleAdapter());
+        shapeAdapters.put(MyEllipse.class, new EllipseAdapter());
+    }
 
-        if (currentStrategy instanceof SelectionToolStrategy) {
-            selectionStrategy = (SelectionToolStrategy) currentStrategy;
-            previouslySelectedModel = selectionStrategy.getSelectedModelShape();
-            // The strategy's own fxShape reference will become stale.
-            // We will call updateSelectedFxShape after new shapes are created.
-            // For now, don't remove decoration, as it might flicker.
-            // The updateSelectedFxShape will handle new decoration.
+    private void setAdapter(MyShape shape) {
+        if (shape == null) {
+            currentAdapter = null;
+            return;
         }
+        currentAdapter = shapeAdapters.get(shape.getClass());
+    }
 
+    private void rebuildShapes() {
+        if (currentStrategy != null)
+            currentStrategy.reset();
         drawingArea.getChildren().clear();
-        shapeMapping.clear(); // Clear old mappings
-
-        for (MyShape shape : model.getShapes()) {
-            setAdapter(shape);
-            if (adapter != null) {
-                Shape fxShape = adapter.getFxShape(shape, drawingArea.getWidth(), drawingArea.getHeight());
+        for (MyShape modelShape : shapeMapping.getAllModelShapes()) {
+            setAdapter(modelShape);
+            if (currentAdapter != null) {
+                Shape fxShape = currentAdapter.getFxShape(modelShape, drawingArea.getWidth(), drawingArea.getHeight());
+                shapeMapping.updateViewMapping(modelShape, fxShape);
                 drawingArea.getChildren().add(fxShape);
-                shapeMapping.register(shape, fxShape); // Register new mapping
-
-                if (selectionStrategy != null && shape == previouslySelectedModel) {
-                    // If this shape was the one selected, tell the strategy to update its fxShape and re-apply decorator
-                    selectionStrategy.updateSelectedFxShape(fxShape);
-                }
             }
         }
-
-        // If the previously selected model shape no longer exists or has no view, ensure selection is fully reset
-        if (selectionStrategy != null && previouslySelectedModel != null && shapeMapping.getViewShape(previouslySelectedModel) == null) {
-            selectionStrategy.resetSelection();
-        } else if (selectionStrategy != null && previouslySelectedModel == null && selectionStrategy.getSelectedModelShape() != null) {
-            // If nothing was supposed to be selected but strategy still thinks something is
-            selectionStrategy.resetSelection();
-        }
     }
-
-
-
-
-
-
-    // This method will be called by the context menu's delete action
-    private void deleteSelectedShape(MyShape shapeToDelete) {
-        if (shapeToDelete != null) {
-            Command deleteCommand = new DeleteShapeCommand(model, shapeToDelete);
-            deleteCommand.execute();
-            // The update method (observer) will handle UI changes and deselecting if necessary
-        }
-    }
-
 
     @FXML
     private void handleMousePressed(MouseEvent event) {
-        if (uiUtils.isSelectionShapeMenuShowing()) {
-            uiUtils.hideSelectionShapeMenu(); // Hide if already visible and user clicks elsewhere
-        }
-
         if (currentStrategy != null) {
-            currentStrategy.handlePressed(event); // Strategy updates its internal selection state
-        }
-
-
-        // Controller decides if a context menu should be shown based on strategy's state
-        if (event.getButton() == MouseButton.SECONDARY && currentStrategy instanceof SelectionToolStrategy) {
-            SelectionToolStrategy selectionStrategy = (SelectionToolStrategy) currentStrategy;
-            MyShape currentSelectedModel = selectionStrategy.getSelectedModelShape();
-            Shape currentSelectedFx = selectionStrategy.getSelectedJavaFxShape();
-
-            // Show menu if a shape is selected AND the right-click was on that selected shape
-            if (currentSelectedModel != null && currentSelectedFx != null && currentSelectedFx.contains(event.getX(), event.getY())) {
-                uiUtils.showSelectionShapeMenu(drawingArea, event.getScreenX(), event.getScreenY(), currentSelectedModel, this::deleteSelectedShape);
-            }
-            // If right-click was on empty space or a *different* shape, the strategy handles selection changes.
-            // The controller doesn't need to deselect here; the strategy did it.
+            currentStrategy.handlePressed(event);
         }
     }
 
     @FXML
     private void handleMouseDragged(MouseEvent event) {
-        // Do not allow dragging if context menu is active
-        if (currentStrategy != null && !uiUtils.isSelectionShapeMenuShowing()) {
+        if (currentStrategy != null) {
             currentStrategy.handleDragged(event);
         }
     }
 
     @FXML
     private void handleMouseReleased(MouseEvent event) {
-        if (currentStrategy != null && !uiUtils.isSelectionShapeMenuShowing()) {
+        if (currentStrategy != null) {
             currentStrategy.handleReleased(event);
+        }
+    }
 
-            // In MainController.java
-// ... within handleMouseReleased method ...
-            if (!(currentStrategy instanceof SelectionToolStrategy)) {
-                MyShape newShape = currentStrategy.getFinalShape(); // This now consumes the shape from strategy
-                if (newShape != null) {
-                    Command command = new CreateShapeCommand(model, newShape);
-                    command.execute();
-                    // The reset is now called regardless of whether a shape was created,
-                    // as getFinalShape() returning null implies the strategy should reset.
-                    // The strategies themselves handle their internal state for getFinalShape().
-                }
-                // Always reset the drawing strategy after a draw attempt (release)
-                // to clear its state (preview, coordinates, etc.)
-                if (currentStrategy instanceof LineToolStrategy) {
-                    ((LineToolStrategy) currentStrategy).reset();
-                } else if (currentStrategy instanceof RectangleToolStrategy) {
-                    ((RectangleToolStrategy) currentStrategy).reset();
-                } else if (currentStrategy instanceof EllipseToolStrategy) {
-                    ((EllipseToolStrategy) currentStrategy).reset();
+
+    @Override
+    public void onCreateShape(MyShape shape) {
+        Command createCommand = new CreateShapeCommand(model, shape);
+        commandInvoker.setCommand(createCommand);
+        commandInvoker.executeCommand();
+        currentStrategy.reset();
+    }
+
+    @Override
+    public void onDeleteShape(MyShape shape) {
+        Command deleteCommand = new DeleteShapeCommand(model, shape);
+        commandInvoker.setCommand(deleteCommand);
+        commandInvoker.executeCommand();
+        currentStrategy.reset();
+    }
+
+    @Override
+    public void onChangeBorderColor(MyShape shape, Color color) {
+        MyColor myColor = new MyColor(color.getRed(), color.getGreen(), color.getBlue(), color.getOpacity());
+        Command changeBorderColorCommand = new ChangeBorderColorCommand(model, shape, myColor);
+        commandInvoker.setCommand(changeBorderColorCommand);
+        commandInvoker.executeCommand();
+    }
+
+    @Override
+    public void onChangeFillColor(MyShape shape, Color color) {
+        MyColor myColor = new MyColor(color.getRed(), color.getGreen(), color.getBlue(), color.getOpacity());
+        Command changeFillColorCommand = new ChangeFillColorCommand(model, shape, myColor);
+        commandInvoker.setCommand(changeFillColorCommand);
+        commandInvoker.executeCommand();
+    }
+
+
+    @Override
+    public void onSelectionMenuOpened(Shape viewShape, MyShape modelShape, double x, double y) {
+        if (modelShape == null) {
+            return;
+        }
+        if (modelShape instanceof MyLine || viewShape instanceof javafx.scene.shape.Line) {
+            uiUtils.setSelectMenuItemVisibleByLabel("Fill Color:", false);
+        } else
+            uiUtils.setSelectMenuItemVisibleByLabel("Fill Color:", true);
+        ContextMenu selectionShapeMenu = uiUtils.getSelectionShapeMenu();
+        initializeMenuItems(selectionShapeMenu, modelShape);
+        initializeColorPickers(selectionShapeMenu, viewShape, modelShape);
+        showMenuAtPosition(selectionShapeMenu, viewShape, x, y);
+    }
+
+    private void initializeMenuItems(ContextMenu menu, MyShape modelShape) {
+        for (MenuItem item : menu.getItems()) {
+            if ("Delete".equals(item.getText())) {
+                item.setOnAction(event -> {
+                    onDeleteShape(modelShape);
+                    currentStrategy.reset();
+                });
+            }
+        }
+    }
+
+    private void initializeColorPickers(ContextMenu menu, Shape viewShape, MyShape modelShape) {
+        for (MenuItem item : menu.getItems()) {
+            if (!(item instanceof CustomMenuItem)) {
+                continue;
+            }
+            CustomMenuItem customItem = (CustomMenuItem) item;
+            if (!(customItem.getContent() instanceof HBox)) {
+                continue;
+            }
+            HBox hbox = (HBox) customItem.getContent();
+            Label label = null;
+            ColorPicker colorPicker = null;
+            for (Node node : hbox.getChildren()) {
+                if (node instanceof Label) {
+                    label = (Label) node;
+                } else if (node instanceof ColorPicker) {
+                    colorPicker = (ColorPicker) node;
                 }
             }
+            if (label == null || colorPicker == null) {
+                continue;
+            }
+            final ColorPicker finalColorPicker = colorPicker;
+            if (label.getText().contains("Border Color")) {
+                finalColorPicker.setValue((Color) currentAdapter.convertToJavaFxColor(modelShape.getBorderColor()));
 
+                finalColorPicker.setOnAction(event ->
+                        onChangeBorderColor(modelShape, finalColorPicker.getValue())
+                );
+            } else if (label.getText().contains("Fill Color")) {
+                finalColorPicker.setValue((Color) currentAdapter.convertToJavaFxColor(modelShape.getFillColor()));
+
+                finalColorPicker.setOnAction(event ->
+                        onChangeFillColor(modelShape, finalColorPicker.getValue())
+                );
+            }
         }
     }
 
-    private void setAdapter(MyShape shape) {
-        if (shape instanceof MyLine) {
-            adapter = new LineAdapter();
-        } else if (shape instanceof MyRectangle) {
-            adapter = new RectangleAdapter();
-        } else if (shape instanceof MyEllipse) {
-            adapter = new EllipseAdapter();
+    private void showMenuAtPosition(ContextMenu menu, Shape viewShape, double x, double y) {
+        Point2D screenPoint = viewShape.localToScreen(x, y);
+        if (screenPoint != null) {
+            menu.show(viewShape, screenPoint.getX(), screenPoint.getY());
         } else {
-            adapter = null;
+            menu.show(viewShape, x, y);
         }
     }
+
+
+    @Override
+    public void onSelectionMenuClosed() {
+        if (uiUtils.getSelectionShapeMenu() != null && uiUtils.isSelectionShapeMenuShowing()) {
+            uiUtils.getSelectionShapeMenu().hide();
+        }
+    }
+
 
     @Override
     public void update(String eventType, MyShape shape) {
         switch (eventType) {
             case "CREATE":
                 setAdapter(shape);
-                if (adapter != null) {
-                    Shape fxShape = adapter.getFxShape(shape, drawingArea.getWidth(), drawingArea.getHeight());
+                if (currentAdapter != null) {
+                    Shape fxShape = currentAdapter.getFxShape(shape, drawingArea.getWidth(), drawingArea.getHeight());
                     drawingArea.getChildren().add(fxShape);
                     shapeMapping.register(shape, fxShape);
                 }
@@ -281,81 +323,46 @@ public class MainController implements ShapeObserver {
                     drawingArea.getChildren().remove(fxShapeToRemove);
                     shapeMapping.unregister(shape);
                 }
-                // If the deleted shape was selected, tell the selection strategy to reset
-                if (currentStrategy instanceof SelectionToolStrategy) {
-                    SelectionToolStrategy selectionStrategy = (SelectionToolStrategy) currentStrategy;
-                    if (selectionStrategy.getSelectedModelShape() == shape) {
-                        selectionStrategy.resetSelection();
-                    }
-                }
-                uiUtils.hideSelectionShapeMenu(); // Hide menu if it was for the deleted shape
                 break;
-            case "MODIFY":
-                // Find the old JavaFX shape, remove it
-                Shape oldFxShape = shapeMapping.getViewShape(shape);
-                if (oldFxShape != null) {
-                    drawingArea.getChildren().remove(oldFxShape);
-                }
-                // Create new JavaFX shape with modified properties
-                setAdapter(shape);
-                if (adapter != null) {
-                    Shape newFxShape = adapter.getFxShape(shape, drawingArea.getWidth(), drawingArea.getHeight());
-                    drawingArea.getChildren().add(newFxShape);
-                    shapeMapping.register(shape, newFxShape); // Re-register with new FxShape
-
-                    // If the modified shape was selected, update the selection strategy's FxShape reference
-                    if (currentStrategy instanceof SelectionToolStrategy) {
-                        SelectionToolStrategy selectionStrategy = (SelectionToolStrategy) currentStrategy;
-                        if (selectionStrategy.getSelectedModelShape() == shape) {
-                            selectionStrategy.updateSelectedFxShape(newFxShape);
-                        }
-                    }
-                }
+            case "MODIFYBORDERCOLOR":
+                currentStrategy.reset();
+                shapeMapping.getViewShape(shape).setStroke(currentAdapter.convertToJavaFxColor(shape.getBorderColor()));
                 break;
-            // Potentially other events like "CLEAR_ALL"
+            case "MODIFYFILLCOLOR":
+                currentStrategy.reset();
+                shapeMapping.getViewShape(shape).setFill(currentAdapter.convertToJavaFxColor(shape.getFillColor()));
+                break;
+            case "CLEARALL":
+                drawingArea.getChildren().clear(); // Clear UI
+                shapeMapping.clear(); // Clear Mapping
+                break;
         }
     }
 
 
+
     @FXML
     public void handleLoad(ActionEvent actionEvent) {
-        File initialDir = persistenceService.getCurrentFile() != null ? persistenceService.getCurrentFile().getParentFile() : null;
-        FileChooser fileChooser = uiUtils.createFileChooser("Open Drawing", null, initialDir);
+        FileChooser fileChooser = uiUtils.createFileChooser("Open Drawing", null, persistenceService.getDirectoryName());
         File file = fileChooser.showOpenDialog(drawingArea.getScene().getWindow());
-
         if (file != null) {
             boolean proceed = uiUtils.showConfirmDialog("Confirm Load", "Load New Drawing", "Loading a new drawing will discard any unsaved changes. Continue?");
             if (proceed) {
                 try {
                     List<MyShape> loadedShapes = persistenceService.loadDrawing(file);
-                    model.clearShapes(); // This should trigger observer updates or be handled carefully
-
-                    // Before clearing UI, ensure selection is reset if selection tool is active
-                    if (currentStrategy instanceof SelectionToolStrategy) {
-                        ((SelectionToolStrategy) currentStrategy).resetSelection();
-                    }
-                    drawingArea.getChildren().clear(); // Clear UI
-                    shapeMapping.clear();          // Clear mappings
-
+                    model.clearShapes(); //Clear Model
+                    currentStrategy.reset(); //Reset Strategy
                     for (MyShape shape : loadedShapes) {
-                        // Use model to add shapes, which will trigger 'CREATE' in observer
-                        model.addShape(shape); // Add a method to model for this to avoid command overhead for loading
-                        // or just call update("CREATE", shape) if model.addShape triggers it.
-                        // For simplicity, assuming model.addShape (or similar) will notify observers.
+                        model.addShape(shape);
                     }
-                    model.notifyObservers("RELOAD_COMPLETE", null); // Or let individual adds notify
-                    rebuildShapes(); // Or rely on individual "CREATE" notifications from model
-
-                    persistenceService.setCurrentFile(file);
                     uiUtils.showSuccessDialog("Load Successful", "Drawing loaded from " + file.getName());
-                } catch (IOException | ClassNotFoundException e) {
+                } catch (Exception e) {
                     uiUtils.showErrorDialog("Load Error", "Could not load drawing: " + e.getMessage());
                     e.printStackTrace();
                 }
             }
         }
     }
-
 
     @FXML
     public void handleSave(ActionEvent actionEvent) {
@@ -365,7 +372,7 @@ public class MainController implements ShapeObserver {
             try {
                 persistenceService.saveDrawing(model.getShapes(), persistenceService.getCurrentFile());
                 uiUtils.showSuccessDialog("Save Successful", "Drawing updated in " + persistenceService.getCurrentFile().getName());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 uiUtils.showErrorDialog("Save Error", "Could not save drawing: " + e.getMessage());
                 e.printStackTrace();
             }
@@ -374,16 +381,8 @@ public class MainController implements ShapeObserver {
 
     @FXML
     public void handleSaveAs(ActionEvent actionEvent) {
-        String suggestedFileName = "myDrawing.geoshapes";
-        File initialDirectory = null;
-        if (persistenceService.getCurrentFile() != null) {
-            suggestedFileName = persistenceService.getCurrentFile().getName();
-            initialDirectory = persistenceService.getCurrentFile().getParentFile();
-        }
-
-        FileChooser fileChooser = uiUtils.createFileChooser("Save Drawing As...", suggestedFileName, initialDirectory);
+        FileChooser fileChooser = uiUtils.createFileChooser("Save Drawing As...", persistenceService.getFileName() != null ? persistenceService.getFileName() : "myDrawing.geoshapes", persistenceService.getDirectoryName());
         File file = fileChooser.showSaveDialog(drawingArea.getScene().getWindow());
-
         if (file != null) {
             String filePath = file.getAbsolutePath();
             if (!filePath.toLowerCase().endsWith(".geoshapes")) {
@@ -391,12 +390,13 @@ public class MainController implements ShapeObserver {
             }
             try {
                 persistenceService.saveDrawing(model.getShapes(), file);
-                persistenceService.setCurrentFile(file);
                 uiUtils.showSuccessDialog("Save Successful", "Drawing saved to " + file.getName());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 uiUtils.showErrorDialog("Save Error", "Could not save drawing: " + e.getMessage());
                 e.printStackTrace();
             }
         }
     }
+
+
 }

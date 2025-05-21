@@ -61,12 +61,24 @@ public class MyEllipse implements MyShape {
         return Math.abs(endY - startY) / 2;
     }
 
+    @Override
     public MyColor getBorderColor() {
         return borderColor;
     }
 
+    @Override
     public MyColor getFillColor() {
         return fillColor;
+    }
+
+    @Override
+    public void setBorderColor(MyColor borderColor) {
+        this.borderColor = borderColor;
+    }
+
+    @Override
+    public void setFillColor(MyColor fillColor) {
+        this.fillColor = fillColor;
     }
 
 }

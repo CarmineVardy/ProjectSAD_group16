@@ -27,14 +27,15 @@ public class PersistenceService {
         this.currentFile = currentFile;
     }
 
-    public void saveDrawing(List<MyShape> shapes, File file) throws IOException {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
-            oos.writeObject(shapes);
-        }
+    public File getDirectoryName() {
+        return currentFile != null ? currentFile.getParentFile() : null;
+    }
+
+    public String getFileName() {
+        return currentFile != null ? currentFile.getName() : null;
     }
 
     public List<MyShape> loadDrawing(File file) throws IOException, ClassNotFoundException {
-        this.currentFile = file;
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             Object data = ois.readObject();
             if (!(data instanceof List<?>)) {
@@ -52,7 +53,18 @@ public class PersistenceService {
                     throw new IOException("File contains non-MyShape data in the list.");
                 }
             }
+            this.currentFile = file;
             return shapeList;
         }
     }
+
+    public void saveDrawing(List<MyShape> shapes, File file) throws IOException {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+            oos.writeObject(shapes);
+            this.currentFile = file;
+        }
+    }
+
+
+
 }

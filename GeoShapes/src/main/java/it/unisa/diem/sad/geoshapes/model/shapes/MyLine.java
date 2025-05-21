@@ -36,8 +36,23 @@ public class MyLine implements MyShape {
         return endY;
     }
 
+    @Override
     public MyColor getBorderColor() {
         return borderColor;
+    }
+
+    @Override
+    public MyColor getFillColor() {
+        return null;
+    }
+
+    @Override
+    public void setBorderColor(MyColor borderColor) {
+        this.borderColor = borderColor;
+    }
+
+    @Override
+    public void setFillColor(MyColor color) {
     }
 
     @Override

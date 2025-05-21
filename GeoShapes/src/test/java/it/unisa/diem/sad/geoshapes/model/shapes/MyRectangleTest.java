@@ -1,38 +1,32 @@
 package it.unisa.diem.sad.geoshapes.model.shapes;
 
-import it.unisa.diem.sad.geoshapes.model.DrawingModel;
-import it.unisa.diem.sad.geoshapes.model.factory.RectangleFactory;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyRectangle;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
+import it.unisa.diem.sad.geoshapes.model.util.MyColor;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class MyRectangleTest {
 
-    @Test
-    public void testRectangleCreation() {
-        RectangleFactory factory = new RectangleFactory();
-        MyShape shape = factory.createShape(10, 20, 30, 40, null, null);
+    @Test   //verifica che i colori passati al costruttore siano memorizzati correttamente
+    public void testColorChangePersists() {
+        MyColor border = new MyColor(1.0, 0.0, 0.0); // Rosso
+        MyColor fill = new MyColor(0.0, 0.0, 1.0);   // Blu
 
-        assertNotNull(shape, "ERROR: shape must not be null!");
-        assertInstanceOf(MyRectangle.class, shape, "Shape should be an instance of Rectangle");
+        MyRectangle rect = new MyRectangle(10, 10, 100, 100, border, fill);
 
-        MyRectangle rectangle = (MyRectangle) shape;
-        assertEquals(10, rectangle.getStartX(), "Incorrect StartX");
-        assertEquals(20, rectangle.getStartY(), "Incorrect StartY");
-        assertEquals(30, rectangle.getEndX(), "Incorrect EndX");
-        assertEquals(40, rectangle.getEndY(), "Incorrect EndY");
+        assertEquals(border, rect.getBorderColor(), "Border color must match the assigned red");
+        assertEquals(fill, rect.getFillColor(), "Fill color must match the assigned blue");
     }
 
     @Test
-    public void testRectangleAddedToModel() {
-        DrawingModel model = new DrawingModel();
-        MyRectangle rectangle = new MyRectangle(5, 5, 100, 100, null, null);
+    public void testSetEndPointChangesSize() {
+        MyRectangle rect = new MyRectangle(0, 0, 50, 50,
+                new MyColor(0.0, 0.0, 0.0), new MyColor(1.0, 1.0, 1.0));
 
-        model.addShape(rectangle);
+        //cambio le coordinate endX e endY
+        rect.setEndPoint(100, 80);
 
-        assertEquals(1, model.getShapes().size(), "Model must contain 1 shape!");
-        assertSame(rectangle, model.getShapes().get(0), "Model's shape is not equal to the same added line!");
+        assertEquals(100, rect.getEndX(), 0.001);
+        assertEquals(80, rect.getEndY(), 0.001);
     }
 }

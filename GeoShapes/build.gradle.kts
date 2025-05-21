@@ -6,7 +6,7 @@ plugins {
     id("org.beryx.jlink") version "2.25.0"
 }
 
-group = "com.example"
+group = "it.unisa.diem.sad"
 version = "1.0-SNAPSHOT"
 
 repositories {

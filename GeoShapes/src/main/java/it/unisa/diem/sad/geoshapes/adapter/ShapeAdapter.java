@@ -11,6 +11,9 @@ public interface ShapeAdapter {
     Shape getFxShape(MyShape modelShape, double width, double height);
 
     default Color convertToJavaFxColor(MyColor modelColor) {
+        if (modelColor == null) {
+            return Color.BLACK;
+        }
         return new Color(
                 modelColor.getRed(),
                 modelColor.getGreen(),
@@ -18,4 +21,5 @@ public interface ShapeAdapter {
                 modelColor.getOpacity()
         );
     }
+
 }
