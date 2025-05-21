@@ -83,4 +83,14 @@ public class MyEllipseTest {
         assertEquals(borderColor, ellipse.getBorderColor(), "Border color should persist");
         assertEquals(fillColor, ellipse.getFillColor(), "Fill color should persist");
     }
+
+    @Test
+    public void testTransparentFillColor() {
+        MyColor border = new MyColor(0.0, 0.0, 0.0, 1.0);         // Nero opaco
+        MyColor transparentFill = new MyColor(1.0, 0.0, 0.0, 0.0); // Trasparente
+
+        MyEllipse elli = new MyEllipse(0, 0, 50, 50, border, transparentFill);
+
+        assertEquals(transparentFill, elli.getFillColor(), "The transparent fill color must be stored correctly");
+    }
 }
