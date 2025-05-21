@@ -1,4 +1,4 @@
-module com.example.geoshapes {
+module it.unisa.diem.sad.geoshapes {
     requires javafx.controls;
     requires javafx.fxml;
 
@@ -9,8 +9,8 @@ module com.example.geoshapes {
     requires org.kordamp.ikonli.bootstrapicons;
     requires javafx.graphics;
 
-    opens com.example.geoshapes to javafx.fxml;
-    exports com.example.geoshapes;
-    exports com.example.geoshapes.controller;
-    opens com.example.geoshapes.controller to javafx.fxml;
+    opens it.unisa.diem.sad.geoshapes to javafx.fxml;
+    exports it.unisa.diem.sad.geoshapes;
+    exports it.unisa.diem.sad.geoshapes.controller;
+    opens it.unisa.diem.sad.geoshapes.controller to javafx.fxml;
 }
