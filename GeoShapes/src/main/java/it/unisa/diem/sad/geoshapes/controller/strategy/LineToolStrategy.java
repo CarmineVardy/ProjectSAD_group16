@@ -119,6 +119,16 @@ public class LineToolStrategy implements ToolStrategy {
     }
 
     @Override
+    public void handleBorderColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleFillColorChange(Color color) {
+
+    }
+
+    @Override
     public void reset() {
         drawingArea.setCursor(Cursor.DEFAULT);
         if (previewFxShape != null) {
