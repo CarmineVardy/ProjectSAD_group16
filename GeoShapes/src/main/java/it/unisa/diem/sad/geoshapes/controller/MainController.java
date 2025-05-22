@@ -19,6 +19,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
@@ -89,6 +90,10 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private UIUtils uiUtils;
 
     private final BooleanProperty isLineSelectedProperty = new SimpleBooleanProperty(false);
+    @FXML
+    private HBox fillColorBox;
+    @FXML
+    private HBox borderColorBox;
 
 
     @FXML
@@ -209,22 +214,31 @@ public class MainController implements ShapeObserver, InteractionCallback {
     @FXML
     private void handleMousePressed(MouseEvent event) {
         if (currentStrategy != null) {
-            currentStrategy.handlePressed(event);
+            currentStrategy.handleMousePressed(event);
         }
     }
 
     @FXML
     private void handleMouseDragged(MouseEvent event) {
         if (currentStrategy != null) {
-            currentStrategy.handleDragged(event);
+            currentStrategy.handleMouseDragged(event);
         }
     }
 
     @FXML
     private void handleMouseReleased(MouseEvent event) {
         if (currentStrategy != null) {
-            currentStrategy.handleReleased(event);
+            currentStrategy.handleMouseReleased(event);
         }
+    }
+
+    @FXML
+    public void handleMouseMoved(MouseEvent event) {
+    if (currentStrategy != null){
+        currentStrategy.handleMouseMoved(event);
+    }
+
+
     }
 
 
@@ -435,6 +449,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
             }
         }
     }
+
 
 
 }

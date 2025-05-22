@@ -44,7 +44,7 @@ public class LineToolStrategy implements ToolStrategy {
     }
 
     @Override
-    public void handlePressed(MouseEvent event) {
+    public void handleMousePressed(MouseEvent event) {
         reset();
 
         drawingArea.setCursor(Cursor.CROSSHAIR);
@@ -66,7 +66,7 @@ public class LineToolStrategy implements ToolStrategy {
     }
 
     @Override
-    public void handleDragged(MouseEvent event) {
+    public void handleMouseDragged(MouseEvent event) {
         endX = event.getX();
         endY = event.getY();
         ((Line) previewFxShape).setEndX(endX);
@@ -74,7 +74,7 @@ public class LineToolStrategy implements ToolStrategy {
     }
 
     @Override
-    public void handleReleased(MouseEvent event) {
+    public void handleMouseReleased(MouseEvent event) {
         if (previewFxShape != null) {
             // Final coordinates
             endX = event.getX();
@@ -116,6 +116,11 @@ public class LineToolStrategy implements ToolStrategy {
 
             reset();
         }
+    }
+
+    @Override
+    public void handleMouseMoved(MouseEvent event) {
+
     }
 
     @Override

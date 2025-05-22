@@ -5,6 +5,7 @@ import it.unisa.diem.sad.geoshapes.controller.ShapeMapping;
 import it.unisa.diem.sad.geoshapes.decorator.SelectionDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
+import javafx.scene.Cursor;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -34,7 +35,7 @@ public class SelectionToolStrategy implements ToolStrategy {
     }
 
     @Override
-    public void handlePressed(MouseEvent event) {
+    public void handleMousePressed(MouseEvent event) {
         double x = event.getX();
         double y = event.getY();
 
@@ -44,9 +45,8 @@ public class SelectionToolStrategy implements ToolStrategy {
             reset();
             return;
         }
-
-
         callback.setLineSelected(shapeAtPosition instanceof Line);
+        drawingArea.setCursor(Cursor.HAND);
 
         if (shapeAtPosition != selectedJavaFxShape) {
             reset();
@@ -66,13 +66,18 @@ public class SelectionToolStrategy implements ToolStrategy {
 
 
     @Override
-    public void handleDragged(MouseEvent event) {
+    public void handleMouseDragged(MouseEvent event) {
         // Future drag functionality for moving/resizing selected shape
     }
 
     @Override
-    public void handleReleased(MouseEvent event) {
+    public void handleMouseReleased(MouseEvent event) {
         // Future release functionality
+    }
+
+    @Override
+    public void handleMouseMoved(MouseEvent event){
+
     }
 
     @Override
