@@ -5,16 +5,15 @@ import it.unisa.diem.sad.geoshapes.controller.command.*;
 import it.unisa.diem.sad.geoshapes.controller.strategy.*;
 import it.unisa.diem.sad.geoshapes.controller.util.UIUtils;
 import it.unisa.diem.sad.geoshapes.model.DrawingModel;
+import it.unisa.diem.sad.geoshapes.model.shapes.MyEllipse;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyLine;
+import it.unisa.diem.sad.geoshapes.model.shapes.MyRectangle;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
-import it.unisa.diem.sad.geoshapes.model.MyColor;
 import it.unisa.diem.sad.geoshapes.observer.ShapeObserver;
 import it.unisa.diem.sad.geoshapes.perstistence.PersistenceService;
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -218,22 +217,22 @@ public class MainController implements ShapeObserver, InteractionCallback {
     }
 
     @Override
-    public void onChangeBorderColor(Shape shape, Color color) {
-        Command changeBorderColorCommand = new ChangeBorderColorCommand(model, shapeMapping.getModelShape(shape), adapterFactory.convertToModelColor(color));
+    public void onChangeBorderColor(MyShape shape, Color color) {
+       /* Command changeBorderColorCommand = new ChangeBorderColorCommand(model, shapeMapping.getModelShape(shape), adapterFactory.convertToModelColor(color));
         commandInvoker.setCommand(changeBorderColorCommand);
-        commandInvoker.executeCommand();
+        commandInvoker.executeCommand();*/
     }
 
     @Override
-    public void onChangeFillColor(Shape shape, Color color) {
-        Command changeFillColorCommand = new ChangeFillColorCommand(model, shapeMapping.getModelShape(shape), adapterFactory.convertToModelColor(color));
+    public void onChangeFillColor(MyShape shape, Color color) {
+       /* Command changeFillColorCommand = new ChangeFillColorCommand(model, shapeMapping.getModelShape(shape), adapterFactory.convertToModelColor(color));
         commandInvoker.setCommand(changeFillColorCommand);
-        commandInvoker.executeCommand();
+        commandInvoker.executeCommand();*/
     }
 
 
     @Override
-    public void onSelectionMenuOpened(Shape viewShape, double x, double y) {
+    public void onSelectionMenuOpened(Shape viewShape, MyShape selectedModelShape, double x, double y) {
         MyShape modelShape = shapeMapping.getModelShape(viewShape);
         if (modelShape == null) return;
 
@@ -284,16 +283,19 @@ public class MainController implements ShapeObserver, InteractionCallback {
     }
 
     @Override
-    public void onResizeShape(Shape shape) {
-
+    public void onResizeShape(Shape fxShape, Bounds initialFxBounds, Bounds finalFxBounds) {
+        MyShape modelShape = adapterFactory.convertToModel(fxShape, drawingArea.getWidth(), drawingArea.getHeight());
+        Command resizeCommand = new ResizeShapeCommand(model, modelShape, fxShape, initialFxBounds, finalFxBounds);
+        commandInvoker.setCommand(resizeCommand);
+        commandInvoker.executeCommand();
     }
-
     public void onSelectionMenuClosed() {
         ContextMenu menu = uiUtils.getSelectionShapeMenu();
         if (menu != null && menu.isShowing()) {
             menu.hide();
         }
     }
+
 
 
 
@@ -319,8 +321,17 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 shapeMapping.getViewShape(shape).setFill(adapterFactory.convertToJavaFxColor(shape.getFillColor()));
                 break;
             case "CLEARALL":
-                drawingArea.getChildren().clear(); // Clear UI
-                shapeMapping.clear(); // Clear Mapping
+                drawingArea.getChildren().clear();
+                shapeMapping.clear();
+                break;
+            case "MODIFY_SHAPE_PROPERTIES":
+                Shape fxShapeToUpdate = shapeMapping.getViewShape(shape);
+                if (fxShapeToUpdate != null) {
+                    adapterFactory.updateFxShape(shape, fxShapeToUpdate);
+                    if (currentStrategy instanceof SelectionToolStrategy selectionStrategy) {
+                        selectionStrategy.reset();
+                    }
+                }
                 break;
         }
     }

@@ -22,7 +22,6 @@ public class RectangleAdapter implements ShapeAdapter {
         }
         MyRectangle modelRectangle = (MyRectangle) modelShape;
 
-        // Calcola posizione e dimensioni da startX, startY, endX, endY
         double x = Math.min(modelRectangle.getStartX(), modelRectangle.getEndX()) * width;
         double y = Math.min(modelRectangle.getStartY(), modelRectangle.getEndY()) * height;
         double rectWidth = Math.abs(modelRectangle.getEndX() - modelRectangle.getStartX()) * width;
@@ -33,5 +32,18 @@ public class RectangleAdapter implements ShapeAdapter {
         fxRectangle.setFill(convertToJavaFxColor(modelRectangle.getFillColor()));
         fxRectangle.setStrokeWidth(2.0);
         return fxRectangle;
+    }
+
+    @Override
+    public void updateFxShape(MyShape modelShape, Shape fxShape) {
+        if (!(modelShape instanceof MyRectangle myRect) || !(fxShape instanceof Rectangle fxRect)) {
+            throw new IllegalArgumentException("Type mismatch for RectangleAdapter update.");
+        }
+        fxRect.setX(myRect.getX());
+        fxRect.setY(myRect.getY());
+        fxRect.setWidth(myRect.getWidth());
+        fxRect.setHeight(myRect.getHeight());
+        fxRect.setStroke(convertToJavaFxColor(myRect.getBorderColor())); // Aggiorna anche i colori se necessario
+        fxRect.setFill(convertToJavaFxColor(myRect.getFillColor()));     // Potresti volerli aggiornare solo per CHANGECOLOR
     }
 }

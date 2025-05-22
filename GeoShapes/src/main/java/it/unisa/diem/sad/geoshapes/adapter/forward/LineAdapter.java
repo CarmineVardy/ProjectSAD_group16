@@ -31,4 +31,16 @@ public class LineAdapter implements ShapeAdapter {
         fxLine.setStrokeWidth(2.0);
         return fxLine;
     }
+
+    @Override
+    public void updateFxShape(MyShape modelShape, Shape fxShape) {
+        if (!(modelShape instanceof MyLine myLine) || !(fxShape instanceof Line fxLine)) {
+            throw new IllegalArgumentException("Type mismatch for LineAdapter update.");
+        }
+        fxLine.setStartX(myLine.getStartX());
+        fxLine.setStartY(myLine.getStartY());
+        fxLine.setEndX(myLine.getEndX());
+        fxLine.setEndY(myLine.getEndY());
+        fxLine.setStroke(convertToJavaFxColor(myLine.getBorderColor()));
+    }
 }

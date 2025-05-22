@@ -75,29 +75,4 @@ public class ShapeMapping {
             modelToView.remove(modelShape);
         }
     }
-
-    public MyShape getModelShapeAt(double x, double y) {
-        MyShape lastShape = null;
-        for (MyShape modelShape : modelToView.keySet()) {
-            Shape viewShape = modelToView.get(modelShape);
-            if (viewShape != null && viewShape.contains(x, y)) {
-                lastShape = modelShape;
-            }
-        }
-        return lastShape;
-    }
-
-    public Shape getViewShapeAt(double x, double y) {
-        Shape lastShape = null;
-        for (Shape viewShape : viewToModel.keySet()) {
-            if (viewShape.contains(x, y)) {
-                lastShape = viewShape;
-            }
-        }
-        return lastShape;
-    }
-
-
-
-
 }

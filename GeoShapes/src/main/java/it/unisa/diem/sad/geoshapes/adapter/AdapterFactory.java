@@ -77,4 +77,16 @@ public class AdapterFactory {
     public MyColor convertToModelColor(Color fxColor) {
         return ReverseLineAdapter.getInstance().convertToModelColor(fxColor);
     }
+
+    public void updateFxShape(MyShape modelShape, Shape fxShape) {
+        if (modelShape == null || fxShape == null) {
+            return;
+        }
+
+        ShapeAdapter adapter = forwardAdapters.get(modelShape.getClass());
+        if (adapter == null) {
+            throw new IllegalArgumentException("No adapter found for updating shape type: " + modelShape.getClass().getSimpleName());
+        }
+        adapter.updateFxShape(modelShape, fxShape);
+    }
 }

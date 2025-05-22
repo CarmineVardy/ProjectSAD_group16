@@ -2,7 +2,10 @@ package it.unisa.diem.sad.geoshapes.decorator;
 
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
+
+import java.util.List;
 
 public class PreviewDecorator implements ShapeDecorator {
 
@@ -44,4 +47,12 @@ public class PreviewDecorator implements ShapeDecorator {
     public Shape getDecoratedShape() {
         return shape;
     }
+
+    @Override
+    public List<Circle> getResizeHandles() {
+
+        return null;
+    }
+
+
 }

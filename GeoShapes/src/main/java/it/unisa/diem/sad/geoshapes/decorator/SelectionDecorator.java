@@ -1,33 +1,54 @@
 package it.unisa.diem.sad.geoshapes.decorator;
 
+import javafx.geometry.Bounds; // Import Bounds
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.shape.Shape;
-import javafx.scene.shape.StrokeType;
+import javafx.scene.shape.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class SelectionDecorator implements ShapeDecorator {
-    private final Shape shape;
 
+
+    private final Shape shape;
     private Color originalStrokeColor;
     private double originalStrokeWidth;
     private StrokeType originalStrokeType;
     private double originalOpacity;
     private Paint originalFill;
 
+
+    //dichiarazioni che mi servono per il resize il resto lo metto tutto sotto cosi da vedere facilmente le modifiche relative
+    private final Pane drawingArea;
+    private final List<Circle> resizeHandles;
+    private static final double HANDLE_SIZE = 8;
+    private static final double HANDLE_OFFSET = HANDLE_SIZE / 2;
+
+
     public SelectionDecorator(Shape shape) {
         this.shape = shape;
+        this.resizeHandles = new ArrayList<Circle>();
+        if (shape.getParent() instanceof Pane) {
+            this.drawingArea = (Pane) shape.getParent();
+        } else {
+
+            throw new IllegalArgumentException("The parent of the shape must be a Pane for SelectionDecorator.");
+        }
     }
 
+
+    //QUA TENIAMO TUTTA LA ROBA VECCHIA
     @Override
     public void applyDecoration() {
-        // Store original properties
         storeOriginalProperties();
 
-        // Apply selection styling
         shape.setStroke(Color.GREEN);
         shape.setStrokeWidth(originalStrokeWidth + 0.5);
         shape.setStrokeType(StrokeType.OUTSIDE);
+        createAndAddResizeHandles(); //QUESTO MI INIZIALIZZA I CERCHIETTI
 
         if (originalFill instanceof Color originalColor) {
             if (originalColor.getOpacity() > 0.0) {
@@ -37,6 +58,16 @@ public class SelectionDecorator implements ShapeDecorator {
         }
     }
 
+
+    private void storeOriginalProperties() {
+        originalStrokeColor = (Color) shape.getStroke();
+        originalStrokeWidth = shape.getStrokeWidth();
+        originalStrokeType = shape.getStrokeType();
+        originalOpacity = shape.getOpacity();
+        originalFill = shape.getFill();
+    }
+
+
     @Override
     public void removeDecoration() {
 
@@ -45,8 +76,8 @@ public class SelectionDecorator implements ShapeDecorator {
         shape.setStrokeType(originalStrokeType);
         shape.setFill(originalFill);
         shape.setOpacity(originalOpacity);
+        removeResizeHandles(); // QUESTO RIMUOVE I CERCHIETTI
     }
-
 
 
     @Override
@@ -54,11 +85,112 @@ public class SelectionDecorator implements ShapeDecorator {
         return shape;
     }
 
-    private void storeOriginalProperties() {
-        originalStrokeColor = (Color) shape.getStroke();
-        originalStrokeWidth = shape.getStrokeWidth();
-        originalStrokeType = shape.getStrokeType();
-        originalOpacity = shape.getOpacity();
-        originalFill = shape.getFill();
+    //QUA CI METTO TUTTA LA ROBA NUOVA PER IL RESIZE
+
+
+    //QUESTO RIMUOVE I CERCHIETTI ( L'IF FORSE è INUTILE DATO CHE IL CHECK GIA LO FACCIO NEL CONSTRUCTOR?)
+    private void removeResizeHandles() {
+        if (drawingArea != null) {
+            drawingArea.getChildren().removeAll(resizeHandles);
+        }
+        resizeHandles.clear();
+    }
+
+    //QUESTO PERMETTE DI FAR VEDERE I CERCHIETTI ALLA STRATEGIA: è NECESSARIO PERCHE IL DECORATOR OPERA SOLO "GRAFICAMENTE
+    //NELLA STRATEGIA INVECE MI GESTISCO GLI EVENTI SUL MOUSE QUANDO CLICCO SUI CERCHIETTI
+
+    public List<Circle> getResizeHandles() {
+        return resizeHandles;
+    }
+
+    /*QUESTA FUNZIONE MI CREA I CERCHIETTI DEL RESIZE, CONTROLLA CHE LA DRAWINGAREA NON è NULL
+     * 1) CALCOLA LA POSIZIONE DELLA SHAPE ( BOUNDS)
+     * 2)DEFINISCE LE POSIZIONI DEI CERCHIETTI
+     * 3)CALCOLA LE COORDINATE E AGGIUNGE I CERCHIETTI ( NEL CICLO FOR ) AL PANE
+     * */
+    private void createAndAddResizeHandles() {
+        if (drawingArea == null) {
+            System.err.println("Parent Pane is null for shape: " + shape + ". Cannot add resize handles.");
+            return;
+        }
+
+        Bounds bounds = shape.getBoundsInParent();
+        double circleRadius = HANDLE_SIZE / 2;
+
+        // Utilizzo dello switch classico con instanceof e cast espliciti
+        // Nota: non puoi usare 'shape' direttamente come espressione dello switch
+        // perché lo switch su oggetti è limitato ai tipi Enum, String, o wrapper di tipi primitivi.
+        // Dobbiamo usare un workaround con un tipo che rappresenti la categoria di shape.
+        String shapeCategory;
+        if (shape instanceof Line) {
+            shapeCategory = "LINE";
+        } else if (shape instanceof Rectangle || shape instanceof Ellipse) {
+            shapeCategory = "RECT_ELLIPSE";
+        } else {
+            shapeCategory = "OTHER";
+        }
+
+        switch (shapeCategory) {
+            case "LINE":
+                Line fxLine = (Line) shape; // Cast esplicito
+
+                // Maniglia per il punto iniziale della linea
+                Circle handleStart = new Circle(circleRadius, Color.BLUE);
+                handleStart.setStroke(Color.WHITE);
+                handleStart.setStrokeWidth(1);
+                handleStart.setCenterX(fxLine.getStartX());
+                handleStart.setCenterY(fxLine.getStartY());
+                handleStart.setUserData("LINE_START");
+                resizeHandles.add(handleStart);
+                drawingArea.getChildren().add(handleStart);
+
+                // Maniglia per il punto finale della linea
+                Circle handleEnd = new Circle(circleRadius, Color.BLUE);
+                handleEnd.setStroke(Color.WHITE);
+                handleEnd.setStrokeWidth(1);
+                handleEnd.setCenterX(fxLine.getEndX());
+                handleEnd.setCenterY(fxLine.getEndY());
+                handleEnd.setUserData("LINE_END");
+                resizeHandles.add(handleEnd);
+                drawingArea.getChildren().add(handleEnd);
+                break;
+
+            case "RECT_ELLIPSE":
+                // Non abbiamo bisogno di castare a Rectangle o Ellipse qui
+                // perché le maniglie si basano sui Bounds generici
+                String[] handleTypes = {
+                        "TOP_LEFT", "TOP_CENTER", "TOP_RIGHT",
+                        "MIDDLE_LEFT", "MIDDLE_RIGHT",
+                        "BOTTOM_LEFT", "BOTTOM_CENTER", "BOTTOM_RIGHT"
+                };
+
+                double[] xCoords = {
+                        bounds.getMinX(), bounds.getMinX() + bounds.getWidth() / 2, bounds.getMaxX(),
+                        bounds.getMinX(), bounds.getMaxX(),
+                        bounds.getMinX(), bounds.getMinX() + bounds.getWidth() / 2, bounds.getMaxX()
+                };
+
+                double[] yCoords = {
+                        bounds.getMinY(), bounds.getMinY(), bounds.getMinY(),
+                        bounds.getMinY() + bounds.getHeight() / 2, bounds.getMinY() + bounds.getHeight() / 2,
+                        bounds.getMaxY(), bounds.getMaxY(), bounds.getMaxY()
+                };
+
+                for (int i = 0; i < handleTypes.length; i++) {
+                    Circle handle = new Circle(circleRadius, Color.BLUE);
+                    handle.setStroke(Color.WHITE);
+                    handle.setStrokeWidth(1);
+                    handle.setCenterX(xCoords[i]);
+                    handle.setCenterY(yCoords[i]);
+                    handle.setUserData(handleTypes[i]);
+                    resizeHandles.add(handle);
+                    drawingArea.getChildren().add(handle);
+                }
+                break;
+
+            default:
+                System.err.println("Unsupported shape type for resize handles: " + shape.getClass().getSimpleName());
+                break;
+        }
     }
 }
