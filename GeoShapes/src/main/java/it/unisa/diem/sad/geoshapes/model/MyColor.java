@@ -1,4 +1,4 @@
-package it.unisa.diem.sad.geoshapes.model.util;
+package it.unisa.diem.sad.geoshapes.model;
 
 import java.io.Serializable;
 
@@ -11,6 +11,7 @@ public class MyColor implements Serializable {
     private double blue;
     private double opacity;
 
+    //Constructor for RGB
     public MyColor(double red, double green, double blue) {
         this(red, green, blue, 1.0);
     }

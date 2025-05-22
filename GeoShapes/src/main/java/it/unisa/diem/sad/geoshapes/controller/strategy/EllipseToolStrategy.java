@@ -3,12 +3,7 @@ package it.unisa.diem.sad.geoshapes.controller.strategy;
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
-import it.unisa.diem.sad.geoshapes.model.factory.EllipseFactory;
-import it.unisa.diem.sad.geoshapes.model.factory.ShapeFactory;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
-import it.unisa.diem.sad.geoshapes.model.util.MyColor;
 import javafx.scene.Cursor;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -18,29 +13,43 @@ import javafx.scene.shape.Shape;
 public class EllipseToolStrategy implements ToolStrategy {
 
     private final Pane drawingArea;
-    private final ColorPicker borderColorPicker;
-    private final ColorPicker fillColorPicker;
-    private final ShapeFactory factory;
+    private final InteractionCallback callback;
 
     private Shape previewFxShape;
     private ShapeDecorator previewDecorator;
 
+    private Color borderColor;
+    private Color fillColor;
     private double startX, startY, endX, endY;
-    private static final double MIN_RADIUS = 1.0; // Minimum radius (half of MIN_DIMENSION)
 
-    private InteractionCallback callback;
+    private static final double MIN_RADIUS = 1.0;
 
-    public EllipseToolStrategy(Pane drawingArea, ColorPicker borderColorPicker, ColorPicker fillColorPicker, InteractionCallback callback) {
+    public EllipseToolStrategy(Pane drawingArea, InteractionCallback callback) {
         this.drawingArea = drawingArea;
-        this.borderColorPicker = borderColorPicker;
-        this.fillColorPicker = fillColorPicker;
-        this.factory = new EllipseFactory();
         this.callback = callback;
     }
 
     @Override
+    public void activate(Color borderColor, Color fillColor) {
+        this.borderColor = borderColor;
+        this.fillColor = fillColor;
+    }
+
+    @Override
+    public void handleBorderColorChange(Color color) {
+        this.borderColor = color;
+    }
+
+    @Override
+    public void handleFillColorChange(Color color) {
+        this.fillColor = color;
+    }
+
+    @Override
     public void handleMousePressed(MouseEvent event) {
-        reset();
+        if (previewFxShape != null) {
+            reset();
+        }
 
         drawingArea.setCursor(Cursor.CROSSHAIR);
 
@@ -49,11 +58,12 @@ public class EllipseToolStrategy implements ToolStrategy {
         endX = startX;
         endY = startY;
 
-        previewFxShape = new Ellipse(startX, startY, 0, 0); // CenterX, CenterY, RadiusX, RadiusY
-        previewFxShape.setStroke(borderColorPicker.getValue());
-        previewFxShape.setFill(fillColorPicker.getValue());
-        previewFxShape.setStrokeWidth(2.0);
+        Ellipse ellipse = new Ellipse(startX, startY, 0, 0);
+        ellipse.setStroke(borderColor);
+        ellipse.setFill(fillColor);
+        ellipse.setStrokeWidth(2.0);
 
+        previewFxShape = ellipse;
         previewDecorator = new PreviewDecorator(previewFxShape);
         previewDecorator.applyDecoration();
 
@@ -70,53 +80,27 @@ public class EllipseToolStrategy implements ToolStrategy {
         double radiusX = Math.abs(endX - startX) / 2;
         double radiusY = Math.abs(endY - startY) / 2;
 
-        ((Ellipse) previewFxShape).setCenterX(centerX);
-        ((Ellipse) previewFxShape).setCenterY(centerY);
-        ((Ellipse) previewFxShape).setRadiusX(radiusX);
-        ((Ellipse) previewFxShape).setRadiusY(radiusY);
-
+        if (previewFxShape instanceof Ellipse ellipse) {
+            ellipse.setCenterX(centerX);
+            ellipse.setCenterY(centerY);
+            ellipse.setRadiusX(radiusX);
+            ellipse.setRadiusY(radiusY);
+        }
     }
 
     @Override
     public void handleMouseReleased(MouseEvent event) {
-        if (previewFxShape != null) {
-            endX = event.getX();
-            endY = event.getY();
+        drawingArea.setCursor(Cursor.DEFAULT);
 
-            double radiusX = Math.abs(endX - startX) / 2;
-            double radiusY = Math.abs(endY - startY) / 2;
+        endX = event.getX();
+        endY = event.getY();
 
-            if (radiusX >= MIN_RADIUS && radiusY >= MIN_RADIUS) {
-                Color borderColor = borderColorPicker.getValue();
-                Color fillColor = fillColorPicker.getValue();
+        double radiusX = Math.abs(endX - startX) / 2;
+        double radiusY = Math.abs(endY - startY) / 2;
 
-
-                MyColor borderMyColor = new MyColor(
-                        borderColor.getRed(),
-                        borderColor.getGreen(),
-                        borderColor.getBlue(),
-                        borderColor.getOpacity()
-                );
-
-                MyColor fillMyColor = new MyColor(
-                        fillColor.getRed(),
-                        fillColor.getGreen(),
-                        fillColor.getBlue(),
-                        fillColor.getOpacity()
-                );
-
-                MyShape newShape = factory.createShape(
-                        startX / drawingArea.getWidth(),
-                        startY / drawingArea.getHeight(),
-                        endX / drawingArea.getWidth(),
-                        endY / drawingArea.getHeight(),
-                        borderMyColor,
-                        fillMyColor
-                );
-
-                callback.onCreateShape(newShape);
-            }
-
+        if (radiusX >= MIN_RADIUS && radiusY >= MIN_RADIUS) {
+            callback.onCreateShape(previewFxShape);
+        } else {
             reset();
         }
     }
@@ -126,29 +110,15 @@ public class EllipseToolStrategy implements ToolStrategy {
     }
 
     @Override
-    public void handleBorderColorChange(Color color) {
-
-    }
-
-    @Override
-    public void handleFillColorChange(Color color) {
-
-    }
-
-    @Override
     public void reset() {
-        drawingArea.setCursor(Cursor.DEFAULT);
-        if (previewFxShape != null) {
-            if (previewDecorator != null) {
-                previewDecorator.removeDecoration();
-            }
-            drawingArea.getChildren().remove(previewFxShape);
+        if (previewDecorator != null) {
+            previewDecorator.removeDecoration();
+            previewDecorator = null;
         }
-        previewFxShape = null;
-        previewDecorator = null;
-        startX = 0;
-        startY = 0;
-        endX = 0;
-        endY = 0;
+        if (previewFxShape != null) {
+            drawingArea.getChildren().remove(previewFxShape);
+            previewFxShape = null;
+        }
     }
+
 }

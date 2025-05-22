@@ -1,17 +1,22 @@
-package it.unisa.diem.sad.geoshapes.adapter;
+package it.unisa.diem.sad.geoshapes.adapter.forward;
 
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyLine;
-
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.Line;
 
 public class LineAdapter implements ShapeAdapter {
 
+    private static final LineAdapter INSTANCE = new LineAdapter();
+
+    private LineAdapter() {}
+
+    public static LineAdapter getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public Shape getFxShape(MyShape modelShape, double width, double height) {
-
         if (!(modelShape instanceof MyLine)) {
             throw new IllegalArgumentException("Expected MyLine");
         }
@@ -24,9 +29,6 @@ public class LineAdapter implements ShapeAdapter {
         );
         fxLine.setStroke(convertToJavaFxColor(modelLine.getBorderColor()));
         fxLine.setStrokeWidth(2.0);
-
         return fxLine;
-
     }
-
 }

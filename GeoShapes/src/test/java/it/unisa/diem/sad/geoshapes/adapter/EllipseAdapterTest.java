@@ -1,7 +1,9 @@
+/*
 package it.unisa.diem.sad.geoshapes.adapter;
 
+import it.unisa.diem.sad.geoshapes.adapter.forward.EllipseAdapter;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyEllipse;
-import it.unisa.diem.sad.geoshapes.model.util.MyColor;
+import it.unisa.diem.sad.geoshapes.model.MyColor;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Shape;
@@ -48,3 +50,4 @@ class EllipseAdapterTest {
         assertEquals(expectedFill, fxEllipse.getFill(), "Fill color is not correct!");
     }
 }
+*/

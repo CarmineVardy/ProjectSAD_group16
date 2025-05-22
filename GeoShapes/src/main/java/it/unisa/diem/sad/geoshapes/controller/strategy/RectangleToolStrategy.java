@@ -3,12 +3,7 @@ package it.unisa.diem.sad.geoshapes.controller.strategy;
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
-import it.unisa.diem.sad.geoshapes.model.factory.RectangleFactory;
-import it.unisa.diem.sad.geoshapes.model.factory.ShapeFactory;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
-import it.unisa.diem.sad.geoshapes.model.util.MyColor;
 import javafx.scene.Cursor;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -18,29 +13,43 @@ import javafx.scene.shape.Shape;
 public class RectangleToolStrategy implements ToolStrategy {
 
     private final Pane drawingArea;
-    private final ColorPicker borderColorPicker;
-    private final ColorPicker fillColorPicker;
-    private final ShapeFactory factory;
+    private final InteractionCallback callback;
 
     private Shape previewFxShape;
     private ShapeDecorator previewDecorator;
 
+    private Color borderColor;
+    private Color fillColor;
     private double startX, startY, endX, endY;
-    private static final double MIN_DIMENSION = 2.0; // Minimum width/height
 
-    private InteractionCallback callback;
+    private static final double MIN_DIMENSION = 2.0;
 
-    public RectangleToolStrategy(Pane drawingArea, ColorPicker borderColorPicker, ColorPicker fillColorPicker, InteractionCallback callback) {
+    public RectangleToolStrategy(Pane drawingArea, InteractionCallback callback) {
         this.drawingArea = drawingArea;
-        this.borderColorPicker = borderColorPicker;
-        this.fillColorPicker = fillColorPicker;
-        this.factory = new RectangleFactory();
         this.callback = callback;
     }
 
     @Override
+    public void activate(Color borderColor, Color fillColor) {
+        this.borderColor = borderColor;
+        this.fillColor = fillColor;
+    }
+
+    @Override
+    public void handleBorderColorChange(Color color) {
+        this.borderColor = color;
+    }
+
+    @Override
+    public void handleFillColorChange(Color color) {
+        this.fillColor = color;
+    }
+
+    @Override
     public void handleMousePressed(MouseEvent event) {
-        reset();
+        if (previewFxShape != null) {
+            reset();
+        }
 
         drawingArea.setCursor(Cursor.CROSSHAIR);
 
@@ -49,12 +58,12 @@ public class RectangleToolStrategy implements ToolStrategy {
         endX = startX;
         endY = startY;
 
-        previewFxShape = new Rectangle(startX, startY, 0, 0);
+        Rectangle rect = new Rectangle(startX, startY, 0, 0);
+        rect.setStroke(borderColor);
+        rect.setFill(fillColor);
+        rect.setStrokeWidth(2.0);
 
-        previewFxShape.setStroke(borderColorPicker.getValue());
-        previewFxShape.setFill(fillColorPicker.getValue());
-        previewFxShape.setStrokeWidth(2.0);
-
+        previewFxShape = rect;
         previewDecorator = new PreviewDecorator(previewFxShape);
         previewDecorator.applyDecoration();
 
@@ -71,85 +80,46 @@ public class RectangleToolStrategy implements ToolStrategy {
         double width = Math.abs(endX - startX);
         double height = Math.abs(endY - startY);
 
-        ((Rectangle) previewFxShape).setX(x);
-        ((Rectangle) previewFxShape).setY(y);
-        ((Rectangle) previewFxShape).setWidth(width);
-        ((Rectangle) previewFxShape).setHeight(height);
+        if (previewFxShape instanceof Rectangle rect) {
+            rect.setX(x);
+            rect.setY(y);
+            rect.setWidth(width);
+            rect.setHeight(height);
+        }
     }
-
 
     @Override
     public void handleMouseReleased(MouseEvent event) {
-        if (previewFxShape != null) {
-            endX = event.getX();
-            endY = event.getY();
+        drawingArea.setCursor(Cursor.DEFAULT);
 
-            double width = Math.abs(endX - startX);
-            double height = Math.abs(endY - startY);
+        endX = event.getX();
+        endY = event.getY();
+        double width = Math.abs(endX - startX);
+        double height = Math.abs(endY - startY);
 
-            if (width >= MIN_DIMENSION && height >= MIN_DIMENSION) {
-                Color borderColor = borderColorPicker.getValue();
-                Color fillColor = fillColorPicker.getValue();
-
-                MyColor borderMyColor = new MyColor(
-                        borderColor.getRed(),
-                        borderColor.getGreen(),
-                        borderColor.getBlue(),
-                        borderColor.getOpacity()
-                );
-
-                MyColor fillMyColor = new MyColor(
-                        fillColor.getRed(),
-                        fillColor.getGreen(),
-                        fillColor.getBlue(),
-                        fillColor.getOpacity()
-                );
-
-                MyShape newShape = factory.createShape(
-                        startX / drawingArea.getWidth(),
-                        startY / drawingArea.getHeight(),
-                        endX / drawingArea.getWidth(),
-                        endY / drawingArea.getHeight(),
-                        borderMyColor,
-                        fillMyColor
-                );
-
-                callback.onCreateShape(newShape);
-            }
-
+        if (width >= MIN_DIMENSION && height >= MIN_DIMENSION) {
+            callback.onCreateShape(previewFxShape);
+        } else {
             reset();
         }
     }
 
     @Override
     public void handleMouseMoved(MouseEvent event) {
-
-    }
-
-    @Override
-    public void handleBorderColorChange(Color color) {
-
-    }
-
-    @Override
-    public void handleFillColorChange(Color color) {
-
     }
 
     @Override
     public void reset() {
-        drawingArea.setCursor(Cursor.DEFAULT);
-        if (previewFxShape != null) {
-            if (previewDecorator != null) {
-                previewDecorator.removeDecoration();
-            }
-            drawingArea.getChildren().remove(previewFxShape);
+        if (previewDecorator != null) {
+            previewDecorator.removeDecoration();
+            previewDecorator = null;
         }
-        previewFxShape = null;
-        previewDecorator = null;
-        startX = 0;
-        startY = 0;
-        endX = 0;
-        endY = 0;
+        if (previewFxShape != null) {
+            drawingArea.getChildren().remove(previewFxShape);
+            previewFxShape = null;
+        }
     }
+
+
+
 }

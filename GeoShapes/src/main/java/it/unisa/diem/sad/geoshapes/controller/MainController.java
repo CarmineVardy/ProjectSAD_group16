@@ -1,25 +1,19 @@
 package it.unisa.diem.sad.geoshapes.controller;
 
-import it.unisa.diem.sad.geoshapes.adapter.EllipseAdapter;
-import it.unisa.diem.sad.geoshapes.adapter.LineAdapter;
-import it.unisa.diem.sad.geoshapes.adapter.RectangleAdapter;
-import it.unisa.diem.sad.geoshapes.adapter.ShapeAdapter;
+import it.unisa.diem.sad.geoshapes.adapter.AdapterFactory;
 import it.unisa.diem.sad.geoshapes.controller.command.*;
 import it.unisa.diem.sad.geoshapes.controller.strategy.*;
 import it.unisa.diem.sad.geoshapes.controller.util.UIUtils;
 import it.unisa.diem.sad.geoshapes.model.DrawingModel;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyEllipse;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyLine;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyRectangle;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
-import it.unisa.diem.sad.geoshapes.model.util.MyColor;
+import it.unisa.diem.sad.geoshapes.model.MyColor;
 import it.unisa.diem.sad.geoshapes.observer.ShapeObserver;
 import it.unisa.diem.sad.geoshapes.perstistence.PersistenceService;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
@@ -62,14 +56,12 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private ColorPicker fillColorPicker;
     @FXML
     private Pane drawingArea;
+    private Rectangle clipRect; //Rectangle for clip the pane
 
-    //Rectangle for clip the pane
-    private Rectangle clipRect;
-
-    //Model
+    //Model, PersistenceService, UIUtils and ShapeMapping
     private DrawingModel model;
-
-    //Mapping between JavaFX shapes and model shapes
+    private PersistenceService persistenceService;
+    private UIUtils uiUtils;
     private ShapeMapping shapeMapping;
 
     //Pattern Strategy
@@ -77,124 +69,84 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private Map<ToggleButton, ToolStrategy> toolStrategies;
 
     //Pattern Adapter
-    private ShapeAdapter currentAdapter;
-    private Map<Class<? extends MyShape>, ShapeAdapter> shapeAdapters;
+    private AdapterFactory adapterFactory;
 
     //Pattern Command
     private CommandInvoker commandInvoker;
 
-    //Service for Load and Save
-    private PersistenceService persistenceService;
-
-    //Utility Class for UI elements
-    private UIUtils uiUtils;
-
-    private final BooleanProperty isLineSelectedProperty = new SimpleBooleanProperty(false);
-    @FXML
-    private HBox fillColorBox;
-    @FXML
-    private HBox borderColorBox;
-
 
     @FXML
     public void initialize() {
+        initializeCoreComponents();
+        configureDrawingArea();
+        setupEventListeners();
+        setDefaultUIState();
+        setupPropertyBindings();
+    }
 
-        //Initialize Model and Observer to him
+    private void initializeCoreComponents() {
+
         model = new DrawingModel();
         model.attach(this);
 
-        //Initialize Mapping, PersistenceService and UIUtils
-        shapeMapping = new ShapeMapping();
         persistenceService = new PersistenceService();
+        uiUtils = new UIUtils();
+        shapeMapping = new ShapeMapping();
+
+        //Patterns
         commandInvoker = new CommandInvoker();
-        uiUtils = new UIUtils(); // Instantiate UIUtils
-
-        setupPanel();
-
-        initializeShapeAdapters();
-
+        adapterFactory = new AdapterFactory();
         initializeToolStrategies();
-        setupToolListeners();
-        setupDefaultUIState();
-
-        setupColoPickerListeners();
-    }
-
-    private void setupDefaultUIState() {
-        selectionButton.setSelected(true); // Set selection tool as default
-        borderColorPicker.setValue(Color.BLACK);
-        fillColorPicker.setValue(Color.TRANSPARENT);
-        uiUtils.setupSelectionContextMenu(); // Initialize context menu for selection tool
-        if (fillColorPicker.disableProperty().isBound()) {
-            fillColorPicker.disableProperty().unbind();
-        }
-
-        fillColorPicker.disableProperty().bind(
-                Bindings.or(lineButton.selectedProperty(), isLineSelectedProperty)
-        );
-    }
-
-    @Override
-    public void setLineSelected(boolean value) {
-        isLineSelectedProperty.set(value);
-    }
-
-    private void setupPanel() {
-        clipRect = new Rectangle();
-        drawingArea.setClip(clipRect);
-        clipRect.widthProperty().bind(drawingArea.widthProperty());
-        clipRect.heightProperty().bind(drawingArea.heightProperty());
-        drawingArea.widthProperty().addListener((obs, oldVal, newVal) -> rebuildShapes());
-        drawingArea.heightProperty().addListener((obs, oldVal, newVal) -> rebuildShapes());
     }
 
     private void initializeToolStrategies() {
         toolStrategies = new HashMap<>();
         toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea, shapeMapping, this));
-        toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, borderColorPicker, fillColorPicker, this));
-        toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, borderColorPicker, fillColorPicker, this));
-        toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, borderColorPicker, fillColorPicker, this));
+        toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, this));
+        toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, this));
+        toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, this));
     }
 
-    private void setupToolListeners() {
+    private void configureDrawingArea() {
+        clipRect = new Rectangle();
+        drawingArea.setClip(clipRect);
+
+        // Lega le dimensioni del clipRect alle dimensioni dell'area di disegno
+        clipRect.widthProperty().bind(drawingArea.widthProperty());
+        clipRect.heightProperty().bind(drawingArea.heightProperty());
+
+        // Aggiungi ascoltatori per ridisegnare le forme quando l'area di disegno viene ridimensionata
+        drawingArea.widthProperty().addListener((obs, oldVal, newVal) -> rebuildShapes());
+        drawingArea.heightProperty().addListener((obs, oldVal, newVal) -> rebuildShapes());
+    }
+
+     private void setupEventListeners() {
+        setupToolToggleListener();
+        setupColorPickerListeners();
+    }
+
+    private void setupToolToggleListener() {
         toolToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
-            if (currentStrategy != null)
-                currentStrategy.reset();
-            currentStrategy = toolStrategies.get((ToggleButton) newValue);
-        });
-    }
-
-    private void setupColoPickerListeners() {
-
-        borderColorPicker.valueProperty().addListener((obs, oldColor, newColor) -> {
-
-            if (currentStrategy != null) {
-                currentStrategy.handleBorderColorChange(newColor);
+            ToggleButton selectedToggle = (ToggleButton) newValue;
+            if (selectedToggle == null) {
+                toolToggleGroup.selectToggle(oldValue != null ? oldValue : selectionButton);
+                return;
             }
-        });
-
-        fillColorPicker.valueProperty().addListener((obs, oldColor, newColor) -> {
             if (currentStrategy != null) {
-                currentStrategy.handleFillColorChange(newColor);
+                currentStrategy.reset(); // Resetta la strategia precedente prima di cambiarla
             }
+            currentStrategy = toolStrategies.get(selectedToggle);
+            currentStrategy.activate(borderColorPicker.getValue(), fillColorPicker.getValue());
         });
-
-
     }
 
-    private void initializeShapeAdapters() {
-        shapeAdapters = new HashMap<>();
-        shapeAdapters.put(MyLine.class, new LineAdapter());
-        shapeAdapters.put(MyRectangle.class, new RectangleAdapter());
-        shapeAdapters.put(MyEllipse.class, new EllipseAdapter());
+    private void setDefaultUIState() {
+        toolToggleGroup.selectToggle(selectionButton);
+        borderColorPicker.setValue(Color.BLACK);
+        fillColorPicker.setValue(Color.TRANSPARENT);
     }
 
-    private void setAdapter(MyShape shape) {
-        if (shape == null) {
-            currentAdapter = null;
-            return;
-        }
-        currentAdapter = shapeAdapters.get(shape.getClass());
+    private void setupPropertyBindings() {
     }
 
     private void rebuildShapes() {
@@ -202,13 +154,23 @@ public class MainController implements ShapeObserver, InteractionCallback {
             currentStrategy.reset();
         drawingArea.getChildren().clear();
         for (MyShape modelShape : shapeMapping.getAllModelShapes()) {
-            setAdapter(modelShape);
-            if (currentAdapter != null) {
-                Shape fxShape = currentAdapter.getFxShape(modelShape, drawingArea.getWidth(), drawingArea.getHeight());
-                shapeMapping.updateViewMapping(modelShape, fxShape);
-                drawingArea.getChildren().add(fxShape);
-            }
+            Shape fxShape = adapterFactory.convertToJavaFx(modelShape, drawingArea.getWidth(), drawingArea.getHeight());
+            shapeMapping.updateViewMapping(modelShape, fxShape);
+            drawingArea.getChildren().add(fxShape);
         }
+    }
+
+    private void setupColorPickerListeners() {
+        borderColorPicker.valueProperty().addListener((obs, oldColor, newColor) -> {
+            if (currentStrategy != null) {
+                currentStrategy.handleBorderColorChange(newColor);
+            }
+        });
+        fillColorPicker.valueProperty().addListener((obs, oldColor, newColor) -> {
+            if (currentStrategy != null) {
+                currentStrategy.handleFillColorChange(newColor);
+            }
+        });
     }
 
     @FXML
@@ -234,23 +196,20 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     @FXML
     public void handleMouseMoved(MouseEvent event) {
-    if (currentStrategy != null){
-        currentStrategy.handleMouseMoved(event);
-    }
-
-
+        if (currentStrategy != null){
+            currentStrategy.handleMouseMoved(event);
+        }
     }
 
 
     @Override
-    public void onCreateShape(MyShape shape) {
-        Command createCommand = new CreateShapeCommand(model, shape);
+    public void onCreateShape(Shape shape) {
+        Command createCommand = new CreateShapeCommand(model, adapterFactory.convertToModel(shape, drawingArea.getWidth(), drawingArea.getHeight()));
         commandInvoker.setCommand(createCommand);
         commandInvoker.executeCommand();
         currentStrategy.reset();
     }
 
-    @Override
     public void onDeleteShape(MyShape shape) {
         Command deleteCommand = new DeleteShapeCommand(model, shape);
         commandInvoker.setCommand(deleteCommand);
@@ -259,115 +218,92 @@ public class MainController implements ShapeObserver, InteractionCallback {
     }
 
     @Override
-    public void onChangeBorderColor(MyShape shape, Color color) {
-        MyColor myColor = new MyColor(color.getRed(), color.getGreen(), color.getBlue(), color.getOpacity());
-        Command changeBorderColorCommand = new ChangeBorderColorCommand(model, shape, myColor);
+    public void onChangeBorderColor(Shape shape, Color color) {
+        Command changeBorderColorCommand = new ChangeBorderColorCommand(model, shapeMapping.getModelShape(shape), adapterFactory.convertToModelColor(color));
         commandInvoker.setCommand(changeBorderColorCommand);
         commandInvoker.executeCommand();
     }
 
     @Override
-    public void onChangeFillColor(MyShape shape, Color color) {
-        MyColor myColor = new MyColor(color.getRed(), color.getGreen(), color.getBlue(), color.getOpacity());
-        Command changeFillColorCommand = new ChangeFillColorCommand(model, shape, myColor);
+    public void onChangeFillColor(Shape shape, Color color) {
+        Command changeFillColorCommand = new ChangeFillColorCommand(model, shapeMapping.getModelShape(shape), adapterFactory.convertToModelColor(color));
         commandInvoker.setCommand(changeFillColorCommand);
         commandInvoker.executeCommand();
     }
 
 
     @Override
-    public void onSelectionMenuOpened(Shape viewShape, MyShape modelShape, double x, double y) {
-        if (modelShape == null) {
-            return;
-        }
-        if (modelShape instanceof MyLine || viewShape instanceof javafx.scene.shape.Line) {
-            uiUtils.setSelectMenuItemVisibleByLabel("Fill Color:", false);
-        } else
-            uiUtils.setSelectMenuItemVisibleByLabel("Fill Color:", true);
-        ContextMenu selectionShapeMenu = uiUtils.getSelectionShapeMenu();
-        initializeMenuItems(selectionShapeMenu, modelShape);
-        initializeColorPickers(selectionShapeMenu, viewShape, modelShape);
-        showMenuAtPosition(selectionShapeMenu, viewShape, x, y);
-    }
+    public void onSelectionMenuOpened(Shape viewShape, double x, double y) {
+        MyShape modelShape = shapeMapping.getModelShape(viewShape);
+        if (modelShape == null) return;
 
-    private void initializeMenuItems(ContextMenu menu, MyShape modelShape) {
+        ContextMenu menu = uiUtils.getSelectionShapeMenu();
+
+        boolean isLine = modelShape instanceof MyLine || viewShape instanceof javafx.scene.shape.Line;
+        uiUtils.setSelectMenuItemVisibleByLabel("Fill Color:", !isLine);
+
         for (MenuItem item : menu.getItems()) {
             if ("Delete".equals(item.getText())) {
-                item.setOnAction(event -> {
+                item.setOnAction(e -> {
                     onDeleteShape(modelShape);
                     currentStrategy.reset();
                 });
-            }
-        }
-    }
+            } else if (item instanceof CustomMenuItem customItem &&
+                    customItem.getContent() instanceof HBox hbox) {
 
-    private void initializeColorPickers(ContextMenu menu, Shape viewShape, MyShape modelShape) {
-        for (MenuItem item : menu.getItems()) {
-            if (!(item instanceof CustomMenuItem)) {
-                continue;
-            }
-            CustomMenuItem customItem = (CustomMenuItem) item;
-            if (!(customItem.getContent() instanceof HBox)) {
-                continue;
-            }
-            HBox hbox = (HBox) customItem.getContent();
-            Label label = null;
-            ColorPicker colorPicker = null;
-            for (Node node : hbox.getChildren()) {
-                if (node instanceof Label) {
-                    label = (Label) node;
-                } else if (node instanceof ColorPicker) {
-                    colorPicker = (ColorPicker) node;
+                Label label = null;
+                ColorPicker picker = null;
+
+                for (Node node : hbox.getChildren()) {
+                    if (node instanceof Label l) label = l;
+                    else if (node instanceof ColorPicker cp) picker = cp;
+                }
+
+                if (label == null || picker == null) continue;
+
+                if (label.getText().contains("Border")) {
+                    final ColorPicker borderPicker = picker; // Crea una variabile finale
+                    borderPicker.setValue((Color) adapterFactory.convertToJavaFxColor(modelShape.getBorderColor()));
+                    borderPicker.setOnAction(e -> currentStrategy.handleBorderColorChange(borderPicker.getValue()));
+                } else if (label.getText().contains("Fill")) {
+                    final ColorPicker fillPicker = picker; // Crea una variabile finale
+                    fillPicker.setValue((Color) adapterFactory.convertToJavaFxColor(modelShape.getFillColor()));
+                    fillPicker.setOnAction(e -> currentStrategy.handleFillColorChange(fillPicker.getValue()));
                 }
             }
-            if (label == null || colorPicker == null) {
-                continue;
-            }
-            final ColorPicker finalColorPicker = colorPicker;
-            if (label.getText().contains("Border Color")) {
-                finalColorPicker.setValue((Color) currentAdapter.convertToJavaFxColor(modelShape.getBorderColor()));
-
-                finalColorPicker.setOnAction(event ->
-                        onChangeBorderColor(modelShape, finalColorPicker.getValue())
-                );
-            } else if (label.getText().contains("Fill Color")) {
-                finalColorPicker.setValue((Color) currentAdapter.convertToJavaFxColor(modelShape.getFillColor()));
-
-                finalColorPicker.setOnAction(event ->
-                        onChangeFillColor(modelShape, finalColorPicker.getValue())
-                );
-            }
         }
-    }
 
-    private void showMenuAtPosition(ContextMenu menu, Shape viewShape, double x, double y) {
         Point2D screenPoint = viewShape.localToScreen(x, y);
         if (screenPoint != null) {
             menu.show(viewShape, screenPoint.getX(), screenPoint.getY());
         } else {
             menu.show(viewShape, x, y);
         }
-    }
 
+        menu.setOnHidden(e -> onSelectionMenuClosed());
+    }
 
     @Override
+    public void onResizeShape(Shape shape) {
+
+    }
+
     public void onSelectionMenuClosed() {
-        if (uiUtils.getSelectionShapeMenu() != null && uiUtils.isSelectionShapeMenuShowing()) {
-            uiUtils.getSelectionShapeMenu().hide();
+        ContextMenu menu = uiUtils.getSelectionShapeMenu();
+        if (menu != null && menu.isShowing()) {
+            menu.hide();
         }
     }
+
 
 
     @Override
     public void update(String eventType, MyShape shape) {
         switch (eventType) {
             case "CREATE":
-                setAdapter(shape);
-                if (currentAdapter != null) {
-                    Shape fxShape = currentAdapter.getFxShape(shape, drawingArea.getWidth(), drawingArea.getHeight());
-                    drawingArea.getChildren().add(fxShape);
-                    shapeMapping.register(shape, fxShape);
-                }
+                Shape javafxShape = adapterFactory.convertToJavaFx(shape, drawingArea.getWidth(), drawingArea.getHeight());
+                drawingArea.getChildren().add(javafxShape);
+                shapeMapping.register(shape, javafxShape);
                 break;
             case "DELETE":
                 Shape fxShapeToRemove = shapeMapping.getViewShape(shape);
@@ -377,12 +313,10 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 }
                 break;
             case "MODIFYBORDERCOLOR":
-                currentStrategy.reset();
-                shapeMapping.getViewShape(shape).setStroke(currentAdapter.convertToJavaFxColor(shape.getBorderColor()));
+                shapeMapping.getViewShape(shape).setStroke(adapterFactory.convertToJavaFxColor(shape.getBorderColor()));
                 break;
             case "MODIFYFILLCOLOR":
-                currentStrategy.reset();
-                shapeMapping.getViewShape(shape).setFill(currentAdapter.convertToJavaFxColor(shape.getFillColor()));
+                shapeMapping.getViewShape(shape).setFill(adapterFactory.convertToJavaFxColor(shape.getFillColor()));
                 break;
             case "CLEARALL":
                 drawingArea.getChildren().clear(); // Clear UI

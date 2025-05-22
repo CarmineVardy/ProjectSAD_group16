@@ -1,7 +1,6 @@
 package it.unisa.diem.sad.geoshapes.model;
 
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
-import it.unisa.diem.sad.geoshapes.model.util.MyColor;
 import it.unisa.diem.sad.geoshapes.observer.ShapeObserver;
 import it.unisa.diem.sad.geoshapes.observer.ShapeSubject;
 

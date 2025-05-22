@@ -6,19 +6,14 @@ import javafx.scene.shape.Shape;
 
 public interface InteractionCallback {
 
-    void onDeleteShape(MyShape shape);
+    void onCreateShape(Shape shape);
 
-    void onCreateShape(MyShape shape);
+    void onChangeBorderColor(Shape shape, Color color);
 
-    void onSelectionMenuOpened(Shape viewShape, MyShape modelShape, double x, double y);
+    void onChangeFillColor(Shape shape, Color color);
 
-    void onSelectionMenuClosed();
+    void onSelectionMenuOpened(Shape viewShape, double x, double y);
 
-    void onChangeBorderColor(MyShape modelShape, Color color);
-
-    void onChangeFillColor(MyShape modelShape, Color color);
-
-    void setLineSelected(boolean value);
-
+    void onResizeShape(Shape shape);
 
 }

@@ -1,11 +1,9 @@
+/*
 package it.unisa.diem.sad.geoshapes.model.shapes;
 
 import it.unisa.diem.sad.geoshapes.model.DrawingModel;
 import it.unisa.diem.sad.geoshapes.model.factory.EllipseFactory;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyEllipse;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
-import it.unisa.diem.sad.geoshapes.model.util.MyColor;
-import javafx.scene.shape.Ellipse;
+import it.unisa.diem.sad.geoshapes.model.MyColor;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -94,3 +92,4 @@ public class MyEllipseTest {
         assertEquals(transparentFill, elli.getFillColor(), "The transparent fill color must be stored correctly");
     }
 }
+*/

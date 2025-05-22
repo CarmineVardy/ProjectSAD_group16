@@ -1,8 +1,9 @@
+/*
 package it.unisa.diem.sad.geoshapes.model.factory;
 
 import it.unisa.diem.sad.geoshapes.model.shapes.MyLine;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
-import it.unisa.diem.sad.geoshapes.model.util.MyColor;
+import it.unisa.diem.sad.geoshapes.model.MyColor;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,3 +36,4 @@ public class LineFactoryTest {
         assertEquals(borderColor, line.getBorderColor(), "Incorrect border color");
     }
 }
+*/

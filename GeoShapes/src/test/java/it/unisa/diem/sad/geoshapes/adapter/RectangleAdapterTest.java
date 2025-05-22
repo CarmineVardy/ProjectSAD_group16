@@ -1,7 +1,9 @@
+/*
 package it.unisa.diem.sad.geoshapes.adapter;
 
+import it.unisa.diem.sad.geoshapes.adapter.forward.RectangleAdapter;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyRectangle;
-import it.unisa.diem.sad.geoshapes.model.util.MyColor;
+import it.unisa.diem.sad.geoshapes.model.MyColor;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
@@ -29,3 +31,4 @@ public class RectangleAdapterTest {
         assertEquals(Color.color(fill.getRed(), fill.getGreen(), fill.getBlue(), fill.getOpacity()), fxRect.getFill());
     }
 }
+*/

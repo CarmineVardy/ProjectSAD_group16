@@ -81,7 +81,7 @@
                                     <minWidth>50</minWidth>
                                 </ToggleButton>
                                 <Separator orientation="VERTICAL" />
-                                <HBox fx:id="fillColorBox" alignment="CENTER_LEFT" spacing="5">
+                                <HBox alignment="CENTER_LEFT" spacing="5">
                                     <children>
                                         <VBox alignment="CENTER" spacing="2">
                                             <children>
@@ -99,7 +99,7 @@
                                     </children>
                                 </HBox>
                                 <Separator orientation="VERTICAL" />
-                                <HBox fx:id="borderColorBox" alignment="CENTER_LEFT" spacing="5">
+                                <HBox alignment="CENTER_LEFT" spacing="5">
                                     <children>
                                         <VBox alignment="CENTER" spacing="2">
                                             <children>

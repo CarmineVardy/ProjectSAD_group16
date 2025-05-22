@@ -4,29 +4,29 @@ import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.controller.ShapeMapping;
 import it.unisa.diem.sad.geoshapes.decorator.SelectionDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
-
-import java.util.List;
 
 public class SelectionToolStrategy implements ToolStrategy {
 
     private final Pane drawingArea;
     private final ShapeMapping shapeMapping;
+    private final InteractionCallback callback;
 
+    private Shape selectedJavaFxShape;
     private ShapeDecorator currentDecorator;
 
-    private MyShape selectedModelShape;
-    private Shape selectedJavaFxShape;
+    private Color borderColor;
+    private Color fillColor;
 
-    private InteractionCallback callback;
-
+    private double startX;
+    private double startY;
+    private double initialTranslateX;
+    private double initialTranslateY;
 
     public SelectionToolStrategy(Pane drawingArea, ShapeMapping shapeMapping, InteractionCallback callback) {
         this.drawingArea = drawingArea;
@@ -35,62 +35,77 @@ public class SelectionToolStrategy implements ToolStrategy {
     }
 
     @Override
-    public void handleMousePressed(MouseEvent event) {
-        double x = event.getX();
-        double y = event.getY();
-
-        Shape shapeAtPosition = findShapeAt(x, y);
-
-        if (shapeAtPosition == null) {
-            reset();
-            return;
-        }
-        callback.setLineSelected(shapeAtPosition instanceof Line);
-        drawingArea.setCursor(Cursor.HAND);
-
-        if (shapeAtPosition != selectedJavaFxShape) {
-            reset();
-            selectedJavaFxShape = shapeAtPosition;
-            selectedModelShape = shapeMapping.getModelShape(selectedJavaFxShape);
-
-            currentDecorator = new SelectionDecorator(selectedJavaFxShape);
-            currentDecorator.applyDecoration();
-
-            callback.setLineSelected(selectedJavaFxShape instanceof Line);
-        }
-
-        if (event.getButton() == MouseButton.SECONDARY && selectedJavaFxShape != null) {
-            callback.onSelectionMenuOpened(selectedJavaFxShape, selectedModelShape, event.getX(), event.getY());
-        }
-    }
-
-
-    @Override
-    public void handleMouseDragged(MouseEvent event) {
-        // Future drag functionality for moving/resizing selected shape
-    }
-
-    @Override
-    public void handleMouseReleased(MouseEvent event) {
-        // Future release functionality
-    }
-
-    @Override
-    public void handleMouseMoved(MouseEvent event){
-
+    public void activate(Color borderColor, Color fillColor) {
+        this.borderColor = borderColor;
+        this.fillColor = fillColor;
     }
 
     @Override
     public void handleBorderColorChange(Color color) {
-        if (selectedModelShape != null){
-            this.callback.onChangeBorderColor(selectedModelShape, color);
+        if (selectedJavaFxShape != null) {
+            callback.onChangeBorderColor(selectedJavaFxShape, color);
         }
     }
 
     @Override
     public void handleFillColorChange(Color color) {
-        if (selectedModelShape != null){
-            this.callback.onChangeFillColor(selectedModelShape, color);
+        if (selectedJavaFxShape != null) {
+            callback.onChangeFillColor(selectedJavaFxShape, color);
+        }
+    }
+
+    @Override
+    public void handleMousePressed(MouseEvent event) {
+        startX = event.getX();
+        startY = event.getY();
+
+        Shape shapeAtPosition = shapeMapping.getViewShapeAt(startX, startY);
+
+        // Se clicco su un'altra figura o sul vuoto, rimuovo decorazione da quella precedente
+        if (shapeAtPosition != selectedJavaFxShape) {
+            if (currentDecorator != null) {
+                currentDecorator.removeDecoration();
+                currentDecorator = null;
+            }
+            selectedJavaFxShape = null;
+        }
+
+        // Se ho cliccato su una nuova figura, applico decorazione
+        if (shapeAtPosition != null) {
+            selectedJavaFxShape = shapeAtPosition;
+            currentDecorator = new SelectionDecorator(selectedJavaFxShape);
+            currentDecorator.applyDecoration();
+
+            initialTranslateX = selectedJavaFxShape.getTranslateX();
+            initialTranslateY = selectedJavaFxShape.getTranslateY();
+
+            if (event.getButton() == MouseButton.SECONDARY) {
+                callback.onSelectionMenuOpened(selectedJavaFxShape, event.getX(), event.getY());
+            }
+        }
+    }
+
+    @Override
+    public void handleMouseDragged(MouseEvent event) {
+        if (selectedJavaFxShape != null) {
+            double deltaX = event.getX() - startX;
+            double deltaY = event.getY() - startY;
+            selectedJavaFxShape.setTranslateX(initialTranslateX + deltaX);
+            selectedJavaFxShape.setTranslateY(initialTranslateY + deltaY);
+        }
+    }
+
+    @Override
+    public void handleMouseReleased(MouseEvent event) {
+        // Intenzionalmente vuoto: tutto è già gestito in drag
+    }
+
+    @Override
+    public void handleMouseMoved(MouseEvent event) {
+        if (shapeMapping.getViewShapeAt(event.getX(), event.getY()) != null) {
+            drawingArea.setCursor(Cursor.HAND);
+        } else {
+            drawingArea.setCursor(Cursor.DEFAULT);
         }
     }
 
@@ -100,26 +115,8 @@ public class SelectionToolStrategy implements ToolStrategy {
             currentDecorator.removeDecoration();
             currentDecorator = null;
         }
-        selectedModelShape = null;
         selectedJavaFxShape = null;
-
-        callback.setLineSelected(false);
-
-        callback.onSelectionMenuClosed();
     }
 
-    private Shape findShapeAt(double x, double y) {
-        List<javafx.scene.Node> children = drawingArea.getChildren();
-        for (int i = children.size() - 1; i >= 0; i--) {
-            javafx.scene.Node node = children.get(i);
-            if (node instanceof Shape) {
-                Shape shape = (Shape) node;
-                if (shape.isVisible() && shape.contains(x, y)) {
-                    return shape;
-                }
-            }
-        }
-        return null;
-    }
 
 }

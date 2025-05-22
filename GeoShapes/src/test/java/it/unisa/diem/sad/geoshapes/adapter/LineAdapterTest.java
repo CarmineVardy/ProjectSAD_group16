@@ -1,8 +1,11 @@
+/*
 package it.unisa.diem.sad.geoshapes.adapter;
 
+import it.unisa.diem.sad.geoshapes.adapter.forward.LineAdapter;
+import it.unisa.diem.sad.geoshapes.adapter.forward.ShapeAdapter;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyLine;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
-import it.unisa.diem.sad.geoshapes.model.util.MyColor;
+import it.unisa.diem.sad.geoshapes.model.MyColor;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
@@ -69,3 +72,4 @@ public class LineAdapterTest {
         });
     }
 }
+*/

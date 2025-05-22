@@ -1,13 +1,11 @@
-package it.unisa.diem.sad.geoshapes.adapter;
+package it.unisa.diem.sad.geoshapes.adapter.forward;
 
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.scene.shape.Shape;
-
-import it.unisa.diem.sad.geoshapes.model.util.MyColor;
+import it.unisa.diem.sad.geoshapes.model.MyColor;
 import javafx.scene.paint.Color;
 
 public interface ShapeAdapter {
-
     Shape getFxShape(MyShape modelShape, double width, double height);
 
     default Color convertToJavaFxColor(MyColor modelColor) {
@@ -21,5 +19,4 @@ public interface ShapeAdapter {
                 modelColor.getOpacity()
         );
     }
-
 }
