@@ -1,4 +1,4 @@
-package it.unisa.diem.sad.geoshapes.perstistence;
+package it.unisa.diem.sad.geoshapes.persistence;
 
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 
