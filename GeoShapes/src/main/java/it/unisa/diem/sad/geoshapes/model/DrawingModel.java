@@ -44,6 +44,15 @@ public class DrawingModel implements ShapeSubject {
         notifyObservers("CLEARALL", null);
     }
 
+    public void modifyShape(MyShape oldShape, MyShape newShape) {
+       oldShape.setStartX(newShape.getStartX());
+       oldShape.setStartY(newShape.getStartY());
+       oldShape.setEndX(newShape.getEndX());
+       oldShape.setEndY(newShape.getEndY());
+       notifyObservers("MODIFY_SHAPE_PROPERTIES", oldShape);
+
+    }
+
     public List<MyShape> getShapes() {
         return new ArrayList<>(shapes);
     }

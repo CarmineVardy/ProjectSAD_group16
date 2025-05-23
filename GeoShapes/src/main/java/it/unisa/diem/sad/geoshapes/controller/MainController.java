@@ -212,7 +212,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
         Command deleteCommand = new DeleteShapeCommand(model, shape);
         commandInvoker.setCommand(deleteCommand);
         commandInvoker.executeCommand();
-        currentStrategy.reset();
     }
 
     @Override
@@ -283,9 +282,10 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     @Override
     public void onResizeShape(Shape fxShape, Bounds initialFxBounds, Bounds finalFxBounds) {
-        MyShape modelShape = shapeMapping.getModelShape(fxShape);
-        //MyShape modelShape = adapterFactory.convertToModel(fxShape, drawingArea.getWidth(), drawingArea.getHeight());
-        Command resizeCommand = new ResizeShapeCommand(model, modelShape, fxShape, initialFxBounds, finalFxBounds);
+        MyShape oldShape = shapeMapping.getModelShape(fxShape);
+        MyShape newShape = adapterFactory.convertToModel(fxShape, drawingArea.getWidth(), drawingArea.getHeight());
+        Command resizeCommand = new ResizeShapeCommand(model, oldShape , newShape);
+        //Command resizeCommand = new ResizeShapeCommand(model, modelShape, fxShape, initialFxBounds, finalFxBounds);
         commandInvoker.setCommand(resizeCommand);
         commandInvoker.executeCommand();
     }
@@ -318,6 +318,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
                     drawingArea.getChildren().remove(fxShapeToRemove);
                     shapeMapping.unregister(shape);
                 }
+                currentStrategy.reset();
+                System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size() + " ");
+                System.out.print(shapeMapping.getAllViewShapes().size() + " " + drawingArea.getChildren().size() + "\n" );
                 break;
             case "MODIFYBORDERCOLOR":
                 shapeMapping.getViewShape(shape).setStroke(adapterFactory.convertToJavaFxColor(shape.getBorderColor()));
@@ -330,11 +333,10 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 shapeMapping.clear();
                 break;
             case "MODIFY_SHAPE_PROPERTIES":
-                Shape fxShapeToUpdate = shapeMapping.getViewShape(shape);
-                if (fxShapeToUpdate != null) {
-                    shapeMapping.updateViewMapping(shape, fxShapeToUpdate);
-                    currentStrategy.reset();
-                }
+                Shape newfxShape = adapterFactory.convertToJavaFx(shape, drawingArea.getWidth(), drawingArea.getHeight());
+                shapeMapping.updateViewMapping(shape, newfxShape);
+                drawingArea.getChildren().add(newfxShape);
+                currentStrategy.reset();
                 System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size());
                 System.out.print(shapeMapping.getAllViewShapes().size() + " " + drawingArea.getChildren().size() + "\n" );
                 break;

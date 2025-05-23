@@ -24,8 +24,16 @@ public class UIUtils {
     public void setupSelectionContextMenu() {
         selectionShapeMenu = new ContextMenu();
         MenuItem deleteItem = new MenuItem("Delete");
+        MenuItem copyItem = new MenuItem("Copy");
+        MenuItem cutItem = new MenuItem("Cut");
+        MenuItem pasteItem = new MenuItem("Paste");
         selectionShapeMenu.getItems().add(deleteItem);
-
+        selectionShapeMenu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
+        selectionShapeMenu.getItems().add(copyItem);
+        selectionShapeMenu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
+        selectionShapeMenu.getItems().add(cutItem);
+        selectionShapeMenu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
+        selectionShapeMenu.getItems().add(pasteItem);
         selectionShapeMenu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
         selectionShapeMenu.getItems().add(createColorPickerMenuItem("Border Color:", new ColorPicker()));
 

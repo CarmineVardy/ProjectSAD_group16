@@ -168,8 +168,11 @@ public class SelectionToolStrategy implements ToolStrategy {
             drawingArea.setCursor(Cursor.DEFAULT);
             currentDecorator = null;
         }
-        selectedModelShape = null;
-        selectedJavaFxShape = null;
+        if (selectedJavaFxShape != null) {
+            drawingArea.getChildren().remove(selectedJavaFxShape);
+            selectedJavaFxShape = null;
+        }
+            selectedModelShape = null;
     }
 
     @Override

@@ -12,24 +12,37 @@ import javafx.scene.shape.Shape;
 public class ResizeShapeCommand implements Command {
 
     private final DrawingModel model;
-    private final Bounds initialFxBounds;
-    private final Bounds finalFxBounds;
-
-    private final MyShape modelShapeToResize;
 
 
+    //private final Bounds initialFxBounds;
+    //private final Bounds finalFxBounds;
+
+    private final MyShape oldShape;
+    private final MyShape newShape;
+
+
+
+    /*
     public ResizeShapeCommand(DrawingModel model, MyShape modelShapeToResize, Shape fxShape, Bounds initialFxBounds, Bounds finalFxBounds) {
         this.model = model;
         this.modelShapeToResize = modelShapeToResize;
         this.initialFxBounds = initialFxBounds;
         this.finalFxBounds = finalFxBounds;
+    }*/
+
+    public ResizeShapeCommand( DrawingModel model, MyShape oldShape, MyShape newShape){
+        this.model = model;
+        this.oldShape = oldShape;
+        this.newShape = newShape;
+
     }
 
 
     @Override
     public void execute() {
-        applyDimensionsToModel(modelShapeToResize, initialFxBounds, finalFxBounds);
-        model.notifyObservers("MODIFY_SHAPE_PROPERTIES", modelShapeToResize);
+        model.modifyShape(oldShape, newShape);
+        //applyDimensionsToModel(modelShapeToResize, initialFxBounds, finalFxBounds);
+        //model.notifyObservers("MODIFY_SHAPE_PROPERTIES", modelShapeToResize);
     }
 
 
