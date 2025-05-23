@@ -290,12 +290,14 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 System.out.print(shapeMapping.getAllViewShapes().size() + " " + drawingArea.getChildren().size() + "\n" );
                 break;
             case "DELETE":
+                drawingArea.getChildren().remove(shapeMapping.getViewShape(shape));
                 shapeMapping.unregister(shape);
                 currentStrategy.reset();
                 System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size() + " ");
                 System.out.print(shapeMapping.getAllViewShapes().size() + " " + drawingArea.getChildren().size() + "\n" );
                 break;
             case "MODIFY":
+                drawingArea.getChildren().remove(shapeMapping.getViewShape(shape));
                 Shape newfxShape = adapterFactory.convertToJavaFx(shape, drawingArea.getWidth(), drawingArea.getHeight());
                 shapeMapping.updateViewMapping(shape, newfxShape);
                 drawingArea.getChildren().add(newfxShape);

@@ -20,7 +20,6 @@ public class SelectionToolStrategy implements ToolStrategy {
     private final Pane drawingArea;
     private final ShapeMapping shapeMapping;
     private SelectionDecorator currentDecorator;
-    private MyShape selectedModelShape;
     private Shape selectedJavaFxShape;
     private InteractionCallback callback;
 
@@ -30,6 +29,7 @@ public class SelectionToolStrategy implements ToolStrategy {
     private Bounds initialShapeBounds;
     private double initialTranslateX;
     private double initialTranslateY;
+    private double initialLineStartX, initialLineStartY, initialLineEndX, initialLineEndY;
 
     private ResizeHandleType activeHandleType = ResizeHandleType.NONE;
 
@@ -54,14 +54,12 @@ public class SelectionToolStrategy implements ToolStrategy {
         selectedJavaFxShape = shapeToSelect;
 
         if (selectedJavaFxShape == null) {
-            selectedModelShape = null;
             currentDecorator = null;
             drawingArea.setCursor(Cursor.DEFAULT);
         } else {
-            selectedModelShape = shapeMapping.getModelShape(selectedJavaFxShape);
             currentDecorator = new SelectionDecorator(selectedJavaFxShape);
             currentDecorator.applyDecoration();
-            drawingArea.setCursor(Cursor.HAND);
+            drawingArea.setCursor(Cursor.MOVE);
         }
     }
 
@@ -87,7 +85,6 @@ public class SelectionToolStrategy implements ToolStrategy {
         if (shapeAtPosition == null) {
             if (currentDecorator != null) currentDecorator.removeDecoration();
             selectedJavaFxShape = null;
-            selectedModelShape = null;
             currentDecorator = null;
             isMoving = false;
             isResizing = false;
@@ -110,6 +107,13 @@ public class SelectionToolStrategy implements ToolStrategy {
             initialMousePress = new Point2D(x, y);
             initialTranslateX = selectedJavaFxShape.getTranslateX();
             initialTranslateY = selectedJavaFxShape.getTranslateY();
+            if (selectedJavaFxShape instanceof Line) {
+                Line line = (Line) selectedJavaFxShape;
+                initialLineStartX = line.getStartX();
+                initialLineStartY = line.getStartY();
+                initialLineEndX = line.getEndX();
+                initialLineEndY = line.getEndY();
+            }
             drawingArea.setCursor(Cursor.MOVE);
             event.consume();
         }
@@ -126,8 +130,17 @@ public class SelectionToolStrategy implements ToolStrategy {
             updateJavaFxShapeDimensions(deltaX, deltaY, activeHandleType);
             event.consume();
         } else if (isMoving) {
-            selectedJavaFxShape.setTranslateX(initialTranslateX + deltaX);
-            selectedJavaFxShape.setTranslateY(initialTranslateY + deltaY);
+            if (selectedJavaFxShape instanceof Line) {
+                Line line = (Line) selectedJavaFxShape;
+                line.setStartX(initialLineStartX + deltaX);
+                line.setStartY(initialLineStartY + deltaY);
+                line.setEndX(initialLineEndX + deltaX);
+                line.setEndY(initialLineEndY + deltaY);
+            } else {
+                selectedJavaFxShape.setTranslateX(initialTranslateX + deltaX);
+                selectedJavaFxShape.setTranslateY(initialTranslateY + deltaY);
+            }
+
             if (currentDecorator != null) {
                 currentDecorator.removeDecoration();
                 currentDecorator.applyDecoration();
@@ -205,11 +218,11 @@ public class SelectionToolStrategy implements ToolStrategy {
 
         Circle handleAtPosition = findHandleAt(event.getX(), event.getY());
         if (handleAtPosition != null) {
-            drawingArea.setCursor(Cursor.CROSSHAIR);
+            drawingArea.setCursor(Cursor.HAND);
         } else {
             Shape shapeAtPos = findShapeAt(event.getX(), event.getY());
             if (shapeAtPos != null) {
-                drawingArea.setCursor(Cursor.HAND);
+                drawingArea.setCursor(Cursor.MOVE);
             } else {
                 drawingArea.setCursor(Cursor.DEFAULT);
             }
@@ -242,13 +255,7 @@ public class SelectionToolStrategy implements ToolStrategy {
             currentDecorator.removeDecoration();
             currentDecorator = null;
         }
-        if (selectedJavaFxShape != null) {
-            if (drawingArea.getChildren().contains(selectedJavaFxShape)) {
-                drawingArea.getChildren().remove(selectedJavaFxShape);
-            }
-            selectedJavaFxShape = null;
-        }
-        selectedModelShape = null;
+        selectedJavaFxShape = null;
         isResizing = false;
         isMoving = false;
         activeHandleType = ResizeHandleType.NONE;
