@@ -206,7 +206,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
         Command createCommand = new CreateShapeCommand(model, adapterFactory.convertToModel(shape, drawingArea.getWidth(), drawingArea.getHeight()));
         commandInvoker.setCommand(createCommand);
         commandInvoker.executeCommand();
-        currentStrategy.reset();
     }
 
     public void onDeleteShape(MyShape shape) {
@@ -284,11 +283,14 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     @Override
     public void onResizeShape(Shape fxShape, Bounds initialFxBounds, Bounds finalFxBounds) {
-        MyShape modelShape = adapterFactory.convertToModel(fxShape, drawingArea.getWidth(), drawingArea.getHeight());
+        MyShape modelShape = shapeMapping.getModelShape(fxShape);
+        //MyShape modelShape = adapterFactory.convertToModel(fxShape, drawingArea.getWidth(), drawingArea.getHeight());
         Command resizeCommand = new ResizeShapeCommand(model, modelShape, fxShape, initialFxBounds, finalFxBounds);
         commandInvoker.setCommand(resizeCommand);
         commandInvoker.executeCommand();
     }
+
+
     public void onSelectionMenuClosed() {
         ContextMenu menu = uiUtils.getSelectionShapeMenu();
         if (menu != null && menu.isShowing()) {
@@ -306,6 +308,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 Shape javafxShape = adapterFactory.convertToJavaFx(shape, drawingArea.getWidth(), drawingArea.getHeight());
                 drawingArea.getChildren().add(javafxShape);
                 shapeMapping.register(shape, javafxShape);
+                currentStrategy.reset();
+                System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size() + " ");
+                System.out.print(shapeMapping.getAllViewShapes().size() + " " + drawingArea.getChildren().size() + "\n" );
                 break;
             case "DELETE":
                 Shape fxShapeToRemove = shapeMapping.getViewShape(shape);
@@ -327,11 +332,11 @@ public class MainController implements ShapeObserver, InteractionCallback {
             case "MODIFY_SHAPE_PROPERTIES":
                 Shape fxShapeToUpdate = shapeMapping.getViewShape(shape);
                 if (fxShapeToUpdate != null) {
-                    adapterFactory.updateFxShape(shape, fxShapeToUpdate);
-                    if (currentStrategy instanceof SelectionToolStrategy selectionStrategy) {
-                        selectionStrategy.reset();
-                    }
+                    shapeMapping.updateViewMapping(shape, fxShapeToUpdate);
+                    currentStrategy.reset();
                 }
+                System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size());
+                System.out.print(shapeMapping.getAllViewShapes().size() + " " + drawingArea.getChildren().size() + "\n" );
                 break;
         }
     }
