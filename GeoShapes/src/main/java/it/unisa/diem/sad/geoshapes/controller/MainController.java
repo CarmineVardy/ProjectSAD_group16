@@ -77,7 +77,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
         configureDrawingArea();
         setupEventListeners();
         setDefaultUIState();
-        setupPropertyBindings();
     }
 
     private void initializeCoreComponents() {
@@ -140,9 +139,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
         toolToggleGroup.selectToggle(selectionButton);
         borderColorPicker.setValue(Color.BLACK);
         fillColorPicker.setValue(Color.TRANSPARENT);
-    }
-
-    private void setupPropertyBindings() {
     }
 
     private void rebuildShapes() {
