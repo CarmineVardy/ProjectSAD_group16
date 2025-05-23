@@ -9,12 +9,10 @@ public interface InteractionCallback {
 
     void onCreateShape(Shape shape);
 
-    void onChangeBorderColor(MyShape shape, Color color);
+    void onDeleteShape(Shape shape);
 
-    void onChangeFillColor(MyShape shape, Color color);
+    void onModifyShape(Shape shape);
 
-    void onSelectionMenuOpened(Shape viewShape, MyShape selectedModelShape, double x, double y);
-
-    void onResizeShape(Shape fxShape, Bounds initialFxBounds, Bounds finalFxBounds);
+    void onSelectionMenuOpened(Shape viewShape, double x, double y);
 
 }

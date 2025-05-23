@@ -28,30 +28,22 @@ public class DrawingModel implements ShapeSubject {
         notifyObservers("DELETE", myShape);
     }
 
-    public void changeBorderColor(MyShape shape, MyColor newColor) {
-        shape.setBorderColor(newColor);
-        notifyObservers("MODIFYBORDERCOLOR", shape);
-    }
+    public void modifyShape(MyShape oldShape, MyShape newShape) {
+        oldShape.setStartX(newShape.getStartX());
+        oldShape.setStartY(newShape.getStartY());
+        oldShape.setEndX(newShape.getEndX());
+        oldShape.setEndY(newShape.getEndY());
+        oldShape.setBorderColor(newShape.getBorderColor());
+        oldShape.setFillColor(newShape.getFillColor());
+        notifyObservers("MODIFY", oldShape);
 
-    public void changeFillColor(MyShape shape, MyColor newColor) {
-        shape.setFillColor(newColor);
-        notifyObservers("MODIFYFILLCOLOR", shape);
     }
-
 
     public void clearShapes() {
         shapes.clear();
         notifyObservers("CLEARALL", null);
     }
 
-    public void modifyShape(MyShape oldShape, MyShape newShape) {
-       oldShape.setStartX(newShape.getStartX());
-       oldShape.setStartY(newShape.getStartY());
-       oldShape.setEndX(newShape.getEndX());
-       oldShape.setEndY(newShape.getEndY());
-       notifyObservers("MODIFY_SHAPE_PROPERTIES", oldShape);
-
-    }
 
     public List<MyShape> getShapes() {
         return new ArrayList<>(shapes);

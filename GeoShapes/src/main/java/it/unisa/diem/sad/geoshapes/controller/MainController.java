@@ -208,29 +208,23 @@ public class MainController implements ShapeObserver, InteractionCallback {
         commandInvoker.executeCommand();
     }
 
-    public void onDeleteShape(MyShape shape) {
-        Command deleteCommand = new DeleteShapeCommand(model, shape);
+    @Override
+    public void onDeleteShape(Shape shape) {
+        Command deleteCommand = new DeleteShapeCommand(model, shapeMapping.getModelShape(shape));
         commandInvoker.setCommand(deleteCommand);
         commandInvoker.executeCommand();
     }
 
     @Override
-    public void onChangeBorderColor(MyShape shape, Color color) {
-       /* Command changeBorderColorCommand = new ChangeBorderColorCommand(model, shapeMapping.getModelShape(shape), adapterFactory.convertToModelColor(color));
-        commandInvoker.setCommand(changeBorderColorCommand);
-        commandInvoker.executeCommand();*/
-    }
-
-    @Override
-    public void onChangeFillColor(MyShape shape, Color color) {
-       /* Command changeFillColorCommand = new ChangeFillColorCommand(model, shapeMapping.getModelShape(shape), adapterFactory.convertToModelColor(color));
-        commandInvoker.setCommand(changeFillColorCommand);
-        commandInvoker.executeCommand();*/
+    public void onModifyShape(Shape shape) {
+        Command modifyShapeCommand = new ModifyShapeCommand(model, shapeMapping.getModelShape(shape), adapterFactory.convertToModel(shape, drawingArea.getWidth(), drawingArea.getHeight()));
+        commandInvoker.setCommand(modifyShapeCommand);
+        commandInvoker.executeCommand();
     }
 
 
     @Override
-    public void onSelectionMenuOpened(Shape viewShape, MyShape selectedModelShape, double x, double y) {
+    public void onSelectionMenuOpened(Shape viewShape, double x, double y) {
         MyShape modelShape = shapeMapping.getModelShape(viewShape);
         if (modelShape == null) return;
 
@@ -242,8 +236,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
         for (MenuItem item : menu.getItems()) {
             if ("Delete".equals(item.getText())) {
                 item.setOnAction(e -> {
-                    onDeleteShape(modelShape);
-                    currentStrategy.reset();
+                    onDeleteShape(viewShape);
                 });
             } else if (item instanceof CustomMenuItem customItem &&
                     customItem.getContent() instanceof HBox hbox) {
@@ -280,16 +273,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
         menu.setOnHidden(e -> onSelectionMenuClosed());
     }
 
-    @Override
-    public void onResizeShape(Shape fxShape, Bounds initialFxBounds, Bounds finalFxBounds) {
-        MyShape oldShape = shapeMapping.getModelShape(fxShape);
-        MyShape newShape = adapterFactory.convertToModel(fxShape, drawingArea.getWidth(), drawingArea.getHeight());
-        Command resizeCommand = new ResizeShapeCommand(model, oldShape , newShape);
-        //Command resizeCommand = new ResizeShapeCommand(model, modelShape, fxShape, initialFxBounds, finalFxBounds);
-        commandInvoker.setCommand(resizeCommand);
-        commandInvoker.executeCommand();
-    }
-
 
     public void onSelectionMenuClosed() {
         ContextMenu menu = uiUtils.getSelectionShapeMenu();
@@ -297,9 +280,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
             menu.hide();
         }
     }
-
-
-
 
     @Override
     public void update(String eventType, MyShape shape) {
@@ -313,33 +293,26 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 System.out.print(shapeMapping.getAllViewShapes().size() + " " + drawingArea.getChildren().size() + "\n" );
                 break;
             case "DELETE":
-                Shape fxShapeToRemove = shapeMapping.getViewShape(shape);
-                if (fxShapeToRemove != null) {
-                    drawingArea.getChildren().remove(fxShapeToRemove);
-                    shapeMapping.unregister(shape);
-                }
+                shapeMapping.unregister(shape);
                 currentStrategy.reset();
                 System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size() + " ");
                 System.out.print(shapeMapping.getAllViewShapes().size() + " " + drawingArea.getChildren().size() + "\n" );
                 break;
-            case "MODIFYBORDERCOLOR":
-                shapeMapping.getViewShape(shape).setStroke(adapterFactory.convertToJavaFxColor(shape.getBorderColor()));
-                break;
-            case "MODIFYFILLCOLOR":
-                shapeMapping.getViewShape(shape).setFill(adapterFactory.convertToJavaFxColor(shape.getFillColor()));
-                break;
-            case "CLEARALL":
-                drawingArea.getChildren().clear();
-                shapeMapping.clear();
-                break;
-            case "MODIFY_SHAPE_PROPERTIES":
+            case "MODIFY":
                 Shape newfxShape = adapterFactory.convertToJavaFx(shape, drawingArea.getWidth(), drawingArea.getHeight());
                 shapeMapping.updateViewMapping(shape, newfxShape);
                 drawingArea.getChildren().add(newfxShape);
                 currentStrategy.reset();
-                System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size());
+                System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size() + " ");
                 System.out.print(shapeMapping.getAllViewShapes().size() + " " + drawingArea.getChildren().size() + "\n" );
                 break;
+            case "CLEARALL":
+                drawingArea.getChildren().clear();
+                shapeMapping.clear();
+                System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size() + " ");
+                System.out.print(shapeMapping.getAllViewShapes().size() + " " + drawingArea.getChildren().size() + "\n" );
+                break;
+
         }
     }
 
