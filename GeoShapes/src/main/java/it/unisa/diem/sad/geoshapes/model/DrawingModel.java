@@ -11,14 +11,18 @@ public class DrawingModel implements ShapeSubject {
 
     private final List<MyShape> shapes;
     private final List<ShapeObserver> observers;
+    private int idCounter = 0;
 
     public DrawingModel() {
         shapes = new ArrayList<>();
         observers = new ArrayList<>();
     }
 
-
     public void addShape(MyShape myShape) {
+        idCounter++;
+        String shapeName = myShape.getShapeType() + " " + idCounter;
+        myShape.setName(shapeName);
+
         shapes.add(myShape);
         notifyObservers("CREATE", myShape);
     }
@@ -49,6 +53,12 @@ public class DrawingModel implements ShapeSubject {
         return new ArrayList<>(shapes);
     }
 
+    public void printAllShapes() {
+        System.out.println("Forme nel modello:");
+        for (MyShape shape : shapes) {
+            System.out.println(shape);
+        }
+    }
 
     @Override
     public void attach(ShapeObserver observer) {

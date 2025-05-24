@@ -22,4 +22,11 @@ public class MyLine extends MyShape {
      public void setStartY(double startY) { this.startY = startY; }
      public void setEndX(double endX) { this.endX = endX; }
      public void setEndY(double endY) { this.endY = endY; }
+
+    @Override
+    public String getShapeType() {
+        return "Line";
+    }
+
+
 }

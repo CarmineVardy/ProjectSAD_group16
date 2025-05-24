@@ -117,7 +117,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
         drawingArea.heightProperty().addListener((obs, oldVal, newVal) -> rebuildShapes());
     }
 
-     private void setupEventListeners() {
+    private void setupEventListeners() {
         setupToolToggleListener();
         setupColorPickerListeners();
         undoButton.setOnAction(event -> handleUndo());
@@ -149,7 +149,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
         if (currentStrategy != null)
             currentStrategy.reset();
         drawingArea.getChildren().clear();
-        for (MyShape modelShape : shapeMapping.getAllModelShapes()) {
+        for (MyShape modelShape : shapeMapping.getModelShapes()) {
             Shape fxShape = adapterFactory.convertToJavaFx(modelShape, drawingArea.getWidth(), drawingArea.getHeight());
             shapeMapping.updateViewMapping(modelShape, fxShape);
             drawingArea.getChildren().add(fxShape);
@@ -169,7 +169,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
         });
     }
 
-    private void handleUndo(){
+    private void handleUndo() {
         if (commandInvoker.canUndo()) {
             commandInvoker.undo();
         }
@@ -198,7 +198,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     @FXML
     public void handleMouseMoved(MouseEvent event) {
-        if (currentStrategy != null){
+        if (currentStrategy != null) {
             currentStrategy.handleMouseMoved(event);
         }
     }
@@ -218,7 +218,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     @Override
     public void onModifyShape(Shape shape) {
-        Command modifyShapeCommand = new ModifyShapeCommand(model, shapeMapping.getModelShape(shape), shapeMapping.getModelShape(shape).clone() , adapterFactory.convertToModel(shape, drawingArea.getWidth(), drawingArea.getHeight()));
+        Command modifyShapeCommand = new ModifyShapeCommand(model, shapeMapping.getModelShape(shape), shapeMapping.getModelShape(shape).clone(), adapterFactory.convertToModel(shape, drawingArea.getWidth(), drawingArea.getHeight()));
         commandInvoker.executeCommand(modifyShapeCommand);
     }
 
@@ -289,30 +289,36 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 drawingArea.getChildren().add(javafxShape);
                 shapeMapping.register(shape, javafxShape);
                 currentStrategy.reset();
-                System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size() + " ");
-                System.out.print(shapeMapping.getAllViewShapes().size() + "\n" );
+                model.printAllShapes();
+                System.out.print(shapeMapping.getViewShapes().size() + " " + drawingArea.getChildren().size() + "\n");
                 break;
             case "DELETE":
                 drawingArea.getChildren().remove(shapeMapping.getViewShape(shape));
                 shapeMapping.unregister(shape);
                 currentStrategy.reset();
-                System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size() + " ");
-                System.out.print(shapeMapping.getAllViewShapes().size() +  "\n" );
+                model.printAllShapes();
+                System.out.print(shapeMapping.getViewShapes().size() + " " + drawingArea.getChildren().size() + "\n");
                 break;
             case "MODIFY":
-                drawingArea.getChildren().remove(shapeMapping.getViewShape(shape));
+                Shape oldViewShape = shapeMapping.getViewShape(shape);
+                int position = drawingArea.getChildren().indexOf(oldViewShape);
+                drawingArea.getChildren().remove(oldViewShape);
                 Shape newfxShape = adapterFactory.convertToJavaFx(shape, drawingArea.getWidth(), drawingArea.getHeight());
                 shapeMapping.updateViewMapping(shape, newfxShape);
-                drawingArea.getChildren().add(newfxShape);
+                if (position >= 0 && position <= drawingArea.getChildren().size()) {
+                    drawingArea.getChildren().add(position, newfxShape);
+                } else {
+                    drawingArea.getChildren().add(newfxShape);
+                }
                 currentStrategy.reset();
-                System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size() + " ");
-                System.out.print(shapeMapping.getAllViewShapes().size() + "\n" );
+                model.printAllShapes();
+                System.out.print(shapeMapping.getViewShapes().size() + " " + drawingArea.getChildren().size() + "\n");
                 break;
             case "CLEARALL":
                 drawingArea.getChildren().clear();
                 shapeMapping.clear();
-                System.out.print(shapeMapping.getAllModelShapes().size() + " " + drawingArea.getChildren().size() + " ");
-                System.out.print(shapeMapping.getAllViewShapes().size() + "\n" );
+                model.printAllShapes();
+                System.out.print(shapeMapping.getViewShapes().size() + " " + drawingArea.getChildren().size() + "\n");
                 break;
 
         }
@@ -329,7 +335,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 try {
                     List<MyShape> loadedShapes = persistenceService.loadDrawing(file);
                     model.clearShapes(); //Clear Model
-                    if(currentStrategy != null)
+                    if (currentStrategy != null)
                         currentStrategy.reset(); //Reset Strategy
                     for (MyShape shape : loadedShapes) {
                         model.addShape(shape);
@@ -376,7 +382,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
             }
         }
     }
-
 
 
 }

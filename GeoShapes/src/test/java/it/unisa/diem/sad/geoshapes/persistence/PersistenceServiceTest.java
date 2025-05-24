@@ -45,6 +45,11 @@ public class PersistenceServiceTest {
         }
 
         @Override
+        public String getShapeType() {
+            return "";
+        }
+
+        @Override
         public boolean equals(Object obj) {
             if (this == obj) return true;
             if (!(obj instanceof TestShape)) return false;

@@ -8,6 +8,7 @@ public abstract class MyShape implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 1L;
 
+    protected String name;
     protected double startX;
     protected double startY;
     protected double endX;
@@ -16,12 +17,17 @@ public abstract class MyShape implements Serializable, Cloneable {
     protected MyColor fillColor;
 
     public MyShape(double startX, double startY, double endX, double endY, MyColor borderColor, MyColor fillColor) {
+        this.name = null;
         this.startX = startX;
         this.startY = startY;
         this.endX = endX;
         this.endY = endY;
         this.borderColor = borderColor;
         this.fillColor = fillColor;
+    }
+
+    public String getName() {
+        return name != null ? name : "Unnamed " + getShapeType();
     }
 
     public double getStartX() {
@@ -46,6 +52,10 @@ public abstract class MyShape implements Serializable, Cloneable {
 
     public MyColor getFillColor() {
         return fillColor;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setStartX(double startX) {
@@ -84,12 +94,25 @@ public abstract class MyShape implements Serializable, Cloneable {
 
     @Override
     public boolean equals(Object obj) {
-        return this == obj;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        MyShape other = (MyShape) obj;
+        return Objects.equals(getName(), other.getName());
     }
 
     @Override
     public int hashCode() {
-        return System.identityHashCode(this);
+        return Objects.hash(getName());
     }
 
+    @Override
+    public String toString() {
+        return getName();
+    }
+
+    public abstract String getShapeType();
 }

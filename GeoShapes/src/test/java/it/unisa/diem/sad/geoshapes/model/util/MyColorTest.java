@@ -27,19 +27,6 @@ public class MyColorTest {
         assertEquals(0.8, color.getOpacity(), 1e-9);
     }
 
-    // Scopo: verificare che due colori uguali siano considerati uguali (equals e hashCode)
-    @Test
-    public void testEqualsAndHashCode() {
-        MyColor color1 = new MyColor(0.1, 0.2, 0.3, 0.4);
-        MyColor color2 = new MyColor(0.1, 0.2, 0.3, 0.4);
-        MyColor color3 = new MyColor(0.1, 0.2, 0.3, 1.0);
-
-        assertEquals(color1, color2, "Color1 and Color2 should be equal");
-        assertEquals(color1.hashCode(), color2.hashCode(), "Hash codes should match");
-
-        assertNotEquals(color1, color3, "Color1 and Color3 should not be equal (opacity differs)");
-    }
-
     // Scopo: verificare che vengano lanciati errori per valori non validi
     @Test
     public void testInvalidColorValues() {

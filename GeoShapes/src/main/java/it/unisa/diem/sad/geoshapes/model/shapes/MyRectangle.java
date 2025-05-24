@@ -53,4 +53,9 @@ public class MyRectangle extends MyShape {
         this.startY = currentY;
         this.endY = currentY + height;
     }
+
+    @Override
+    public String getShapeType() {
+        return "Rectangle";
+    }
 }

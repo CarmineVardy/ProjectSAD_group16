@@ -47,4 +47,9 @@ public class MyEllipse extends MyShape {
         this.startY = currentCenterY - radiusY;
         this.endY = currentCenterY + radiusY;
     }
+
+    @Override
+    public String getShapeType() {
+        return "Ellipse";
+    }
 }
