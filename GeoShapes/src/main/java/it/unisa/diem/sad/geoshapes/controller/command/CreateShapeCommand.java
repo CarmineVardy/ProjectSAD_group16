@@ -18,4 +18,8 @@ public class CreateShapeCommand implements Command {
         model.addShape(shape);
     }
 
+    @Override
+    public void undo() {
+        model.removeShape(shape);
+    }
 }

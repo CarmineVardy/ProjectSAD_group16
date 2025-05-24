@@ -17,4 +17,9 @@ public class DeleteShapeCommand implements Command {
     public void execute() {
         model.removeShape(shape);
     }
+
+    @Override
+    public void undo() {
+        model.addShape(shape);
+    }
 }
