@@ -8,6 +8,7 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.ToolBar?>
@@ -25,27 +26,27 @@
     <top>
         <VBox fillWidth="true">
             <children>
-            <HBox alignment="CENTER" spacing="30.0">
-               <children>
-                      <MenuBar>
-                          <menus>
-                              <Menu mnemonicParsing="false" text="File">
-                                  <items>
-                                      <MenuItem fx:id="menuItemLoad" mnemonicParsing="false" onAction="#handleLoad" text="Load" />
-                                      <MenuItem fx:id="menuItemSave" mnemonicParsing="false" onAction="#handleSave" text="Save" />
-                                      <MenuItem fx:id="menuItemSaveAs" mnemonicParsing="false" onAction="#handleSaveAs" text="Save As" />
-                                  </items>
-                              </Menu>
-                          </menus>
-                      </MenuBar>
-                  <Button fx:id="undoButton" mnemonicParsing="false" styleClass="tool-button">
-                     <graphic>
-                        <FontIcon iconLiteral="fas-undo-alt" iconSize="10"  />
-                     </graphic>
-                  </Button>
-                  <Region HBox.hgrow="ALWAYS" />
-               </children>
-            </HBox>
+                <HBox alignment="CENTER" spacing="30.0">
+                    <children>
+                        <MenuBar>
+                            <menus>
+                                <Menu mnemonicParsing="false" text="File">
+                                    <items>
+                                        <MenuItem fx:id="menuItemLoad" mnemonicParsing="false" onAction="#handleLoad" text="Load" />
+                                        <MenuItem fx:id="menuItemSave" mnemonicParsing="false" onAction="#handleSave" text="Save" />
+                                        <MenuItem fx:id="menuItemSaveAs" mnemonicParsing="false" onAction="#handleSaveAs" text="Save As" />
+                                    </items>
+                                </Menu>
+                            </menus>
+                        </MenuBar>
+                        <Button fx:id="undoButton" mnemonicParsing="false" styleClass="tool-button">
+                            <graphic>
+                                <FontIcon iconLiteral="fas-undo-alt" iconSize="10" />
+                            </graphic>
+                        </Button>
+                        <Region HBox.hgrow="ALWAYS" />
+                    </children>
+                </HBox>
                 <ToolBar styleClass="tool-bar">
                     <items>
                         <HBox alignment="CENTER_LEFT" spacing="5.0" HBox.hgrow="ALWAYS">
@@ -98,7 +99,9 @@
                                         <VBox alignment="CENTER" spacing="2">
                                             <children>
                                                 <ImageView fitHeight="20" fitWidth="20">
-                                                    <image> <Image url="@../../../../../../styles/icons/bucket.png" /> </image>
+                                                    <image>
+                                                        <Image url="@../../../../../../styles/icons/bucket.png" />
+                                                    </image>
                                                 </ImageView>
                                                 <Label styleClass="color-label" text="Fill color" />
                                             </children>
@@ -116,7 +119,9 @@
                                         <VBox alignment="CENTER" spacing="2">
                                             <children>
                                                 <ImageView fitHeight="20" fitWidth="20">
-                                                    <image> <Image url="@../../../../../../styles/icons/border_color.png" /> </image>
+                                                    <image>
+                                                        <Image url="@../../../../../../styles/icons/border_color.png" />
+                                                    </image>
                                                 </ImageView>
                                                 <Label styleClass="color-label" text="Border color" />
                                             </children>
@@ -126,6 +131,25 @@
                                                 <Color />
                                             </value>
                                         </ColorPicker>
+                                    </children>
+                                </HBox>
+
+                                <Region HBox.hgrow="ALWAYS" />
+
+                                <HBox alignment="CENTER_LEFT" spacing="5">
+                                    <children>
+                                        <VBox alignment="CENTER" spacing="2">
+                                            <children>
+                                                <FontIcon iconLiteral="fas-search" iconSize="16" />
+                                                <Label styleClass="zoom-label" text="Zoom" />
+                                            </children>
+                                        </VBox>
+                                        <Slider fx:id="zoomSlider" min="0.25" max="2.5" value="1.0" majorTickUnit="0.25" showTickMarks="false" showTickLabels="false" />
+                                        <Label fx:id="zoomPercentageLabel" text="100%" styleClass="zoom-percentage-label" prefWidth="50.0" minWidth="50.0">
+                                            <HBox.margin>
+                                                <Insets left="5.0" />
+                                            </HBox.margin>
+                                        </Label>
                                     </children>
                                 </HBox>
                             </children>

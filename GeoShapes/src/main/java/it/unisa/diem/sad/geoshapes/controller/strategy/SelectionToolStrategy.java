@@ -3,7 +3,6 @@ package it.unisa.diem.sad.geoshapes.controller.strategy;
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.controller.ShapeMapping;
 import it.unisa.diem.sad.geoshapes.decorator.SelectionDecorator;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.geometry.Bounds;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseButton;
@@ -17,7 +16,7 @@ import java.util.List;
 
 public class SelectionToolStrategy implements ToolStrategy {
 
-    private final Pane drawingArea;
+    private final Pane drawingPane;
     private final ShapeMapping shapeMapping;
     private SelectionDecorator currentDecorator;
     private Shape selectedJavaFxShape;
@@ -40,8 +39,8 @@ public class SelectionToolStrategy implements ToolStrategy {
         NONE
     }
 
-    public SelectionToolStrategy(Pane drawingArea, ShapeMapping shapeMapping, InteractionCallback callback) {
-        this.drawingArea = drawingArea;
+    public SelectionToolStrategy(Pane drawingPane, ShapeMapping shapeMapping, InteractionCallback callback) {
+        this.drawingPane = drawingPane;
         this.shapeMapping = shapeMapping;
         this.callback = callback;
     }
@@ -55,18 +54,20 @@ public class SelectionToolStrategy implements ToolStrategy {
 
         if (selectedJavaFxShape == null) {
             currentDecorator = null;
-            drawingArea.setCursor(Cursor.DEFAULT);
+            drawingPane.setCursor(Cursor.DEFAULT);
         } else {
             currentDecorator = new SelectionDecorator(selectedJavaFxShape);
             currentDecorator.applyDecoration();
-            drawingArea.setCursor(Cursor.MOVE);
+            drawingPane.setCursor(Cursor.MOVE);
         }
     }
 
     @Override
     public void handleMousePressed(MouseEvent event) {
-        double x = event.getX();
-        double y = event.getY();
+        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        double x = localPoint.getX();
+        double y = localPoint.getY();
+
         Circle handleAtPosition = findHandleAt(x, y);
 
         if (handleAtPosition != null && selectedJavaFxShape != null && event.getButton() == MouseButton.PRIMARY) {
@@ -88,7 +89,7 @@ public class SelectionToolStrategy implements ToolStrategy {
             currentDecorator = null;
             isMoving = false;
             isResizing = false;
-            drawingArea.setCursor(Cursor.DEFAULT);
+            drawingPane.setCursor(Cursor.DEFAULT);
             event.consume();
             return;
         }
@@ -114,7 +115,7 @@ public class SelectionToolStrategy implements ToolStrategy {
                 initialLineEndX = line.getEndX();
                 initialLineEndY = line.getEndY();
             }
-            drawingArea.setCursor(Cursor.MOVE);
+            drawingPane.setCursor(Cursor.MOVE);
             event.consume();
         }
     }
@@ -123,8 +124,12 @@ public class SelectionToolStrategy implements ToolStrategy {
     public void handleMouseDragged(MouseEvent event) {
         if (!isMoving && !isResizing || selectedJavaFxShape == null || initialMousePress == null) return;
 
-        double deltaX = event.getX() - initialMousePress.getX();
-        double deltaY = event.getY() - initialMousePress.getY();
+        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        double x = localPoint.getX();
+        double y = localPoint.getY();
+
+        double deltaX = x - initialMousePress.getX();
+        double deltaY = y - initialMousePress.getY();
 
         if (isResizing) {
             updateJavaFxShapeDimensions(deltaX, deltaY, activeHandleType);
@@ -174,6 +179,10 @@ public class SelectionToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseReleased(MouseEvent event) {
+        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        double x = localPoint.getX();
+        double y = localPoint.getY();
+
         boolean wasResizing = isResizing;
         boolean wasMoving = isMoving;
 
@@ -183,8 +192,8 @@ public class SelectionToolStrategy implements ToolStrategy {
 
         boolean significantChange = false;
         if (initialMousePress != null && (wasResizing || wasMoving) && selectedJavaFxShape != null) {
-            double dx = event.getX() - initialMousePress.getX();
-            double dy = event.getY() - initialMousePress.getY();
+            double dx = x - initialMousePress.getX();
+            double dy = y - initialMousePress.getY();
             significantChange = (dx * dx + dy * dy) > 4;
         }
 
@@ -212,19 +221,23 @@ public class SelectionToolStrategy implements ToolStrategy {
     @Override
     public void handleMouseMoved(MouseEvent event) {
         if (isResizing || isMoving) {
-            if (isMoving) drawingArea.setCursor(Cursor.MOVE);
+            if (isMoving) drawingPane.setCursor(Cursor.MOVE);
             return;
         }
 
-        Circle handleAtPosition = findHandleAt(event.getX(), event.getY());
+        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        double x = localPoint.getX();
+        double y = localPoint.getY();
+
+        Circle handleAtPosition = findHandleAt(x, y);
         if (handleAtPosition != null) {
-            drawingArea.setCursor(Cursor.HAND);
+            drawingPane.setCursor(Cursor.HAND);
         } else {
-            Shape shapeAtPos = findShapeAt(event.getX(), event.getY());
+            Shape shapeAtPos = findShapeAt(x, y);
             if (shapeAtPos != null) {
-                drawingArea.setCursor(Cursor.MOVE);
+                drawingPane.setCursor(Cursor.MOVE);
             } else {
-                drawingArea.setCursor(Cursor.DEFAULT);
+                drawingPane.setCursor(Cursor.DEFAULT);
             }
         }
     }
@@ -259,7 +272,7 @@ public class SelectionToolStrategy implements ToolStrategy {
         isResizing = false;
         isMoving = false;
         activeHandleType = ResizeHandleType.NONE;
-        drawingArea.setCursor(Cursor.DEFAULT);
+        drawingPane.setCursor(Cursor.DEFAULT);
     }
 
     @Override
@@ -268,7 +281,7 @@ public class SelectionToolStrategy implements ToolStrategy {
     }
 
     private Shape findShapeAt(double x, double y) {
-        List<javafx.scene.Node> children = drawingArea.getChildren();
+        List<javafx.scene.Node> children = drawingPane.getChildren();
         for (int i = children.size() - 1; i >= 0; i--) {
             javafx.scene.Node node = children.get(i);
             if (currentDecorator != null && node instanceof Circle && currentDecorator.getResizeHandles().contains(node)) {
@@ -296,6 +309,7 @@ public class SelectionToolStrategy implements ToolStrategy {
 
     private void updateJavaFxShapeDimensions(double deltaX, double deltaY, ResizeHandleType handleType) {
         if (selectedJavaFxShape == null || initialShapeBounds == null) return;
+
         Point2D pivot = calculatePivotPoint(handleType, initialShapeBounds);
         if (pivot == null && !(selectedJavaFxShape instanceof Line)) return;
 
@@ -313,52 +327,49 @@ public class SelectionToolStrategy implements ToolStrategy {
     private Point2D calculatePivotPoint(ResizeHandleType handleType, Bounds initialBounds) {
         double pivotX, pivotY;
 
-        if (selectedJavaFxShape instanceof Line) {
-            Line fxLine = (Line) selectedJavaFxShape;
+        if (selectedJavaFxShape instanceof Line fxLine) {
             switch (handleType) {
                 case LINE_START: return new Point2D(fxLine.getEndX(), fxLine.getEndY());
                 case LINE_END: return new Point2D(fxLine.getStartX(), fxLine.getStartY());
                 default: return null;
             }
         } else {
-            // Assicurati che questi siano corretti: il pivot è il lato/angolo OPPOSTO.
             switch (handleType) {
-                case TOP_LEFT:      pivotX = initialBounds.getMaxX(); pivotY = initialBounds.getMaxY(); break; // Bottom-Right
-                case TOP_RIGHT:     pivotX = initialBounds.getMinX(); pivotY = initialBounds.getMaxY(); break; // Bottom-Left
-                case BOTTOM_LEFT:   pivotX = initialBounds.getMaxX(); pivotY = initialBounds.getMinY(); break; // Top-Right
-                case BOTTOM_RIGHT:  pivotX = initialBounds.getMinX(); pivotY = initialBounds.getMinY(); break; // Top-Left
-                case TOP_CENTER:    pivotX = initialBounds.getMinX() + initialBounds.getWidth() / 2; pivotY = initialBounds.getMaxY(); break; // Bottom-Center
-                case BOTTOM_CENTER: pivotX = initialBounds.getMinX() + initialBounds.getWidth() / 2; pivotY = initialBounds.getMinY(); break; // Top-Center
-                case MIDDLE_LEFT:   pivotX = initialBounds.getMaxX(); pivotY = initialBounds.getMinY() + initialBounds.getHeight() / 2; break; // Middle-Right
-                case MIDDLE_RIGHT:  pivotX = initialBounds.getMinX(); pivotY = initialBounds.getMinY() + initialBounds.getHeight() / 2; break; // Middle-Left
+                case TOP_LEFT:      pivotX = initialBounds.getMaxX(); pivotY = initialBounds.getMaxY(); break;
+                case TOP_RIGHT:     pivotX = initialBounds.getMinX(); pivotY = initialBounds.getMaxY(); break;
+                case BOTTOM_LEFT:   pivotX = initialBounds.getMaxX(); pivotY = initialBounds.getMinY(); break;
+                case BOTTOM_RIGHT:  pivotX = initialBounds.getMinX(); pivotY = initialBounds.getMinY(); break;
+                case TOP_CENTER:    pivotX = initialBounds.getMinX() + initialBounds.getWidth() / 2; pivotY = initialBounds.getMaxY(); break;
+                case BOTTOM_CENTER: pivotX = initialBounds.getMinX() + initialBounds.getWidth() / 2; pivotY = initialBounds.getMinY(); break;
+                case MIDDLE_LEFT:   pivotX = initialBounds.getMaxX(); pivotY = initialBounds.getMinY() + initialBounds.getHeight() / 2; break;
+                case MIDDLE_RIGHT:  pivotX = initialBounds.getMinX(); pivotY = initialBounds.getMinY() + initialBounds.getHeight() / 2; break;
                 default:            return null;
             }
             return new Point2D(pivotX, pivotY);
         }
     }
 
-    /**
-     * Calcola il ridimensionamento (proporzionale per angoli, non per lati).
-     */
     private ResizeCalculations calculateResize(double deltaX, double deltaY, ResizeHandleType handleType, Bounds initialBounds, Point2D initialMouse, Point2D pivot) {
         double currentMouseX = initialMouse.getX() + deltaX;
         double currentMouseY = initialMouse.getY() + deltaY;
 
         if (selectedJavaFxShape instanceof Line fxLine) {
-            // Logica Line invariata
             double newStartX, newStartY, newEndX, newEndY;
             if (handleType == ResizeHandleType.LINE_START) {
-                newStartX = currentMouseX; newStartY = currentMouseY;
-                newEndX = fxLine.getEndX(); newEndY = fxLine.getEndY();
+                newStartX = currentMouseX;
+                newStartY = currentMouseY;
+                newEndX = fxLine.getEndX();
+                newEndY = fxLine.getEndY();
             } else if (handleType == ResizeHandleType.LINE_END) {
-                newStartX = fxLine.getStartX(); newStartY = fxLine.getStartY();
-                newEndX = currentMouseX; newEndY = currentMouseY;
+                newStartX = fxLine.getStartX();
+                newStartY = fxLine.getStartY();
+                newEndX = currentMouseX;
+                newEndY = currentMouseY;
             } else {
                 return new ResizeCalculations(fxLine.getStartX(), fxLine.getStartY(), fxLine.getEndX(), fxLine.getEndY());
             }
             return new ResizeCalculations(newStartX, newStartY, newEndX, newEndY);
         } else {
-            // Logica per Rettangoli/Ellissi
             double newX = initialBounds.getMinX();
             double newY = initialBounds.getMinY();
             double newWidth = initialBounds.getWidth();
@@ -366,70 +377,68 @@ public class SelectionToolStrategy implements ToolStrategy {
             final double MIN_SIZE = 5.0;
 
             switch (handleType) {
-                // --- Angoli (Proporzionale) ---
                 case TOP_LEFT:
                 case BOTTOM_RIGHT:
                 case TOP_RIGHT:
                 case BOTTOM_LEFT:
-                    double dx = Math.abs(currentMouseX - pivot.getX());
-                    double dy = Math.abs(currentMouseY - pivot.getY());
-                    double originalRatio = (newHeight == 0) ? 1 : newWidth / newHeight;
+                    double tempWidth = Math.abs(currentMouseX - pivot.getX());
+                    double tempHeight = Math.abs(currentMouseY - pivot.getY());
 
-                    double scaleX = (newWidth == 0) ? 0 : dx / newWidth;
-                    double scaleY = (newHeight == 0) ? 0 : dy / newHeight;
-                    double scale = Math.max(scaleX, scaleY);
-
-                    newWidth = initialBounds.getWidth() * scale;
-                    newHeight = initialBounds.getHeight() * scale;
-
-                    // Gestione MIN_SIZE proporzionale
-                    if (newWidth < MIN_SIZE || newHeight < MIN_SIZE) {
-                        double scaleW = (initialBounds.getWidth() == 0) ? Double.MAX_VALUE : MIN_SIZE / initialBounds.getWidth();
-                        double scaleH = (initialBounds.getHeight() == 0) ? Double.MAX_VALUE : MIN_SIZE / initialBounds.getHeight();
-                        scale = Math.max(scale, Math.max(scaleW, scaleH));
+                    double originalRatio = (initialBounds.getHeight() == 0) ? 1 : initialBounds.getWidth() / initialBounds.getHeight();
+                    if (initialBounds.getWidth() != 0 && initialBounds.getHeight() != 0) {
+                        double ratioX = tempWidth / initialBounds.getWidth();
+                        double ratioY = tempHeight / initialBounds.getHeight();
+                        double scale = Math.max(ratioX, ratioY);
                         newWidth = initialBounds.getWidth() * scale;
                         newHeight = initialBounds.getHeight() * scale;
+                    } else {
+                        newWidth = tempWidth;
+                        newHeight = tempHeight;
                     }
 
-                    // Calcola X/Y basandoti sul pivot
-                    if (handleType == ResizeHandleType.TOP_LEFT || handleType == ResizeHandleType.BOTTOM_LEFT) newX = pivot.getX() - newWidth; else newX = pivot.getX();
-                    if (handleType == ResizeHandleType.TOP_LEFT || handleType == ResizeHandleType.TOP_RIGHT) newY = pivot.getY() - newHeight; else newY = pivot.getY();
+                    if (newWidth < MIN_SIZE) newWidth = MIN_SIZE;
+                    if (newHeight < MIN_SIZE) newHeight = MIN_SIZE;
+
+                    switch (handleType) {
+                        case TOP_LEFT:      newX = pivot.getX() - newWidth; newY = pivot.getY() - newHeight; break;
+                        case TOP_RIGHT:     newX = pivot.getX();            newY = pivot.getY() - newHeight; break;
+                        case BOTTOM_LEFT:   newX = pivot.getX() - newWidth; newY = pivot.getY();            break;
+                        case BOTTOM_RIGHT:  newX = pivot.getX();            newY = pivot.getY();            break;
+                    }
                     break;
 
-                // --- Lati (Non Proporzionale) ---
                 case TOP_CENTER:
-                    newY = currentMouseY; // Il nuovo Y è la posizione del mouse
-                    newHeight = pivot.getY() - currentMouseY; // L'altezza è la distanza dal pivot (fondo)
-                    if (newHeight < MIN_SIZE) { // Se l'altezza è troppo piccola...
-                        newHeight = MIN_SIZE;   // ...impostala al minimo...
-                        newY = pivot.getY() - MIN_SIZE; // ...e ricalcola Y per mantenere il fondo fisso.
+                    newY = currentMouseY;
+                    newHeight = pivot.getY() - currentMouseY;
+                    if (newHeight < MIN_SIZE) {
+                        newHeight = MIN_SIZE;
+                        newY = pivot.getY() - MIN_SIZE;
                     }
                     break;
                 case BOTTOM_CENTER:
-                    newHeight = currentMouseY - pivot.getY(); // L'altezza è la distanza dal pivot (sopra)
+                    newHeight = currentMouseY - pivot.getY();
                     if (newHeight < MIN_SIZE) newHeight = MIN_SIZE;
-                    // newY rimane quello iniziale (pivot.getY())
                     break;
                 case MIDDLE_LEFT:
-                    newX = currentMouseX; // Il nuovo X è la posizione del mouse
-                    newWidth = pivot.getX() - currentMouseX; // La larghezza è la distanza dal pivot (destra)
-                    if (newWidth < MIN_SIZE) { // Se la larghezza è troppo piccola...
-                        newWidth = MIN_SIZE;    // ...impostala al minimo...
-                        newX = pivot.getX() - MIN_SIZE; // ...e ricalcola X per mantenere la destra fissa.
+                    newX = currentMouseX;
+                    newWidth = pivot.getX() - currentMouseX;
+                    if (newWidth < MIN_SIZE) {
+                        newWidth = MIN_SIZE;
+                        newX = pivot.getX() - MIN_SIZE;
                     }
                     break;
                 case MIDDLE_RIGHT:
-                    newWidth = currentMouseX - pivot.getX(); // La larghezza è la distanza dal pivot (sinistra)
+                    newWidth = currentMouseX - pivot.getX();
                     if (newWidth < MIN_SIZE) newWidth = MIN_SIZE;
-                    // newX rimane quello iniziale (pivot.getX())
                     break;
 
-                default: // Caso non previsto o LINE
+                default:
                     return new ResizeCalculations(newX, newY, newWidth, newHeight);
             }
             return new ResizeCalculations(newX, newY, newWidth, newHeight);
         }
     }
+
 
     private void applyDimensionsToFxShape(Shape fxShape, ResizeCalculations calc) {
         if (fxShape instanceof Rectangle fxRect) {

@@ -9,6 +9,7 @@ import it.unisa.diem.sad.geoshapes.model.shapes.MyLine;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import it.unisa.diem.sad.geoshapes.observer.ShapeObserver;
 import it.unisa.diem.sad.geoshapes.persistence.PersistenceService;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
@@ -54,22 +55,26 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private ColorPicker fillColorPicker;
     @FXML
     private Pane drawingArea;
-    private Rectangle clipRect; //Rectangle for clip the pane
+    @FXML
+    private Slider zoomSlider;
+    @FXML
+    private Label zoomPercentageLabel;
 
-    //Model, PersistenceService, UIUtils and ShapeMapping
+    private Rectangle clipRect;
+
+    private Pane contentPane;
+
     private DrawingModel model;
     private PersistenceService persistenceService;
     private UIUtils uiUtils;
     private ShapeMapping shapeMapping;
+    private double currentZoomLevel = 1.0;
 
-    //Pattern Strategy
     private ToolStrategy currentStrategy;
     private Map<ToggleButton, ToolStrategy> toolStrategies;
 
-    //Pattern Adapter
     private AdapterFactory adapterFactory;
 
-    //Pattern Command
     private CommandInvoker commandInvoker;
 
 
@@ -81,8 +86,37 @@ public class MainController implements ShapeObserver, InteractionCallback {
         setDefaultUIState();
     }
 
-    private void initializeCoreComponents() {
+    private void setDefaultZoom() {
+        zoomSlider.setMin(0.25);
+        zoomSlider.setMax(2.50);
+        zoomSlider.setValue(1.0);
+        zoomPercentageLabel.setText(String.format("%.0f%%", zoomSlider.getValue() * 100));
 
+        Platform.runLater(() -> {
+            applyZoom(zoomSlider.getValue(), drawingArea.getWidth() / 2, drawingArea.getHeight() / 2);
+        });
+    }
+
+    private void applyZoom(double newZoomLevel, double zoomCenterX, double zoomCenterY) {
+        if (drawingArea.getWidth() <= 0 || drawingArea.getHeight() <= 0) {
+            System.err.println("DrawingArea dimensions not available for zoom centering. Cannot apply zoom now.");
+            return;
+        }
+        Point2D currentLocalPoint = contentPane.parentToLocal(zoomCenterX, zoomCenterY);
+
+        contentPane.setScaleX(newZoomLevel);
+        contentPane.setScaleY(newZoomLevel);
+
+        Point2D newParentPoint = contentPane.localToParent(currentLocalPoint);
+        double newTranslateX = zoomCenterX - newParentPoint.getX();
+        double newTranslateY = zoomCenterY - newParentPoint.getY();
+        contentPane.setTranslateX(newTranslateX);
+        contentPane.setTranslateY(newTranslateY);
+        this.currentZoomLevel = newZoomLevel;
+    }
+
+
+    private void initializeCoreComponents() {
         model = new DrawingModel();
         model.attach(this);
 
@@ -90,29 +124,33 @@ public class MainController implements ShapeObserver, InteractionCallback {
         uiUtils = new UIUtils();
         shapeMapping = new ShapeMapping();
 
-        //Patterns
         commandInvoker = new CommandInvoker();
         adapterFactory = new AdapterFactory();
+
+        contentPane = new Pane();
+        drawingArea.getChildren().add(contentPane);
+
+        contentPane.prefWidthProperty().bind(drawingArea.widthProperty());
+        contentPane.prefHeightProperty().bind(drawingArea.heightProperty());
+
         initializeToolStrategies();
     }
 
     private void initializeToolStrategies() {
         toolStrategies = new HashMap<>();
-        toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea, shapeMapping, this));
-        toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, this));
-        toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, this));
-        toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, this));
+        toolStrategies.put(selectionButton, new SelectionToolStrategy(contentPane, shapeMapping, this));
+        toolStrategies.put(lineButton, new LineToolStrategy(contentPane, this));
+        toolStrategies.put(rectangleButton, new RectangleToolStrategy(contentPane, this));
+        toolStrategies.put(ellipseButton, new EllipseToolStrategy(contentPane, this));
     }
 
     private void configureDrawingArea() {
         clipRect = new Rectangle();
         drawingArea.setClip(clipRect);
 
-        // Lega le dimensioni del clipRect alle dimensioni dell'area di disegno
         clipRect.widthProperty().bind(drawingArea.widthProperty());
         clipRect.heightProperty().bind(drawingArea.heightProperty());
 
-        // Aggiungi ascoltatori per ridisegnare le forme quando l'area di disegno viene ridimensionata
         drawingArea.widthProperty().addListener((obs, oldVal, newVal) -> rebuildShapes());
         drawingArea.heightProperty().addListener((obs, oldVal, newVal) -> rebuildShapes());
     }
@@ -122,6 +160,11 @@ public class MainController implements ShapeObserver, InteractionCallback {
         setupColorPickerListeners();
         undoButton.setOnAction(event -> handleUndo());
         undoButton.disableProperty().bind(commandInvoker.canUndoProperty().not());
+
+        zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            zoomPercentageLabel.setText(String.format("%.0f%%", newValue.doubleValue() * 100));
+            applyZoom(newValue.doubleValue(), drawingArea.getWidth() / 2, drawingArea.getHeight() / 2);
+        });
     }
 
     private void setupToolToggleListener() {
@@ -132,7 +175,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 return;
             }
             if (currentStrategy != null) {
-                currentStrategy.reset(); // Resetta la strategia precedente prima di cambiarla
+                currentStrategy.reset();
             }
             currentStrategy = toolStrategies.get(selectedToggle);
             currentStrategy.activate(borderColorPicker.getValue(), fillColorPicker.getValue());
@@ -143,16 +186,17 @@ public class MainController implements ShapeObserver, InteractionCallback {
         toolToggleGroup.selectToggle(selectionButton);
         borderColorPicker.setValue(Color.BLACK);
         fillColorPicker.setValue(Color.TRANSPARENT);
+        setDefaultZoom();
     }
 
     private void rebuildShapes() {
         if (currentStrategy != null)
             currentStrategy.reset();
-        drawingArea.getChildren().clear();
+        contentPane.getChildren().clear();
         for (MyShape modelShape : shapeMapping.getModelShapes()) {
             Shape fxShape = adapterFactory.convertToJavaFx(modelShape, drawingArea.getWidth(), drawingArea.getHeight());
             shapeMapping.updateViewMapping(modelShape, fxShape);
-            drawingArea.getChildren().add(fxShape);
+            contentPane.getChildren().add(fxShape);
         }
     }
 
@@ -252,11 +296,11 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 if (label == null || picker == null) continue;
 
                 if (label.getText().contains("Border")) {
-                    final ColorPicker borderPicker = picker; // Crea una variabile finale
+                    final ColorPicker borderPicker = picker;
                     borderPicker.setValue((Color) adapterFactory.convertToJavaFxColor(modelShape.getBorderColor()));
                     borderPicker.setOnAction(e -> currentStrategy.handleBorderColorChange(borderPicker.getValue()));
                 } else if (label.getText().contains("Fill")) {
-                    final ColorPicker fillPicker = picker; // Crea una variabile finale
+                    final ColorPicker fillPicker = picker;
                     fillPicker.setValue((Color) adapterFactory.convertToJavaFxColor(modelShape.getFillColor()));
                     fillPicker.setOnAction(e -> currentStrategy.handleFillColorChange(fillPicker.getValue()));
                 }
@@ -286,41 +330,44 @@ public class MainController implements ShapeObserver, InteractionCallback {
         switch (eventType) {
             case "CREATE":
                 Shape javafxShape = adapterFactory.convertToJavaFx(shape, drawingArea.getWidth(), drawingArea.getHeight());
-                drawingArea.getChildren().add(javafxShape);
+                contentPane.getChildren().add(javafxShape);
                 shapeMapping.register(shape, javafxShape);
                 currentStrategy.reset();
                 model.printAllShapes();
-                System.out.print(shapeMapping.getViewShapes().size() + " " + drawingArea.getChildren().size() + "\n");
+                System.out.print(shapeMapping.getViewShapes().size() + " " + contentPane.getChildren().size() + "\n");
                 break;
             case "DELETE":
-                drawingArea.getChildren().remove(shapeMapping.getViewShape(shape));
+                contentPane.getChildren().remove(shapeMapping.getViewShape(shape));
                 shapeMapping.unregister(shape);
                 currentStrategy.reset();
                 model.printAllShapes();
-                System.out.print(shapeMapping.getViewShapes().size() + " " + drawingArea.getChildren().size() + "\n");
+                System.out.print(shapeMapping.getViewShapes().size() + " " + contentPane.getChildren().size() + "\n");
                 break;
             case "MODIFY":
                 Shape oldViewShape = shapeMapping.getViewShape(shape);
-                int position = drawingArea.getChildren().indexOf(oldViewShape);
-                drawingArea.getChildren().remove(oldViewShape);
+                int position = contentPane.getChildren().indexOf(oldViewShape);
+                if (oldViewShape != null) {
+                    contentPane.getChildren().remove(oldViewShape);
+                }
+
                 Shape newfxShape = adapterFactory.convertToJavaFx(shape, drawingArea.getWidth(), drawingArea.getHeight());
                 shapeMapping.updateViewMapping(shape, newfxShape);
-                if (position >= 0 && position <= drawingArea.getChildren().size()) {
-                    drawingArea.getChildren().add(position, newfxShape);
+
+                if (position >= 0 && position <= contentPane.getChildren().size()) {
+                    contentPane.getChildren().add(position, newfxShape);
                 } else {
-                    drawingArea.getChildren().add(newfxShape);
+                    contentPane.getChildren().add(newfxShape);
                 }
                 currentStrategy.reset();
                 model.printAllShapes();
-                System.out.print(shapeMapping.getViewShapes().size() + " " + drawingArea.getChildren().size() + "\n");
+                System.out.print(shapeMapping.getViewShapes().size() + " " + contentPane.getChildren().size() + "\n");
                 break;
             case "CLEARALL":
-                drawingArea.getChildren().clear();
+                contentPane.getChildren().clear();
                 shapeMapping.clear();
                 model.printAllShapes();
-                System.out.print(shapeMapping.getViewShapes().size() + " " + drawingArea.getChildren().size() + "\n");
+                System.out.print(shapeMapping.getViewShapes().size() + " " + contentPane.getChildren().size() + "\n");
                 break;
-
         }
     }
 
@@ -334,9 +381,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
             if (proceed) {
                 try {
                     List<MyShape> loadedShapes = persistenceService.loadDrawing(file);
-                    model.clearShapes(); //Clear Model
+                    model.clearShapes();
                     if (currentStrategy != null)
-                        currentStrategy.reset(); //Reset Strategy
+                        currentStrategy.reset();
                     for (MyShape shape : loadedShapes) {
                         model.addShape(shape);
                     }
@@ -382,6 +429,4 @@ public class MainController implements ShapeObserver, InteractionCallback {
             }
         }
     }
-
-
 }
