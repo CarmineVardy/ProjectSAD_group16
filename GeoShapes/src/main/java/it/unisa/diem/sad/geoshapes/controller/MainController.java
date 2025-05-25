@@ -54,11 +54,19 @@ public class MainController implements ShapeObserver, InteractionCallback {
     @FXML
     private ColorPicker fillColorPicker;
     @FXML
-    private Pane drawingArea;
+    private Button shapesManagerButton;
+    @FXML
+    private ScrollPane scrollPane;
+    @FXML
+    private Button sendToBackButton;
+    @FXML
+    private Button bringToFrontButton;
     @FXML
     private Slider zoomSlider;
     @FXML
     private Label zoomPercentageLabel;
+    @FXML
+    private Pane drawingArea;
 
     private Rectangle clipRect;
 
@@ -266,6 +274,18 @@ public class MainController implements ShapeObserver, InteractionCallback {
         commandInvoker.executeCommand(modifyShapeCommand);
     }
 
+    @FXML
+    public void handleBringToFront(ActionEvent actionEvent) {
+    }
+
+    @FXML
+    public void handleShowShapesManager(ActionEvent actionEvent) {
+    }
+
+    @FXML
+    public void handleSendToBack(ActionEvent actionEvent) {
+    }
+
 
     @Override
     public void onSelectionMenuOpened(Shape viewShape, double x, double y) {
@@ -429,4 +449,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
             }
         }
     }
+
+
 }
