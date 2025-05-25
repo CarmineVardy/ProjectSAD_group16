@@ -3,6 +3,7 @@ package it.unisa.diem.sad.geoshapes.controller.strategy;
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
+import javafx.geometry.Point2D;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -51,8 +52,9 @@ public class LineToolStrategy implements ToolStrategy {
 
         drawingArea.setCursor(Cursor.CROSSHAIR);
 
-        startX = event.getX();
-        startY = event.getY();
+        Point2D localPoint = drawingArea.parentToLocal(event.getX(), event.getY());
+        startX = localPoint.getX();
+        startY = localPoint.getY();
         endX = startX;
         endY = startY;
 
@@ -69,8 +71,12 @@ public class LineToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseDragged(MouseEvent event) {
-        endX = event.getX();
-        endY = event.getY();
+        if (previewFxShape == null) return;
+
+        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
+        Point2D localPoint = drawingArea.parentToLocal(event.getX(), event.getY());
+        endX = localPoint.getX();
+        endY = localPoint.getY();
 
         if (previewFxShape instanceof Line) {
             Line line = (Line) previewFxShape;
@@ -83,14 +89,17 @@ public class LineToolStrategy implements ToolStrategy {
     public void handleMouseReleased(MouseEvent event) {
         drawingArea.setCursor(Cursor.DEFAULT);
 
-        endX = event.getX();
-        endY = event.getY();
+        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
+        Point2D localPoint = drawingArea.parentToLocal(event.getX(), event.getY());
+        endX = localPoint.getX();
+        endY = localPoint.getY();
 
         double dx = endX - startX;
         double dy = endY - startY;
         double length = Math.sqrt(dx * dx + dy * dy);
 
         if (length >= MIN_LENGTH) {
+            drawingArea.getChildren().remove(previewFxShape);
             callback.onCreateShape(previewFxShape);
         } else {
             reset();

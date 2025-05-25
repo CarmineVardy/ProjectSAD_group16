@@ -3,6 +3,7 @@ package it.unisa.diem.sad.geoshapes.controller.strategy;
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
+import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -12,7 +13,7 @@ import javafx.scene.shape.Shape;
 
 public class EllipseToolStrategy implements ToolStrategy {
 
-    private final Pane drawingArea;
+    private final Pane drawingPane;
     private final InteractionCallback callback;
 
     private Shape previewFxShape;
@@ -24,8 +25,8 @@ public class EllipseToolStrategy implements ToolStrategy {
 
     private static final double MIN_RADIUS = 1.0;
 
-    public EllipseToolStrategy(Pane drawingArea, InteractionCallback callback) {
-        this.drawingArea = drawingArea;
+    public EllipseToolStrategy(Pane drawingPane, InteractionCallback callback) {
+        this.drawingPane = drawingPane;
         this.callback = callback;
     }
 
@@ -38,11 +39,17 @@ public class EllipseToolStrategy implements ToolStrategy {
     @Override
     public void handleBorderColorChange(Color color) {
         this.borderColor = color;
+        if (previewFxShape instanceof Ellipse ellipse) {
+            ellipse.setStroke(this.borderColor);
+        }
     }
 
     @Override
     public void handleFillColorChange(Color color) {
         this.fillColor = color;
+        if (previewFxShape instanceof Ellipse ellipse) {
+            ellipse.setFill(this.fillColor);
+        }
     }
 
     @Override
@@ -51,11 +58,13 @@ public class EllipseToolStrategy implements ToolStrategy {
             reset();
         }
 
-        drawingArea.setCursor(Cursor.CROSSHAIR);
+        drawingPane.setCursor(Cursor.CROSSHAIR);
 
-        startX = event.getX();
-        startY = event.getY();
-        endX = startX;
+        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
+        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        startX = localPoint.getX();
+        startY = localPoint.getY();
+        endX = startX; // Inizializza endX e endY con le stesse coordinate di start
         endY = startY;
 
         Ellipse ellipse = new Ellipse(startX, startY, 0, 0);
@@ -67,13 +76,17 @@ public class EllipseToolStrategy implements ToolStrategy {
         previewDecorator = new PreviewDecorator(previewFxShape);
         previewDecorator.applyDecoration();
 
-        drawingArea.getChildren().add(previewFxShape);
+        drawingPane.getChildren().add(previewFxShape);
     }
 
     @Override
     public void handleMouseDragged(MouseEvent event) {
-        endX = event.getX();
-        endY = event.getY();
+        if (previewFxShape == null) return; // Aggiunto per sicurezza
+
+        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
+        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        endX = localPoint.getX();
+        endY = localPoint.getY();
 
         double centerX = (startX + endX) / 2;
         double centerY = (startY + endY) / 2;
@@ -90,15 +103,19 @@ public class EllipseToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseReleased(MouseEvent event) {
-        drawingArea.setCursor(Cursor.DEFAULT);
+        drawingPane.setCursor(Cursor.DEFAULT);
 
-        endX = event.getX();
-        endY = event.getY();
+        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
+        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        endX = localPoint.getX();
+        endY = localPoint.getY();
 
         double radiusX = Math.abs(endX - startX) / 2;
         double radiusY = Math.abs(endY - startY) / 2;
 
         if (radiusX >= MIN_RADIUS && radiusY >= MIN_RADIUS) {
+
+            drawingPane.getChildren().remove(previewFxShape);
             callback.onCreateShape(previewFxShape);
         } else {
             reset();
@@ -107,6 +124,7 @@ public class EllipseToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseMoved(MouseEvent event) {
+        // Nessun comportamento specifico richiesto per il movimento del mouse non trascinato
     }
 
     @Override
@@ -116,9 +134,8 @@ public class EllipseToolStrategy implements ToolStrategy {
             previewDecorator = null;
         }
         if (previewFxShape != null) {
-            drawingArea.getChildren().remove(previewFxShape);
+            drawingPane.getChildren().remove(previewFxShape);
             previewFxShape = null;
         }
     }
-
 }
