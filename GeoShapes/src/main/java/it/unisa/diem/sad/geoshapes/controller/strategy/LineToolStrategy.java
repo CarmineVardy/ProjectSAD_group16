@@ -3,6 +3,7 @@ package it.unisa.diem.sad.geoshapes.controller.strategy;
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
+import javafx.event.ActionEvent;
 import javafx.geometry.Point2D;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -32,6 +33,7 @@ public class LineToolStrategy implements ToolStrategy {
     @Override
     public void activate(Color borderColor, Color fillColor) {
         this.borderColor = borderColor;
+        callback.onLineSelected(true);
     }
 
     @Override
@@ -41,6 +43,16 @@ public class LineToolStrategy implements ToolStrategy {
 
     @Override
     public void handleFillColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleBringToFront(ActionEvent actionEvent) {
+
+    }
+
+    @Override
+    public void handleSendToBack(ActionEvent actionEvent) {
 
     }
 

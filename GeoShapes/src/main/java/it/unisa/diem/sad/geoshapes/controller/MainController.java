@@ -10,6 +10,8 @@ import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import it.unisa.diem.sad.geoshapes.observer.ShapeObserver;
 import it.unisa.diem.sad.geoshapes.persistence.PersistenceService;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
@@ -19,6 +21,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
@@ -84,6 +87,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private AdapterFactory adapterFactory;
 
     private CommandInvoker commandInvoker;
+
+    private BooleanProperty hasShapeSelected = new SimpleBooleanProperty(false);
+    private BooleanProperty isLineSelected = new SimpleBooleanProperty(false);
 
 
     @FXML
@@ -166,9 +172,11 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private void setupEventListeners() {
         setupToolToggleListener();
         setupColorPickerListeners();
+        fillColorPicker.disableProperty().bind(isLineSelected);
         undoButton.setOnAction(event -> handleUndo());
         undoButton.disableProperty().bind(commandInvoker.canUndoProperty().not());
-
+        sendToBackButton.disableProperty().bind(hasShapeSelected.not());
+        bringToFrontButton.disableProperty().bind(hasShapeSelected.not());
         zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             zoomPercentageLabel.setText(String.format("%.0f%%", newValue.doubleValue() * 100));
             applyZoom(newValue.doubleValue(), drawingArea.getWidth() / 2, drawingArea.getHeight() / 2);
@@ -221,6 +229,10 @@ public class MainController implements ShapeObserver, InteractionCallback {
         });
     }
 
+    public BooleanProperty hasShapeSelectedProperty() {return hasShapeSelected;}
+
+    public BooleanProperty isLineSelectedProperty() {return isLineSelected;}
+
     private void handleUndo() {
         if (commandInvoker.canUndo()) {
             commandInvoker.undo();
@@ -255,6 +267,40 @@ public class MainController implements ShapeObserver, InteractionCallback {
         }
     }
 
+    @FXML
+    public void handleBringToFront(ActionEvent actionEvent) {
+        if (currentStrategy != null) {
+            currentStrategy.handleBringToFront(actionEvent);
+        }
+    }
+
+    @FXML
+    public void handleSendToBack(ActionEvent actionEvent) {
+        if (currentStrategy != null) {
+            currentStrategy.handleSendToBack(actionEvent);
+        }
+    }
+
+    @FXML
+    public void handleShowShapesManager(ActionEvent actionEvent) {
+    }
+
+    @Override
+    public void onShapeSelected(Shape shape) {
+        hasShapeSelected.set(true);
+        isLineSelected.set(shape instanceof Line);
+    }
+
+    @Override
+    public void onLineSelected(boolean selected) {
+        isLineSelected.set(selected);
+    }
+
+    @Override
+    public void onShapeDeselected() {
+        hasShapeSelected.set(false);
+        isLineSelected.set(false);
+    }
 
     @Override
     public void onCreateShape(Shape shape) {
@@ -274,16 +320,16 @@ public class MainController implements ShapeObserver, InteractionCallback {
         commandInvoker.executeCommand(modifyShapeCommand);
     }
 
-    @FXML
-    public void handleBringToFront(ActionEvent actionEvent) {
+    @Override
+    public void onBringToFront(Shape shape) {
+        Command bringToFrontCommand = new BringToFrontCommand(model, shapeMapping.getModelShape(shape));
+        commandInvoker.executeCommand(bringToFrontCommand);
     }
 
-    @FXML
-    public void handleShowShapesManager(ActionEvent actionEvent) {
-    }
-
-    @FXML
-    public void handleSendToBack(ActionEvent actionEvent) {
+    @Override
+    public void onSendToBack(Shape shape) {
+        Command sendToBackCommand = new SendToBackCommand(model, shapeMapping.getModelShape(shape));
+        commandInvoker.executeCommand(sendToBackCommand);
     }
 
 
@@ -369,16 +415,36 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 if (oldViewShape != null) {
                     contentPane.getChildren().remove(oldViewShape);
                 }
-
                 Shape newfxShape = adapterFactory.convertToJavaFx(shape, drawingArea.getWidth(), drawingArea.getHeight());
                 shapeMapping.updateViewMapping(shape, newfxShape);
-
                 if (position >= 0 && position <= contentPane.getChildren().size()) {
                     contentPane.getChildren().add(position, newfxShape);
                 } else {
                     contentPane.getChildren().add(newfxShape);
                 }
                 currentStrategy.reset();
+                model.printAllShapes();
+                System.out.print(shapeMapping.getViewShapes().size() + " " + contentPane.getChildren().size() + "\n");
+                break;
+            case "BRINGTOFRONT":
+                Shape viewShape = shapeMapping.getViewShape(shape);
+                position = contentPane.getChildren().indexOf(viewShape);
+                if (position >= 0 && position < contentPane.getChildren().size() - 1) {
+                    contentPane.getChildren().remove(viewShape);
+                    contentPane.getChildren().add(position + 1, viewShape);
+                }
+                shapeMapping.bringToFront(shape);
+                model.printAllShapes();
+                System.out.print(shapeMapping.getViewShapes().size() + " " + contentPane.getChildren().size() + "\n");
+                break;
+            case "SENDTOBACK":
+                oldViewShape = shapeMapping.getViewShape(shape);
+                position = contentPane.getChildren().indexOf(oldViewShape);
+                if (position > 0) {
+                    contentPane.getChildren().remove(oldViewShape);
+                    contentPane.getChildren().add(position -1, oldViewShape);
+                }
+                shapeMapping.sendToBack(shape);
                 model.printAllShapes();
                 System.out.print(shapeMapping.getViewShapes().size() + " " + contentPane.getChildren().size() + "\n");
                 break;

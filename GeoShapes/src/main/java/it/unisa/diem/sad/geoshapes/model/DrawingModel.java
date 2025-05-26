@@ -43,6 +43,40 @@ public class DrawingModel implements ShapeSubject {
 
     }
 
+    public void bringToFront(MyShape myShape) {
+        if (shapes.contains(myShape)) {
+            int currentIndex = shapes.indexOf(myShape);
+
+            if (currentIndex < shapes.size() - 1) {
+                shapes.remove(currentIndex);
+                shapes.add(currentIndex + 1, myShape);
+
+                notifyObservers("BRINGTOFRONT", myShape);
+            } else {
+                System.out.println("Shape is already at the front");
+            }
+        } else {
+            System.out.println("Shape not found in the model");
+        }
+    }
+
+    public void sendToBack(MyShape myShape) {
+        if (shapes.contains(myShape)) {
+            int currentIndex = shapes.indexOf(myShape);
+
+            if (currentIndex > 0) {
+                shapes.remove(currentIndex);
+                shapes.add(currentIndex - 1, myShape);
+
+                notifyObservers("SENDTOBACK", myShape);
+            } else {
+                System.out.println("Shape is already at the back");
+            }
+        } else {
+            System.out.println("Shape not found in the model");
+        }
+    }
+
     public void clearShapes() {
         shapes.clear();
         notifyObservers("CLEARALL", null);

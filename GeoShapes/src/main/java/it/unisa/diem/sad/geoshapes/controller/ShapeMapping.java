@@ -4,53 +4,94 @@ import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class ShapeMapping {
 
-    private Map<MyShape, Shape> modelToView;
+    private List<MyShape> modelShapes;
+    private List<Shape> viewShapes;
 
     public ShapeMapping() {
-        this.modelToView = new LinkedHashMap<>();
+        this.modelShapes = new ArrayList<>();
+        this.viewShapes = new ArrayList<>();
     }
 
     public Shape getViewShape(MyShape modelShape) {
-        return modelToView.get(modelShape);
+        int index = modelShapes.indexOf(modelShape);
+        return index != -1 ? viewShapes.get(index) : null;
     }
 
     public MyShape getModelShape(Shape viewShape) {
-        for (Map.Entry<MyShape, Shape> entry : modelToView.entrySet()) {
-            if (entry.getValue().equals(viewShape)) {
-                return entry.getKey();
-            }
-        }
-        return null;
+        int index = viewShapes.indexOf(viewShape);
+        return index != -1 ? modelShapes.get(index) : null;
     }
 
     public List<MyShape> getModelShapes() {
-        return new ArrayList<>(modelToView.keySet());
+        return new ArrayList<>(modelShapes);
     }
 
     public List<Shape> getViewShapes() {
-        return new ArrayList<>(modelToView.values());
+        return new ArrayList<>(viewShapes);
     }
 
     public void register(MyShape modelShape, Shape viewShape) {
-        modelToView.put(modelShape, viewShape);
+        modelShapes.add(modelShape);
+        viewShapes.add(viewShape);
     }
 
     public void unregister(MyShape modelShape) {
-        modelToView.remove(modelShape);
+        int index = modelShapes.indexOf(modelShape);
+        if (index != -1) {
+            modelShapes.remove(index);
+            viewShapes.remove(index);
+        }
     }
 
     public void updateViewMapping(MyShape modelShape, Shape newViewShape) {
-        modelToView.put(modelShape, newViewShape);
+        int index = modelShapes.indexOf(modelShape);
+        if (index != -1) {
+            viewShapes.set(index, newViewShape);
+        }
     }
 
     public void clear() {
-        modelToView.clear();
+        modelShapes.clear();
+        viewShapes.clear();
     }
+
+    public void moveShape(MyShape modelShape, int newIndex) {
+        int currentIndex = modelShapes.indexOf(modelShape);
+
+        if (currentIndex == -1) {
+            System.out.println("Shape not found in mapping");
+            return;
+        }
+
+        if (newIndex < 0 || newIndex >= modelShapes.size() || currentIndex == newIndex) {
+            return; // Nessun movimento necessario
+        }
+
+        // Sposta in entrambe le liste
+        MyShape tempModel = modelShapes.remove(currentIndex);
+        Shape tempView = viewShapes.remove(currentIndex);
+
+        modelShapes.add(newIndex, tempModel);
+        viewShapes.add(newIndex, tempView);
+    }
+
+    public void bringToFront(MyShape modelShape) {
+        int currentIndex = modelShapes.indexOf(modelShape);
+        if (currentIndex != -1 && currentIndex < modelShapes.size() - 1) {
+            moveShape(modelShape, currentIndex + 1);
+        }
+    }
+
+    public void sendToBack(MyShape modelShape) {
+        int currentIndex = modelShapes.indexOf(modelShape);
+        if (currentIndex > 0) {
+            moveShape(modelShape, currentIndex - 1);
+        }
+    }
+
 
 }

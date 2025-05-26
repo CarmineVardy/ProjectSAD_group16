@@ -3,6 +3,7 @@ package it.unisa.diem.sad.geoshapes.controller.strategy;
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.controller.ShapeMapping;
 import it.unisa.diem.sad.geoshapes.decorator.SelectionDecorator;
+import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseButton;
@@ -55,10 +56,15 @@ public class SelectionToolStrategy implements ToolStrategy {
         if (selectedJavaFxShape == null) {
             currentDecorator = null;
             drawingPane.setCursor(Cursor.DEFAULT);
+            // Callback per deselezionare
+            callback.onShapeDeselected();
         } else {
             currentDecorator = new SelectionDecorator(selectedJavaFxShape);
             currentDecorator.applyDecoration();
             drawingPane.setCursor(Cursor.MOVE);
+
+            // Callback per selezione (unica per tutte le forme)
+            callback.onShapeSelected(selectedJavaFxShape);
         }
     }
 
@@ -90,6 +96,7 @@ public class SelectionToolStrategy implements ToolStrategy {
             isMoving = false;
             isResizing = false;
             drawingPane.setCursor(Cursor.DEFAULT);
+            callback.onShapeDeselected();
             event.consume();
             return;
         }
@@ -263,6 +270,20 @@ public class SelectionToolStrategy implements ToolStrategy {
     }
 
     @Override
+    public void handleBringToFront(ActionEvent actionEvent) {
+        if (selectedJavaFxShape != null) {
+            callback.onBringToFront(selectedJavaFxShape);
+        }
+    }
+
+    @Override
+    public void handleSendToBack(ActionEvent actionEvent) {
+        if (selectedJavaFxShape != null) {
+            callback.onSendToBack(selectedJavaFxShape);
+        }
+    }
+
+    @Override
     public void reset() {
         if (currentDecorator != null) {
             currentDecorator.removeDecoration();
@@ -273,11 +294,14 @@ public class SelectionToolStrategy implements ToolStrategy {
         isMoving = false;
         activeHandleType = ResizeHandleType.NONE;
         drawingPane.setCursor(Cursor.DEFAULT);
+
+        // Callback per deselezionare quando si resetta
+        callback.onShapeDeselected();
     }
 
     @Override
     public void activate(Color borderColor, Color fillColor) {
-
+        callback.onLineSelected(false);
     }
 
     private Shape findShapeAt(double x, double y) {

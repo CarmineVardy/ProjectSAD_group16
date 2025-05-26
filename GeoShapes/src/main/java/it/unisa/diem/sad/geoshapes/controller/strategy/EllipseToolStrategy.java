@@ -3,6 +3,7 @@ package it.unisa.diem.sad.geoshapes.controller.strategy;
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
+import javafx.event.ActionEvent;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseEvent;
@@ -34,6 +35,7 @@ public class EllipseToolStrategy implements ToolStrategy {
     public void activate(Color borderColor, Color fillColor) {
         this.borderColor = borderColor;
         this.fillColor = fillColor;
+        callback.onLineSelected(false);
     }
 
     @Override
@@ -50,6 +52,16 @@ public class EllipseToolStrategy implements ToolStrategy {
         if (previewFxShape instanceof Ellipse ellipse) {
             ellipse.setFill(this.fillColor);
         }
+    }
+
+    @Override
+    public void handleBringToFront(ActionEvent actionEvent) {
+
+    }
+
+    @Override
+    public void handleSendToBack(ActionEvent actionEvent) {
+
     }
 
     @Override
