@@ -8,6 +8,11 @@ public class MyEllipse extends MyShape {
         super(startX, startY, endX, endY, borderMyColor, fillMyColor);
     }
 
+    // Costruttore di copia
+    public MyEllipse(MyEllipse other) {
+        super(other.startX, other.startY, other.endX, other.endY, other.borderColor, other.fillColor);
+    }
+
     public double getCenterX() {
         return (this.startX + this.endX) / 2.0;
     }
@@ -51,5 +56,10 @@ public class MyEllipse extends MyShape {
     @Override
     public String getShapeType() {
         return "Ellipse";
+    }
+
+    @Override
+    public MyShape cloneShape() {
+        return new MyEllipse(this);
     }
 }

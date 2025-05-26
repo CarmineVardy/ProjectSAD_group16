@@ -3,10 +3,14 @@ package it.unisa.diem.sad.geoshapes.controller;
 import it.unisa.diem.sad.geoshapes.adapter.AdapterFactory;
 import it.unisa.diem.sad.geoshapes.controller.command.*;
 import it.unisa.diem.sad.geoshapes.controller.strategy.*;
+import it.unisa.diem.sad.geoshapes.controller.util.GridRenderer;
+import it.unisa.diem.sad.geoshapes.controller.util.ShapeClipboard;
+import it.unisa.diem.sad.geoshapes.controller.util.ShapeClipboardImpl;
 import it.unisa.diem.sad.geoshapes.controller.util.UIUtils;
 import it.unisa.diem.sad.geoshapes.model.DrawingModel;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyLine;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
+import it.unisa.diem.sad.geoshapes.model.util.GridSettings;
 import it.unisa.diem.sad.geoshapes.observer.ShapeObserver;
 import it.unisa.diem.sad.geoshapes.persistence.PersistenceService;
 import javafx.application.Platform;
@@ -21,19 +25,24 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
-
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.KeyCode;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javafx.scene.shape.Line;
 
 
 public class MainController implements ShapeObserver, InteractionCallback {
 
+    @FXML
+    private Slider zoomSlider;
+    @FXML
+    private Label zoomPercentageLabel;
     @FXML
     private MenuItem menuItemLoad;
     @FXML
@@ -65,14 +74,23 @@ public class MainController implements ShapeObserver, InteractionCallback {
     @FXML
     private Button bringToFrontButton;
     @FXML
-    private Slider zoomSlider;
+    private MenuItem menuItemPaste;
     @FXML
-    private Label zoomPercentageLabel;
+    private CheckMenuItem menuItemToggleGrid;
+    @FXML
+    private RadioMenuItem cellSize10;
+    @FXML
+    private RadioMenuItem cellSize20;
+    @FXML
+    private RadioMenuItem cellSize50;
+    @FXML
+    private ToggleGroup cellSizeToggleGroup;
     @FXML
     private Pane drawingArea;
 
     private Rectangle clipRect;
 
+    @FXML
     private Pane contentPane;
 
     private DrawingModel model;
@@ -91,6 +109,13 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private BooleanProperty hasShapeSelected = new SimpleBooleanProperty(false);
     private BooleanProperty isLineSelected = new SimpleBooleanProperty(false);
 
+    private ShapeClipboard clipboard = new ShapeClipboardImpl();
+    private Shape selectedShape;
+
+    private GridSettings gridSettings;
+    private GridRenderer gridRenderer;
+
+    private RadioMenuItem lastSelectedSizeItem;
 
     @FXML
     public void initialize() {
@@ -98,16 +123,22 @@ public class MainController implements ShapeObserver, InteractionCallback {
         configureDrawingArea();
         setupEventListeners();
         setDefaultUIState();
-    }
-
-    private void setDefaultZoom() {
-        zoomSlider.setMin(0.25);
-        zoomSlider.setMax(2.50);
-        zoomSlider.setValue(1.0);
-        zoomPercentageLabel.setText(String.format("%.0f%%", zoomSlider.getValue() * 100));
-
+        menuItemPaste.setDisable(true);
         Platform.runLater(() -> {
-            applyZoom(zoomSlider.getValue(), drawingArea.getWidth() / 2, drawingArea.getHeight() / 2);
+            drawingArea.getScene().setOnKeyPressed((KeyEvent event) -> {
+                if (event.getCode() == KeyCode.DELETE) {
+                    handleDelete();
+                }
+            });
+        });
+        cellSize20.setSelected(true); // default
+        menuItemToggleGrid.setSelected(gridSettings.isGridEnabled());
+        drawingArea.widthProperty().addListener((obs, oldVal, newVal) -> {
+            gridRenderer.drawGrid();
+        });
+
+        drawingArea.heightProperty().addListener((obs, oldVal, newVal) -> {
+            gridRenderer.drawGrid();
         });
     }
 
@@ -116,19 +147,19 @@ public class MainController implements ShapeObserver, InteractionCallback {
             System.err.println("DrawingArea dimensions not available for zoom centering. Cannot apply zoom now.");
             return;
         }
-        Point2D currentLocalPoint = contentPane.parentToLocal(zoomCenterX, zoomCenterY);
+        Point2D currentLocalPoint = drawingArea.parentToLocal(zoomCenterX, zoomCenterY);
 
-        contentPane.setScaleX(newZoomLevel);
-        contentPane.setScaleY(newZoomLevel);
+        drawingArea.setScaleX(newZoomLevel);
+        drawingArea.setScaleY(newZoomLevel);
 
-        Point2D newParentPoint = contentPane.localToParent(currentLocalPoint);
+        Point2D newParentPoint = drawingArea.localToParent(currentLocalPoint);
         double newTranslateX = zoomCenterX - newParentPoint.getX();
         double newTranslateY = zoomCenterY - newParentPoint.getY();
-        contentPane.setTranslateX(newTranslateX);
-        contentPane.setTranslateY(newTranslateY);
+        drawingArea.setTranslateX(newTranslateX);
+        drawingArea.setTranslateY(newTranslateY);
         this.currentZoomLevel = newZoomLevel;
+        gridRenderer.drawGrid();
     }
-
 
     private void initializeCoreComponents() {
         model = new DrawingModel();
@@ -141,21 +172,17 @@ public class MainController implements ShapeObserver, InteractionCallback {
         commandInvoker = new CommandInvoker();
         adapterFactory = new AdapterFactory();
 
-        contentPane = new Pane();
-        drawingArea.getChildren().add(contentPane);
-
-        contentPane.prefWidthProperty().bind(drawingArea.widthProperty());
-        contentPane.prefHeightProperty().bind(drawingArea.heightProperty());
+        gridSettings = new GridSettings();
 
         initializeToolStrategies();
     }
 
     private void initializeToolStrategies() {
         toolStrategies = new HashMap<>();
-        toolStrategies.put(selectionButton, new SelectionToolStrategy(contentPane, shapeMapping, this));
-        toolStrategies.put(lineButton, new LineToolStrategy(contentPane, this));
-        toolStrategies.put(rectangleButton, new RectangleToolStrategy(contentPane, this));
-        toolStrategies.put(ellipseButton, new EllipseToolStrategy(contentPane, this));
+        toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea, shapeMapping, this));
+        toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, this));
+        toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, this));
+        toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, this));
     }
 
     private void configureDrawingArea() {
@@ -165,8 +192,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
         clipRect.widthProperty().bind(drawingArea.widthProperty());
         clipRect.heightProperty().bind(drawingArea.heightProperty());
 
-        drawingArea.widthProperty().addListener((obs, oldVal, newVal) -> rebuildShapes());
-        drawingArea.heightProperty().addListener((obs, oldVal, newVal) -> rebuildShapes());
+        gridRenderer = new GridRenderer(drawingArea, gridSettings);
     }
 
     private void setupEventListeners() {
@@ -202,17 +228,16 @@ public class MainController implements ShapeObserver, InteractionCallback {
         toolToggleGroup.selectToggle(selectionButton);
         borderColorPicker.setValue(Color.BLACK);
         fillColorPicker.setValue(Color.TRANSPARENT);
-        setDefaultZoom();
     }
 
     private void rebuildShapes() {
         if (currentStrategy != null)
             currentStrategy.reset();
-        contentPane.getChildren().clear();
+        drawingArea.getChildren().clear();
         for (MyShape modelShape : shapeMapping.getModelShapes()) {
             Shape fxShape = adapterFactory.convertToJavaFx(modelShape, drawingArea.getWidth(), drawingArea.getHeight());
             shapeMapping.updateViewMapping(modelShape, fxShape);
-            contentPane.getChildren().add(fxShape);
+            drawingArea.getChildren().add(fxShape);
         }
     }
 
@@ -340,38 +365,46 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
         ContextMenu menu = uiUtils.getSelectionShapeMenu();
 
+        // Pulisci gli elementi esistenti per evitare duplicati
+        menu.getItems().clear();
+
+        // --- CUT ---
+        MenuItem cutItem = new MenuItem("Cut");
+        cutItem.setOnAction(e -> handleCut(new ActionEvent()));
+
+        // --- COPY ---
+        MenuItem copyItem = new MenuItem("Copy");
+        copyItem.setOnAction(e -> handleCopy(new ActionEvent()));
+
+        // --- PASTE ---
+        MenuItem pasteItem = new MenuItem("Paste");
+        pasteItem.setDisable(clipboard.isEmpty());
+        pasteItem.setOnAction(e -> handlePaste(new ActionEvent()));
+
+        // --- DELETE ---
+        MenuItem deleteItem = new MenuItem("Delete");
+        deleteItem.setOnAction(e -> handleDelete());
+
+        // --- COLOR PICKERS ---
         boolean isLine = modelShape instanceof MyLine || viewShape instanceof javafx.scene.shape.Line;
-        uiUtils.setSelectMenuItemVisibleByLabel("Fill Color:", !isLine);
 
-        for (MenuItem item : menu.getItems()) {
-            if ("Delete".equals(item.getText())) {
-                item.setOnAction(e -> {
-                    onDeleteShape(viewShape);
-                });
-            } else if (item instanceof CustomMenuItem customItem &&
-                    customItem.getContent() instanceof HBox hbox) {
+        // Border Color Picker
+        Label borderLabel = new Label("Border Color:");
+        ColorPicker borderPicker = new ColorPicker((Color) adapterFactory.convertToJavaFxColor(modelShape.getBorderColor()));
+        borderPicker.setOnAction(e -> currentStrategy.handleBorderColorChange(borderPicker.getValue()));
+        HBox borderBox = new HBox(5, borderLabel, borderPicker);
+        CustomMenuItem borderColorItem = new CustomMenuItem(borderBox, false);
 
-                Label label = null;
-                ColorPicker picker = null;
+        // Fill Color Picker
+        Label fillLabel = new Label("Fill Color:");
+        ColorPicker fillPicker = new ColorPicker((Color) adapterFactory.convertToJavaFxColor(modelShape.getFillColor()));
+        fillPicker.setOnAction(e -> currentStrategy.handleFillColorChange(fillPicker.getValue()));
+        HBox fillBox = new HBox(5, fillLabel, fillPicker);
+        CustomMenuItem fillColorItem = new CustomMenuItem(fillBox, false);
+        fillColorItem.setVisible(!isLine);
 
-                for (Node node : hbox.getChildren()) {
-                    if (node instanceof Label l) label = l;
-                    else if (node instanceof ColorPicker cp) picker = cp;
-                }
-
-                if (label == null || picker == null) continue;
-
-                if (label.getText().contains("Border")) {
-                    final ColorPicker borderPicker = picker;
-                    borderPicker.setValue((Color) adapterFactory.convertToJavaFxColor(modelShape.getBorderColor()));
-                    borderPicker.setOnAction(e -> currentStrategy.handleBorderColorChange(borderPicker.getValue()));
-                } else if (label.getText().contains("Fill")) {
-                    final ColorPicker fillPicker = picker;
-                    fillPicker.setValue((Color) adapterFactory.convertToJavaFxColor(modelShape.getFillColor()));
-                    fillPicker.setOnAction(e -> currentStrategy.handleFillColorChange(fillPicker.getValue()));
-                }
-            }
-        }
+        // Aggiunta elementi al menu
+        menu.getItems().addAll(cutItem, copyItem, pasteItem, new SeparatorMenuItem(), deleteItem, new SeparatorMenuItem(), borderColorItem, fillColorItem);
 
         Point2D screenPoint = viewShape.localToScreen(x, y);
         if (screenPoint != null) {
@@ -382,6 +415,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
         menu.setOnHidden(e -> onSelectionMenuClosed());
     }
+
 
 
     public void onSelectionMenuClosed() {
@@ -396,35 +430,37 @@ public class MainController implements ShapeObserver, InteractionCallback {
         switch (eventType) {
             case "CREATE":
                 Shape javafxShape = adapterFactory.convertToJavaFx(shape, drawingArea.getWidth(), drawingArea.getHeight());
-                contentPane.getChildren().add(javafxShape);
+                drawingArea.getChildren().add(javafxShape);
                 shapeMapping.register(shape, javafxShape);
                 currentStrategy.reset();
                 model.printAllShapes();
-                System.out.print(shapeMapping.getViewShapes().size() + " " + contentPane.getChildren().size() + "\n");
+                System.out.print(shapeMapping.getViewShapes().size() + " " + drawingArea.getChildren().size() + "\n");
                 break;
             case "DELETE":
-                contentPane.getChildren().remove(shapeMapping.getViewShape(shape));
+                drawingArea.getChildren().remove(shapeMapping.getViewShape(shape));
                 shapeMapping.unregister(shape);
                 currentStrategy.reset();
                 model.printAllShapes();
-                System.out.print(shapeMapping.getViewShapes().size() + " " + contentPane.getChildren().size() + "\n");
+                System.out.print(shapeMapping.getViewShapes().size() + " " + drawingArea.getChildren().size() + "\n");
                 break;
             case "MODIFY":
                 Shape oldViewShape = shapeMapping.getViewShape(shape);
-                int position = contentPane.getChildren().indexOf(oldViewShape);
+                int position = drawingArea.getChildren().indexOf(oldViewShape);
                 if (oldViewShape != null) {
-                    contentPane.getChildren().remove(oldViewShape);
+                    drawingArea.getChildren().remove(oldViewShape);
                 }
+
                 Shape newfxShape = adapterFactory.convertToJavaFx(shape, drawingArea.getWidth(), drawingArea.getHeight());
                 shapeMapping.updateViewMapping(shape, newfxShape);
-                if (position >= 0 && position <= contentPane.getChildren().size()) {
-                    contentPane.getChildren().add(position, newfxShape);
+
+                if (position >= 0 && position <= drawingArea.getChildren().size()) {
+                    drawingArea.getChildren().add(position, newfxShape);
                 } else {
-                    contentPane.getChildren().add(newfxShape);
+                    drawingArea.getChildren().add(newfxShape);
                 }
+
                 currentStrategy.reset();
                 model.printAllShapes();
-                System.out.print(shapeMapping.getViewShapes().size() + " " + contentPane.getChildren().size() + "\n");
                 break;
             case "BRINGTOFRONT":
                 Shape viewShape = shapeMapping.getViewShape(shape);
@@ -446,13 +482,13 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 }
                 shapeMapping.sendToBack(shape);
                 model.printAllShapes();
-                System.out.print(shapeMapping.getViewShapes().size() + " " + contentPane.getChildren().size() + "\n");
+                System.out.print(shapeMapping.getViewShapes().size() + " " + drawingArea.getChildren().size() + "\n");
                 break;
             case "CLEARALL":
-                contentPane.getChildren().clear();
+                drawingArea.getChildren().clear();
                 shapeMapping.clear();
                 model.printAllShapes();
-                System.out.print(shapeMapping.getViewShapes().size() + " " + contentPane.getChildren().size() + "\n");
+                System.out.print(shapeMapping.getViewShapes().size() + " " + drawingArea.getChildren().size() + "\n");
                 break;
         }
     }
@@ -516,5 +552,141 @@ public class MainController implements ShapeObserver, InteractionCallback {
         }
     }
 
+    @FXML
+    public void handleCopy(ActionEvent event) {
+        if (currentStrategy instanceof SelectionToolStrategy selectionStrategy) {
+            List<MyShape> selectedShapes = selectionStrategy.getSelectedShapes();
+            if (!selectedShapes.isEmpty()) {
+                clipboard.copy(selectedShapes);
+                updateClipboardMenuItems();
+            }
+        }
+    }
 
+    @FXML
+    public void handleCut(ActionEvent event) {
+        if (currentStrategy instanceof SelectionToolStrategy selectionStrategy) {
+            List<MyShape> selectedShapes = selectionStrategy.getSelectedShapes();
+            if (!selectedShapes.isEmpty()) {
+                clipboard.copy(selectedShapes);
+                for (MyShape shape : selectedShapes) {
+                    model.removeShape(shape);
+                }
+                selectionStrategy.clearSelection();
+                updateClipboardMenuItems();
+            }
+        }
+    }
+
+    @FXML
+    public void handlePaste(ActionEvent event) {
+        if (!clipboard.isEmpty()) {
+            double offset = 20.0;
+
+            // Ottieni dimensioni reali dell'area
+            double width = drawingArea.getWidth();
+            double height = drawingArea.getHeight();
+
+            List<MyShape> clonedShapes = clipboard.paste();
+
+            for (MyShape shape : clonedShapes) {
+                double deltaX = offset / width;   // 10 pixel convertiti in [0,1]
+                double deltaY = offset / height;
+
+                shape.setStartX(shape.getStartX() + deltaX);
+                shape.setStartY(shape.getStartY() + deltaY);
+                shape.setEndX(shape.getEndX() + deltaX);
+                shape.setEndY(shape.getEndY() + deltaY);
+
+                model.addShape(shape);
+            }
+
+            updateClipboardMenuItems();
+        }
+    }
+
+    private void updateClipboardMenuItems() {
+        menuItemPaste.setDisable(clipboard.isEmpty());
+    }
+
+    private void handleDelete() {
+        if (currentStrategy instanceof SelectionToolStrategy selectionStrategy) {
+            List<MyShape> selectedShapes = selectionStrategy.getSelectedShapes();
+            if (!selectedShapes.isEmpty()) {
+                for (MyShape shape : selectedShapes) {
+                    model.removeShape(shape);
+                }
+                selectionStrategy.clearSelection();
+            }
+        }
+    }
+
+    @FXML
+    private void toggleGrid(ActionEvent event) {
+        boolean enabled = menuItemToggleGrid.isSelected();
+        gridSettings.setGridEnabled(enabled);
+
+        if (!enabled) {
+            // Deseleziona tutto
+            if (lastSelectedSizeItem != null) {
+                lastSelectedSizeItem.setSelected(false);
+                lastSelectedSizeItem = null;
+            }
+        } else {
+            // Se nulla è selezionato, seleziona default (20)
+            if (lastSelectedSizeItem == null) {
+                cellSize20.setSelected(true);
+                lastSelectedSizeItem = cellSize20;
+                gridSettings.setCellSize(20);
+            }
+        }
+
+        gridRenderer.drawGrid();
+    }
+
+    @FXML
+    private void setCellSize10(ActionEvent event) {
+        gridSettings.setCellSize(10);
+        gridRenderer.drawGrid();
+    }
+
+    @FXML
+    private void setCellSize20(ActionEvent event) {
+        gridSettings.setCellSize(20);
+        gridRenderer.drawGrid();
+    }
+
+    @FXML
+    private void setCellSize50(ActionEvent event) {
+        gridSettings.setCellSize(50);
+        gridRenderer.drawGrid();
+    }
+
+    @FXML
+    private void handleCellSizeSelection(ActionEvent event) {
+        RadioMenuItem selected = (RadioMenuItem) event.getSource();
+
+        if (selected == lastSelectedSizeItem) {
+            // Deseleziona se cliccato di nuovo
+            selected.setSelected(false);
+            lastSelectedSizeItem = null;
+            gridSettings.setGridEnabled(false);
+            menuItemToggleGrid.setSelected(false);
+        } else {
+            // Selezione nuova dimensione
+            lastSelectedSizeItem = selected;
+            gridSettings.setGridEnabled(true);
+            menuItemToggleGrid.setSelected(true);
+
+            if (selected == cellSize10) {
+                gridSettings.setCellSize(10);
+            } else if (selected == cellSize20) {
+                gridSettings.setCellSize(20);
+            } else if (selected == cellSize50) {
+                gridSettings.setCellSize(50);
+            }
+        }
+
+        gridRenderer.drawGrid();
+    }
 }

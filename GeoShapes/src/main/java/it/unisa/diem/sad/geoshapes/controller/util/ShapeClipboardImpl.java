@@ -19,7 +19,7 @@ public final class ShapeClipboardImpl implements ShapeClipboard {
             for (MyShape shape : shapes) {
                 if (shape != null) {
                     try {
-                        clipboard.add(shape.cloneShape());
+                        clipboard.add(shape.clone());
                     } catch (Exception e) {
                         throw new IllegalStateException("Errore durante la clonazione della forma", e);
                     }
@@ -39,7 +39,7 @@ public final class ShapeClipboardImpl implements ShapeClipboard {
 
             for (MyShape shape : clipboard) {
                 try {
-                    clones.add(shape.cloneShape());
+                    clones.add(shape.clone());
                 } catch (Exception e) {
                     throw new IllegalStateException("Errore durante la clonazione della forma", e);
                 }

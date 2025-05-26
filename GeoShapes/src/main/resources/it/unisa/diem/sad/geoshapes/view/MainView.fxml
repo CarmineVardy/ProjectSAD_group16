@@ -23,6 +23,8 @@
 <?import javafx.scene.paint.Color?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
+<?import javafx.scene.control.RadioMenuItem?>
+<?import javafx.scene.control.CheckMenuItem?>
 <BorderPane prefHeight="600.0" prefWidth="860.0" stylesheets="@../../../../../../styles/style.css" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.diem.sad.geoshapes.controller.MainController">
     <top>
         <VBox fillWidth="true">
@@ -36,6 +38,25 @@
                                         <MenuItem fx:id="menuItemLoad" mnemonicParsing="false" onAction="#handleLoad" text="Load" />
                                         <MenuItem fx:id="menuItemSave" mnemonicParsing="false" onAction="#handleSave" text="Save" />
                                         <MenuItem fx:id="menuItemSaveAs" mnemonicParsing="false" onAction="#handleSaveAs" text="Save As" />
+                                    </items>
+                                </Menu>
+                                <Menu mnemonicParsing="false" text="Edit">
+                                    <items>
+                                        <MenuItem fx:id="menuItemCut" mnemonicParsing="false" onAction="#handleCut" text="Cut" accelerator="shortcut+X" />
+                                        <MenuItem fx:id="menuItemCopy" mnemonicParsing="false" onAction="#handleCopy" text="Copy" accelerator="shortcut+C" />
+                                        <MenuItem fx:id="menuItemPaste" mnemonicParsing="false" onAction="#handlePaste" text="Paste" accelerator="shortcut+V" />
+                                    </items>
+                                </Menu>
+                                <Menu mnemonicParsing="false" text="Grid">
+                                    <items>
+                                        <CheckMenuItem fx:id="menuItemToggleGrid" mnemonicParsing="false" text="Show Grid" onAction="#toggleGrid"/>
+                                        <Menu text="Cell Size">
+                                            <items>
+                                                <RadioMenuItem fx:id="cellSize10" text="10 px" toggleGroup="$cellSizeToggleGroup" onAction="#handleCellSizeSelection"/>
+                                                <RadioMenuItem fx:id="cellSize20" text="20 px" toggleGroup="$cellSizeToggleGroup" onAction="#handleCellSizeSelection"/>
+                                                <RadioMenuItem fx:id="cellSize50" text="50 px" toggleGroup="$cellSizeToggleGroup" onAction="#handleCellSizeSelection"/>
+                                            </items>
+                                        </Menu>
                                     </items>
                                 </Menu>
                             </menus>
@@ -144,11 +165,11 @@
                         </Separator>
                         <VBox alignment="CENTER">
                            <children>
-                              <Button fx:id="bringToFrontButton" maxWidth="110.0" minWidth="110.0" mnemonicParsing="false" onAction="#handleBringToFront" styleClass="tool-button" text="Bring to Front" />
+                              <Button fx:id="bringToFrontButton" maxWidth="110.0" minWidth="110.0" mnemonicParsing="false" styleClass="tool-button" text="Bring to Front" />
                               <Separator />
-                              <Button fx:id="sendToBackButton" minWidth="110.0" mnemonicParsing="false" onAction="#handleSendToBack" styleClass="tool-button" text="Send to Back" />
+                              <Button fx:id="sendToBackButton" minWidth="110.0" mnemonicParsing="false" styleClass="tool-button" text="Send to Back" />
                               <Separator />
-                              <Button fx:id="shapesManagerButton" maxWidth="110.0" minWidth="110.0" mnemonicParsing="false" onAction="#handleShowShapesManager" styleClass="tool-button" text="Shapes Manager" />
+                              <Button fx:id="shapesManagerButton" maxWidth="110.0" minWidth="110.0" mnemonicParsing="false" styleClass="tool-button" text="Shapes Manager" />
                            </children>
                         </VBox>
                         <Separator orientation="VERTICAL">

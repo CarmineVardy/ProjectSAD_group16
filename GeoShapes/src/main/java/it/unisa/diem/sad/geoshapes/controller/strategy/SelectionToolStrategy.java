@@ -4,6 +4,7 @@ import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.controller.ShapeMapping;
 import it.unisa.diem.sad.geoshapes.decorator.SelectionDecorator;
 import javafx.event.ActionEvent;
+import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.geometry.Bounds;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseButton;
@@ -13,6 +14,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.geometry.Point2D;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SelectionToolStrategy implements ToolStrategy {
@@ -30,6 +32,9 @@ public class SelectionToolStrategy implements ToolStrategy {
     private double initialTranslateX;
     private double initialTranslateY;
     private double initialLineStartX, initialLineStartY, initialLineEndX, initialLineEndY;
+
+    private final List<MyShape> selectedModelShapes = new ArrayList<>();
+    private final List<Shape> selectedJavaFxShapes = new ArrayList<>();
 
     private ResizeHandleType activeHandleType = ResizeHandleType.NONE;
 
@@ -51,20 +56,26 @@ public class SelectionToolStrategy implements ToolStrategy {
             currentDecorator.removeDecoration();
         }
 
-        selectedJavaFxShape = shapeToSelect;
+        selectedJavaFxShapes.clear();
+        selectedModelShapes.clear();
 
-        if (selectedJavaFxShape == null) {
-            currentDecorator = null;
-            drawingPane.setCursor(Cursor.DEFAULT);
-            // Callback per deselezionare
-            callback.onShapeDeselected();
-        } else {
-            currentDecorator = new SelectionDecorator(selectedJavaFxShape);
+        if (shapeToSelect != null) {
+            this.selectedJavaFxShape = shapeToSelect;
+            selectedJavaFxShapes.add(shapeToSelect);
+            MyShape model = shapeMapping.getModelShape(shapeToSelect);
+            if (model != null) {
+                selectedModelShapes.add(model);
+            }
+
+            currentDecorator = new SelectionDecorator(shapeToSelect);
             currentDecorator.applyDecoration();
             drawingPane.setCursor(Cursor.MOVE);
-
-            // Callback per selezione (unica per tutte le forme)
-            callback.onShapeSelected(selectedJavaFxShape);
+            callback.onShapeSelected(shapeToSelect);
+        } else {
+            this.selectedJavaFxShape = null;
+            currentDecorator = null;
+            drawingPane.setCursor(Cursor.DEFAULT);
+            callback.onShapeDeselected();
         }
     }
 
@@ -102,28 +113,38 @@ public class SelectionToolStrategy implements ToolStrategy {
         }
 
         if (event.getButton() == MouseButton.SECONDARY) {
-            if (shapeAtPosition != selectedJavaFxShape) selectShape(shapeAtPosition);
+            if (!selectedJavaFxShapes.contains(shapeAtPosition)) {
+                selectShape(shapeAtPosition);
+            }
             callback.onSelectionMenuOpened(selectedJavaFxShape, event.getX(), event.getY());
             event.consume();
             return;
         }
 
         if (event.getButton() == MouseButton.PRIMARY) {
-            if (shapeAtPosition != selectedJavaFxShape) selectShape(shapeAtPosition);
-            isMoving = true;
-            isResizing = false;
-            initialMousePress = new Point2D(x, y);
-            initialTranslateX = selectedJavaFxShape.getTranslateX();
-            initialTranslateY = selectedJavaFxShape.getTranslateY();
-            if (selectedJavaFxShape instanceof Line) {
-                Line line = (Line) selectedJavaFxShape;
-                initialLineStartX = line.getStartX();
-                initialLineStartY = line.getStartY();
-                initialLineEndX = line.getEndX();
-                initialLineEndY = line.getEndY();
+            if (shapeAtPosition != selectedJavaFxShape) {
+                selectShape(shapeAtPosition);  // aggiorna selectedJavaFxShape
             }
-            drawingPane.setCursor(Cursor.MOVE);
-            event.consume();
+
+            if (selectedJavaFxShape != null) {
+                isMoving = true;
+                isResizing = false;
+                initialMousePress = new Point2D(x, y);
+                initialTranslateX = selectedJavaFxShape.getTranslateX();
+                initialTranslateY = selectedJavaFxShape.getTranslateY();
+
+                if (selectedJavaFxShape instanceof Line line) {
+                    initialLineStartX = line.getStartX();
+                    initialLineStartY = line.getStartY();
+                    initialLineEndX = line.getEndX();
+                    initialLineEndY = line.getEndY();
+                }
+
+                drawingPane.setCursor(Cursor.MOVE);
+                event.consume();
+            } else {
+                System.err.println("No shape selected on primary click.");
+            }
         }
     }
 
@@ -493,5 +514,26 @@ public class SelectionToolStrategy implements ToolStrategy {
         fxLine.setStartY(calc.newY);
         fxLine.setEndX(calc.newWidth);
         fxLine.setEndY(calc.newHeight);
+    }
+
+    public List<MyShape> getSelectedShapes() {
+        return new ArrayList<>(selectedModelShapes);
+    }
+
+    public void selectShapeByModel(MyShape shape) {
+        Shape javafxShape = shapeMapping.getViewShape(shape);
+        if (javafxShape != null) {
+            selectShape(javafxShape);
+        }
+    }
+
+    public void clearSelection() {
+        if (currentDecorator != null) {
+            currentDecorator.removeDecoration();
+            currentDecorator = null;
+        }
+        selectedJavaFxShapes.clear();
+        selectedModelShapes.clear();
+        drawingPane.setCursor(Cursor.DEFAULT);
     }
 }

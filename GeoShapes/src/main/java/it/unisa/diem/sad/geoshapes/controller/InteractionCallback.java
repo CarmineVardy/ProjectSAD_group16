@@ -24,5 +24,4 @@ public interface InteractionCallback {
     void onShapeDeselected();
 
     void onLineSelected(boolean selected);
-
 }

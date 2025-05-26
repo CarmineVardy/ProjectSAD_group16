@@ -8,6 +8,11 @@ public class MyRectangle extends MyShape {
         super(startX, startY, endX, endY, borderMyColor, fillMyColor);
     }
 
+    // Costruttore di copia
+    public MyRectangle(MyRectangle other) {
+        super(other.startX, other.startY, other.endX, other.endY, other.borderColor, other.fillColor);
+    }
+
     public double getX() {
         return Math.min(this.startX, this.endX);
     }
@@ -57,5 +62,10 @@ public class MyRectangle extends MyShape {
     @Override
     public String getShapeType() {
         return "Rectangle";
+    }
+
+    @Override
+    public MyShape cloneShape() {
+        return new MyRectangle(this);
     }
 }

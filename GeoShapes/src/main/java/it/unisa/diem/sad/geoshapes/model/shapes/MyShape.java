@@ -82,6 +82,8 @@ public abstract class MyShape implements Serializable, Cloneable {
         this.fillColor = color;
     }
 
+    public abstract MyShape cloneShape();
+
     @Override
     public MyShape clone() {
         try {
