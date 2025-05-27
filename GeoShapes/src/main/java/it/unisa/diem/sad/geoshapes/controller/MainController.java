@@ -19,6 +19,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
@@ -31,6 +32,8 @@ import javafx.stage.FileChooser;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +77,8 @@ public class MainController implements ShapeObserver, InteractionCallback {
     @FXML
     private Button bringToFrontButton;
     @FXML
+    private Group zoomGroup;
+    @FXML
     private MenuItem menuItemPaste;
     @FXML
     private CheckMenuItem menuItemToggleGrid;
@@ -108,6 +113,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     private BooleanProperty hasShapeSelected = new SimpleBooleanProperty(false);
     private BooleanProperty isLineSelected = new SimpleBooleanProperty(false);
+    private double previousScale = 1.0;
+    private double baseDrawingAreaWidth=1024;
+    private double baseDrawingAreaHeight=768;
 
     private ShapeClipboard clipboard = new ShapeClipboardImpl();
     private Shape selectedShape;
@@ -123,6 +131,15 @@ public class MainController implements ShapeObserver, InteractionCallback {
         configureDrawingArea();
         setupEventListeners();
         setDefaultUIState();
+        zoomSlider.setMin(0.25); // Opzionale: imposta un valore minimo (es. 10%)
+        zoomSlider.setMax(2.5);  // Imposta il massimo a 2.5 per il 250% di zoom
+        zoomSlider.setValue(1.0); // Inizia con uno zoom del 100% (scala 1.0)
+
+        // Aggiorna l'etichetta dello zoom per mostrare il valore iniziale
+        zoomPercentageLabel.setText(String.format("%.0f%%", zoomSlider.getValue() * 100));
+
+
+
         menuItemPaste.setDisable(true);
         Platform.runLater(() -> {
             drawingArea.getScene().setOnKeyPressed((KeyEvent event) -> {
@@ -142,24 +159,17 @@ public class MainController implements ShapeObserver, InteractionCallback {
         });
     }
 
-    private void applyZoom(double newZoomLevel, double zoomCenterX, double zoomCenterY) {
-        if (drawingArea.getWidth() <= 0 || drawingArea.getHeight() <= 0) {
-            System.err.println("DrawingArea dimensions not available for zoom centering. Cannot apply zoom now.");
-            return;
+
+    private void applyZoom(double scale) {
+            BigDecimal bd = new BigDecimal(Double.toString(scale));
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            final double newScale = bd.doubleValue();
+
+            drawingArea.setScaleX(newScale);
+            drawingArea.setScaleY(newScale);
+            zoomPercentageLabel.setText(String.format("%.0f%%", newScale * 100));
+
         }
-        Point2D currentLocalPoint = drawingArea.parentToLocal(zoomCenterX, zoomCenterY);
-
-        drawingArea.setScaleX(newZoomLevel);
-        drawingArea.setScaleY(newZoomLevel);
-
-        Point2D newParentPoint = drawingArea.localToParent(currentLocalPoint);
-        double newTranslateX = zoomCenterX - newParentPoint.getX();
-        double newTranslateY = zoomCenterY - newParentPoint.getY();
-        drawingArea.setTranslateX(newTranslateX);
-        drawingArea.setTranslateY(newTranslateY);
-        this.currentZoomLevel = newZoomLevel;
-        gridRenderer.drawGrid();
-    }
 
     private void initializeCoreComponents() {
         model = new DrawingModel();
@@ -179,10 +189,10 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     private void initializeToolStrategies() {
         toolStrategies = new HashMap<>();
-        toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea, shapeMapping, this));
-        toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, this));
-        toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, this));
-        toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, this));
+        toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea, zoomGroup, shapeMapping, this));
+        toolStrategies.put(lineButton, new LineToolStrategy(zoomGroup, drawingArea, this));
+        toolStrategies.put(rectangleButton, new RectangleToolStrategy(zoomGroup, drawingArea, this));
+        toolStrategies.put(ellipseButton, new EllipseToolStrategy(zoomGroup, drawingArea, this));
     }
 
     private void configureDrawingArea() {
@@ -192,7 +202,13 @@ public class MainController implements ShapeObserver, InteractionCallback {
         clipRect.widthProperty().bind(drawingArea.widthProperty());
         clipRect.heightProperty().bind(drawingArea.heightProperty());
 
+        drawingArea.setPrefWidth(baseDrawingAreaWidth);
+        drawingArea.setPrefHeight(baseDrawingAreaHeight);
+        zoomGroup.setScaleX(1.0);
+        zoomGroup.setScaleY(1.0);
         gridRenderer = new GridRenderer(drawingArea, gridSettings);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
     }
 
     private void setupEventListeners() {
@@ -203,10 +219,30 @@ public class MainController implements ShapeObserver, InteractionCallback {
         undoButton.disableProperty().bind(commandInvoker.canUndoProperty().not());
         sendToBackButton.disableProperty().bind(hasShapeSelected.not());
         bringToFrontButton.disableProperty().bind(hasShapeSelected.not());
+
         zoomSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            zoomPercentageLabel.setText(String.format("%.0f%%", newValue.doubleValue() * 100));
-            applyZoom(newValue.doubleValue(), drawingArea.getWidth() / 2, drawingArea.getHeight() / 2);
+            double scale = newValue.doubleValue();
+            applyZoom(scale);
         });
+
+
+        drawingArea.prefHeightProperty().addListener((observable, oldValue, newValue) -> {
+           zoomGroup.prefHeight(newValue.doubleValue());}
+           );
+
+       drawingArea.prefWidthProperty().addListener((observable, oldValue, newValue) -> {
+            zoomGroup.prefWidth(newValue.doubleValue());}
+        );
+
+
+
+
+
+
+
+
+
+
     }
 
     private void setupToolToggleListener() {
@@ -230,16 +266,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
         fillColorPicker.setValue(Color.TRANSPARENT);
     }
 
-    private void rebuildShapes() {
-        if (currentStrategy != null)
-            currentStrategy.reset();
-        drawingArea.getChildren().clear();
-        for (MyShape modelShape : shapeMapping.getModelShapes()) {
-            Shape fxShape = adapterFactory.convertToJavaFx(modelShape, drawingArea.getWidth(), drawingArea.getHeight());
-            shapeMapping.updateViewMapping(modelShape, fxShape);
-            drawingArea.getChildren().add(fxShape);
-        }
-    }
+
 
     private void setupColorPickerListeners() {
         borderColorPicker.valueProperty().addListener((obs, oldColor, newColor) -> {

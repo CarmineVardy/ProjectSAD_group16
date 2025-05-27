@@ -6,6 +6,7 @@ import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
 import javafx.event.ActionEvent;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
+import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -14,8 +15,9 @@ import javafx.scene.shape.Shape;
 
 public class RectangleToolStrategy implements ToolStrategy {
 
-    private final Pane drawingPane;
+    private final Group zoomGroup;
     private final InteractionCallback callback;
+    private final Pane drawingPane;
 
     private Shape previewFxShape;
     private ShapeDecorator previewDecorator;
@@ -26,9 +28,10 @@ public class RectangleToolStrategy implements ToolStrategy {
 
     private static final double MIN_DIMENSION = 2.0;
 
-    public RectangleToolStrategy(Pane drawingPane, InteractionCallback callback) {
-        this.drawingPane = drawingPane;
+    public RectangleToolStrategy(Group zoomGroup, Pane drawingPane,InteractionCallback callback) {
+        this.zoomGroup = zoomGroup;
         this.callback = callback;
+        this.drawingPane=drawingPane;
     }
 
     @Override
@@ -66,36 +69,37 @@ public class RectangleToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMousePressed(MouseEvent event) {
-        if (previewFxShape != null) {
-            reset();
+
+            if (previewFxShape != null) {
+                reset();
+            }
+
+            zoomGroup.setCursor(Cursor.CROSSHAIR);
+
+            Point2D localPoint = getTransformedCoordinates(event, zoomGroup);
+            startX = localPoint.getX();
+            startY = localPoint.getY();
+            endX = startX;
+            endY = startY;
+
+            Rectangle rect = new Rectangle(startX, startY, 0, 0);
+            rect.setStroke(borderColor);
+            rect.setFill(fillColor);
+            rect.setStrokeWidth(2.0);
+
+            previewFxShape = rect;
+            previewDecorator = new PreviewDecorator(previewFxShape);
+            previewDecorator.applyDecoration();
+
+            zoomGroup.getChildren().add(previewFxShape);
+
         }
-
-        drawingPane.setCursor(Cursor.CROSSHAIR);
-
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
-        startX = localPoint.getX();
-        startY = localPoint.getY();
-        endX = startX; // Inizializza endX e endY con le stesse coordinate di start
-        endY = startY;
-
-        Rectangle rect = new Rectangle(startX, startY, 0, 0);
-        rect.setStroke(borderColor);
-        rect.setFill(fillColor);
-        rect.setStrokeWidth(2.0);
-
-        previewFxShape = rect;
-        previewDecorator = new PreviewDecorator(previewFxShape);
-        previewDecorator.applyDecoration();
-
-        drawingPane.getChildren().add(previewFxShape);
-    }
 
     @Override
     public void handleMouseDragged(MouseEvent event) {
         if (previewFxShape == null) return; // Aggiunto per sicurezza
 
-        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,zoomGroup);
         endX = localPoint.getX();
         endY = localPoint.getY();
 
@@ -114,10 +118,9 @@ public class RectangleToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseReleased(MouseEvent event) {
-        drawingPane.setCursor(Cursor.DEFAULT);
+        zoomGroup.setCursor(Cursor.DEFAULT);
 
-        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,zoomGroup);
         endX = localPoint.getX();
         endY = localPoint.getY();
 
@@ -125,7 +128,7 @@ public class RectangleToolStrategy implements ToolStrategy {
         double height = Math.abs(endY - startY);
 
         if (width >= MIN_DIMENSION && height >= MIN_DIMENSION) {
-            drawingPane.getChildren().remove(previewFxShape);
+            zoomGroup.getChildren().remove(previewFxShape);
             callback.onCreateShape(previewFxShape);
         } else {
             reset();
@@ -143,7 +146,7 @@ public class RectangleToolStrategy implements ToolStrategy {
             previewDecorator = null;
         }
         if (previewFxShape != null) {
-            drawingPane.getChildren().remove(previewFxShape);
+            zoomGroup.getChildren().remove(previewFxShape);
             previewFxShape = null;
         }
     }

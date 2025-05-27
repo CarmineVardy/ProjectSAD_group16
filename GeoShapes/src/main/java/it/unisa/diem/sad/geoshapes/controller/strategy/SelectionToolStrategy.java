@@ -7,6 +7,7 @@ import javafx.event.ActionEvent;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.geometry.Bounds;
 import javafx.scene.Cursor;
+import javafx.scene.Group;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -20,6 +21,7 @@ import java.util.List;
 public class SelectionToolStrategy implements ToolStrategy {
 
     private final Pane drawingPane;
+    private final Group zoomGroup;
     private final ShapeMapping shapeMapping;
     private SelectionDecorator currentDecorator;
     private Shape selectedJavaFxShape;
@@ -45,8 +47,9 @@ public class SelectionToolStrategy implements ToolStrategy {
         NONE
     }
 
-    public SelectionToolStrategy(Pane drawingPane, ShapeMapping shapeMapping, InteractionCallback callback) {
+    public SelectionToolStrategy(Pane drawingPane, Group zoomGroup, ShapeMapping shapeMapping, InteractionCallback callback) {
         this.drawingPane = drawingPane;
+        this.zoomGroup = zoomGroup;
         this.shapeMapping = shapeMapping;
         this.callback = callback;
     }
@@ -69,7 +72,7 @@ public class SelectionToolStrategy implements ToolStrategy {
 
             currentDecorator = new SelectionDecorator(shapeToSelect);
             currentDecorator.applyDecoration();
-            drawingPane.setCursor(Cursor.MOVE);
+            zoomGroup.setCursor(Cursor.MOVE);
             callback.onShapeSelected(shapeToSelect);
         } else {
             this.selectedJavaFxShape = null;
@@ -81,7 +84,7 @@ public class SelectionToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMousePressed(MouseEvent event) {
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event, zoomGroup);
         double x = localPoint.getX();
         double y = localPoint.getY();
 
@@ -152,7 +155,7 @@ public class SelectionToolStrategy implements ToolStrategy {
     public void handleMouseDragged(MouseEvent event) {
         if (!isMoving && !isResizing || selectedJavaFxShape == null || initialMousePress == null) return;
 
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event, zoomGroup);
         double x = localPoint.getX();
         double y = localPoint.getY();
 
@@ -207,7 +210,7 @@ public class SelectionToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseReleased(MouseEvent event) {
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event, zoomGroup);
         double x = localPoint.getX();
         double y = localPoint.getY();
 
@@ -249,23 +252,24 @@ public class SelectionToolStrategy implements ToolStrategy {
     @Override
     public void handleMouseMoved(MouseEvent event) {
         if (isResizing || isMoving) {
-            if (isMoving) drawingPane.setCursor(Cursor.MOVE);
+            if (isMoving) zoomGroup.setCursor(Cursor.MOVE);
             return;
         }
 
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        // Chiama il metodo default dell'interfaccia ToolStrategy
+        Point2D localPoint = getTransformedCoordinates(event, zoomGroup);
         double x = localPoint.getX();
         double y = localPoint.getY();
 
         Circle handleAtPosition = findHandleAt(x, y);
         if (handleAtPosition != null) {
-            drawingPane.setCursor(Cursor.HAND);
+            zoomGroup.setCursor(Cursor.HAND);
         } else {
             Shape shapeAtPos = findShapeAt(x, y);
             if (shapeAtPos != null) {
-                drawingPane.setCursor(Cursor.MOVE);
+                zoomGroup.setCursor(Cursor.MOVE);
             } else {
-                drawingPane.setCursor(Cursor.DEFAULT);
+                zoomGroup.setCursor(Cursor.DEFAULT);
             }
         }
     }

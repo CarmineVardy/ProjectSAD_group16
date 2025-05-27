@@ -5,6 +5,7 @@ import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
 import javafx.event.ActionEvent;
 import javafx.geometry.Point2D;
+import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -14,7 +15,8 @@ import javafx.scene.Cursor;
 
 public class LineToolStrategy implements ToolStrategy {
 
-    private final Pane drawingArea;
+    private final Pane drawingPane;
+    private final Group zoomGroup;
     private final InteractionCallback callback;
 
     private Shape previewFxShape;
@@ -25,8 +27,9 @@ public class LineToolStrategy implements ToolStrategy {
 
     private static final double MIN_LENGTH = 2.0;
 
-    public LineToolStrategy(Pane drawingArea, InteractionCallback callback) {
-        this.drawingArea = drawingArea;
+    public LineToolStrategy(Group zoomGroup, Pane drawingArea ,InteractionCallback callback) {
+        this.drawingPane = drawingArea;
+        this.zoomGroup=zoomGroup;
         this.callback = callback;
     }
 
@@ -56,37 +59,38 @@ public class LineToolStrategy implements ToolStrategy {
 
     }
 
+
     @Override
     public void handleMousePressed(MouseEvent event) {
-        if (previewFxShape != null) {
-            reset();
+            if (previewFxShape != null) {
+                reset();
+            }
+
+            zoomGroup.setCursor(Cursor.CROSSHAIR);
+
+            Point2D localPoint = getTransformedCoordinates(event, zoomGroup);
+            startX = localPoint.getX();
+            startY = localPoint.getY();
+            endX = startX;
+            endY = startY;
+
+            Line line = new Line(startX, startY, endX, endY);
+            line.setStroke(borderColor);
+            line.setStrokeWidth(2.0);
+
+            previewFxShape = line;
+            previewDecorator = new PreviewDecorator(previewFxShape);
+            previewDecorator.applyDecoration();
+
+            zoomGroup.getChildren().add(previewFxShape);  // Cambiato da drawingPane a zoomGroup
         }
 
-        drawingArea.setCursor(Cursor.CROSSHAIR);
-
-        Point2D localPoint = drawingArea.parentToLocal(event.getX(), event.getY());
-        startX = localPoint.getX();
-        startY = localPoint.getY();
-        endX = startX;
-        endY = startY;
-
-        Line line = new Line(startX, startY, endX, endY);
-        line.setStroke(borderColor);
-        line.setStrokeWidth(2.0);
-
-        previewFxShape = line;
-        previewDecorator = new PreviewDecorator(previewFxShape);
-        previewDecorator.applyDecoration();
-
-        drawingArea.getChildren().add(previewFxShape);
-    }
 
     @Override
     public void handleMouseDragged(MouseEvent event) {
         if (previewFxShape == null) return;
 
-        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = drawingArea.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,zoomGroup);
         endX = localPoint.getX();
         endY = localPoint.getY();
 
@@ -99,10 +103,9 @@ public class LineToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseReleased(MouseEvent event) {
-        drawingArea.setCursor(Cursor.DEFAULT);
+        drawingPane.setCursor(Cursor.DEFAULT);
 
-        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = drawingArea.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,zoomGroup);
         endX = localPoint.getX();
         endY = localPoint.getY();
 
@@ -111,7 +114,7 @@ public class LineToolStrategy implements ToolStrategy {
         double length = Math.sqrt(dx * dx + dy * dy);
 
         if (length >= MIN_LENGTH) {
-            drawingArea.getChildren().remove(previewFxShape);
+            drawingPane.getChildren().remove(previewFxShape);
             callback.onCreateShape(previewFxShape);
         } else {
             reset();
@@ -129,7 +132,7 @@ public class LineToolStrategy implements ToolStrategy {
             previewDecorator = null;
         }
         if (previewFxShape != null) {
-            drawingArea.getChildren().remove(previewFxShape);
+            drawingPane.getChildren().remove(previewFxShape);
             previewFxShape = null;
         }
     }
