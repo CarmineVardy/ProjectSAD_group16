@@ -157,6 +157,11 @@ public class MainController implements ShapeObserver, InteractionCallback {
         drawingArea.heightProperty().addListener((obs, oldVal, newVal) -> {
             gridRenderer.drawGrid();
         });
+
+        cellSizeToggleGroup = new ToggleGroup();
+        cellSize10.setToggleGroup(cellSizeToggleGroup);
+        cellSize20.setToggleGroup(cellSizeToggleGroup);
+        cellSize50.setToggleGroup(cellSizeToggleGroup);
     }
 
 
@@ -294,6 +299,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
     @FXML
     private void handleMousePressed(MouseEvent event) {
         if (currentStrategy != null) {
+            if (!(currentStrategy instanceof SelectionToolStrategy)) {
+                scrollPane.setPannable(false);
+            }
             currentStrategy.handleMousePressed(event);
         }
     }
@@ -307,6 +315,8 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     @FXML
     private void handleMouseReleased(MouseEvent event) {
+        scrollPane.setPannable(true);
+
         if (currentStrategy != null) {
             currentStrategy.handleMouseReleased(event);
         }
