@@ -8,7 +8,7 @@ import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.event.Event;
 import javafx.geometry.Bounds;
 import javafx.scene.Cursor;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.Group;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -37,7 +37,7 @@ public class SelectionToolStrategy implements ToolStrategy {
 
     private final List<MyShape> selectedModelShapes = new ArrayList<>();
     private final List<Shape> selectedJavaFxShapes = new ArrayList<>();
-
+    private final  Group zoomGroup;
     private ResizeHandleType activeHandleType = ResizeHandleType.NONE;
 
     private enum ResizeHandleType {
@@ -47,10 +47,11 @@ public class SelectionToolStrategy implements ToolStrategy {
         NONE
     }
 
-    public SelectionToolStrategy(Pane drawingPane, ShapeMapping shapeMapping, InteractionCallback callback) {
+    public SelectionToolStrategy(Pane drawingPane, Group zoomGroup, ShapeMapping shapeMapping, InteractionCallback callback) {
         this.drawingPane = drawingPane;
         this.shapeMapping = shapeMapping;
         this.callback = callback;
+        this.zoomGroup=zoomGroup;
     }
 
     @Override
@@ -80,7 +81,7 @@ public class SelectionToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMousePressed(MouseEvent event) {
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,drawingPane);
         double x = localPoint.getX();
         double y = localPoint.getY();
 
@@ -152,9 +153,9 @@ public class SelectionToolStrategy implements ToolStrategy {
     public void handleMouseDragged(MouseEvent event) {
         if (!isMoving && !isResizing || selectedJavaFxShape == null || initialMousePress == null) return;
 
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
-        double x = localPoint.getX();
-        double y = localPoint.getY();
+        //Point2D localPoint = getTransformedCoordinates(event, zoomGroup);
+        double x = event.getX();
+        double y = event.getY();
 
         double deltaX = x - initialMousePress.getX();
         double deltaY = y - initialMousePress.getY();
@@ -184,9 +185,9 @@ public class SelectionToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseReleased(MouseEvent event) {
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
-        double x = localPoint.getX();
-        double y = localPoint.getY();
+        Point2D localPoint = getTransformedCoordinates(event,drawingPane);
+        double x = event.getX();
+        double y = event.getY();
 
         boolean wasResizing = isResizing;
         boolean wasMoving = isMoving;
@@ -230,7 +231,7 @@ public class SelectionToolStrategy implements ToolStrategy {
             return;
         }
 
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,drawingPane);
         double x = localPoint.getX();
         double y = localPoint.getY();
 

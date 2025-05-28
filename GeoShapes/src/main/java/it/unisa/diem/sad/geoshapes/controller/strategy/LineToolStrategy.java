@@ -6,6 +6,7 @@ import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.Point2D;
+import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -26,7 +27,7 @@ public class LineToolStrategy implements ToolStrategy {
 
     private static final double MIN_LENGTH = 2.0;
 
-    public LineToolStrategy(Pane drawingArea, InteractionCallback callback) {
+    public LineToolStrategy(Pane drawingArea, InteractionCallback callback, Group zoomGroup) {
         this.drawingArea = drawingArea;
         this.callback = callback;
     }
@@ -55,7 +56,7 @@ public class LineToolStrategy implements ToolStrategy {
 
         drawingArea.setCursor(Cursor.CROSSHAIR);
 
-        Point2D localPoint = drawingArea.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,drawingArea);
         startX = localPoint.getX();
         startY = localPoint.getY();
         endX = startX;
@@ -77,7 +78,7 @@ public class LineToolStrategy implements ToolStrategy {
         if (previewFxShape == null) return;
 
         //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = drawingArea.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,drawingArea);
         endX = localPoint.getX();
         endY = localPoint.getY();
 
@@ -93,7 +94,7 @@ public class LineToolStrategy implements ToolStrategy {
         drawingArea.setCursor(Cursor.DEFAULT);
 
         //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = drawingArea.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,drawingArea);
         endX = localPoint.getX();
         endY = localPoint.getY();
 

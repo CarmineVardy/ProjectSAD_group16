@@ -14,6 +14,14 @@
     -fx-border-color: #d0d0d0;
     -fx-border-width: 1px 1px 1px 1px;
 }
+drawing-area {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.drawing-area:focused {
+    -fx-background-color: transparent;
+}
 
 .toggle-button, .tool-button {
     -fx-background-color: transparent;
@@ -72,6 +80,9 @@
 .scroll-pane {
     -fx-background: #999;
     -fx-border-color: #ccc;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+
 }
 
 .separator {

@@ -7,6 +7,7 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
+import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -17,7 +18,7 @@ public class EllipseToolStrategy implements ToolStrategy {
 
     private final Pane drawingPane;
     private final InteractionCallback callback;
-
+private final Group zoomGroup;
     private Shape previewFxShape;
     private ShapeDecorator previewDecorator;
 
@@ -27,9 +28,10 @@ public class EllipseToolStrategy implements ToolStrategy {
 
     private static final double MIN_RADIUS = 1.0;
 
-    public EllipseToolStrategy(Pane drawingPane, InteractionCallback callback) {
+    public EllipseToolStrategy(Pane drawingPane, InteractionCallback callback, Group zoomGroup) {
         this.drawingPane = drawingPane;
         this.callback = callback;
+        this.zoomGroup=zoomGroup;
     }
 
     @Override
@@ -64,7 +66,7 @@ public class EllipseToolStrategy implements ToolStrategy {
         drawingPane.setCursor(Cursor.CROSSHAIR);
 
         //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,drawingPane);
         startX = localPoint.getX();
         startY = localPoint.getY();
         endX = startX; // Inizializza endX e endY con le stesse coordinate di start
@@ -87,7 +89,7 @@ public class EllipseToolStrategy implements ToolStrategy {
         if (previewFxShape == null) return; // Aggiunto per sicurezza
 
         //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,drawingPane);
         endX = localPoint.getX();
         endY = localPoint.getY();
 
@@ -109,7 +111,7 @@ public class EllipseToolStrategy implements ToolStrategy {
         drawingPane.setCursor(Cursor.DEFAULT);
 
         //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,drawingPane);
         endX = localPoint.getX();
         endY = localPoint.getY();
 

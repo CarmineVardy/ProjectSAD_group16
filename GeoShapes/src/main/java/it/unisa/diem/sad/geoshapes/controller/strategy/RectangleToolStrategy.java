@@ -7,6 +7,7 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
+import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -20,16 +21,17 @@ public class RectangleToolStrategy implements ToolStrategy {
 
     private Shape previewFxShape;
     private ShapeDecorator previewDecorator;
-
+    private Group zoomGroup;
     private Color borderColor;
     private Color fillColor;
     private double startX, startY, endX, endY;
 
     private static final double MIN_DIMENSION = 2.0;
 
-    public RectangleToolStrategy(Pane drawingPane, InteractionCallback callback) {
+    public RectangleToolStrategy(Pane drawingPane, InteractionCallback callback, Group zoomGroup) {
         this.drawingPane = drawingPane;
         this.callback = callback;
+        this.zoomGroup = zoomGroup;
     }
 
     @Override
@@ -62,11 +64,10 @@ public class RectangleToolStrategy implements ToolStrategy {
         }
 
         drawingPane.setCursor(Cursor.CROSSHAIR);
-
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,drawingPane);
         startX = localPoint.getX();
         startY = localPoint.getY();
-        endX = startX; // Inizializza endX e endY con le stesse coordinate di start
+        endX = startX;
         endY = startY;
 
         Rectangle rect = new Rectangle(startX, startY, 0, 0);
@@ -83,10 +84,9 @@ public class RectangleToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseDragged(MouseEvent event) {
-        if (previewFxShape == null) return; // Aggiunto per sicurezza
+        if (previewFxShape == null) return;
 
-        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,drawingPane);
         endX = localPoint.getX();
         endY = localPoint.getY();
 
@@ -107,8 +107,7 @@ public class RectangleToolStrategy implements ToolStrategy {
     public void handleMouseReleased(MouseEvent event) {
         drawingPane.setCursor(Cursor.DEFAULT);
 
-        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = drawingPane.parentToLocal(event.getX(), event.getY());
+        Point2D localPoint = getTransformedCoordinates(event,drawingPane);
         endX = localPoint.getX();
         endY = localPoint.getY();
 
@@ -121,6 +120,8 @@ public class RectangleToolStrategy implements ToolStrategy {
             reset();
         }
     }
+
+
 
     @Override
     public void handleMouseMoved(MouseEvent event) {
@@ -136,7 +137,6 @@ public class RectangleToolStrategy implements ToolStrategy {
 
     @Override
     public void handleSendToBack(ActionEvent actionEvent) {
-
     }
 
     @Override

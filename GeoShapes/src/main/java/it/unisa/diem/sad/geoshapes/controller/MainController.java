@@ -183,10 +183,10 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     private void initializeToolStrategies() {
         toolStrategies = new HashMap<>();
-        toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea, shapeMapping, this));
-        toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, this));
-        toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, this));
-        toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, this));
+        toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea,zoomGroup,shapeMapping, this));
+        toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, this,zoomGroup));
+        toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, this,zoomGroup));
+        toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, this,zoomGroup));
     }
 
     private void configureDrawingArea() {
@@ -428,9 +428,12 @@ public class MainController implements ShapeObserver, InteractionCallback {
         bd = bd.setScale(2, RoundingMode.HALF_UP);
         final double newScale = bd.doubleValue();
 
+
         drawingArea.setScaleX(newScale);
         drawingArea.setScaleY(newScale);
         zoomPercentageLabel.setText(String.format("%.0f%%", newScale * 100));
+
+
     }
 
     @FXML
