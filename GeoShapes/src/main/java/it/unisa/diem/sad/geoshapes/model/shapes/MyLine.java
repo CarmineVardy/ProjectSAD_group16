@@ -8,11 +8,6 @@ public class MyLine extends MyShape {
         super(startX, startY, endX, endY, borderMyColor, null);
     }
 
-    // Costruttore di copia
-    public MyLine(MyLine other) {
-        super(other.startX, other.startY, other.endX, other.endY, other.borderColor, other.fillColor);
-    }
-
     @Override
     public MyColor getFillColor() {
         return null; // Le linee non hanno colore di riempimento
@@ -23,18 +18,9 @@ public class MyLine extends MyShape {
         // Nessuna operazione, le linee non hanno colore di riempimento
     }
 
-     public void setStartX(double startX) { this.startX = startX; }
-     public void setStartY(double startY) { this.startY = startY; }
-     public void setEndX(double endX) { this.endX = endX; }
-     public void setEndY(double endY) { this.endY = endY; }
-
     @Override
     public String getShapeType() {
         return "Line";
     }
 
-    @Override
-    public MyShape cloneShape() {
-        return new MyLine(this);
-    }
 }

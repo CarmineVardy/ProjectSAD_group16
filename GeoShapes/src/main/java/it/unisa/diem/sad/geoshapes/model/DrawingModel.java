@@ -11,7 +11,7 @@ public class DrawingModel implements ShapeSubject {
 
     private final List<MyShape> shapes;
     private final List<ShapeObserver> observers;
-    private int idCounter = 0;
+    private static int idCounter = 0;
 
     public DrawingModel() {
         shapes = new ArrayList<>();
@@ -24,12 +24,12 @@ public class DrawingModel implements ShapeSubject {
         myShape.setName(shapeName);
 
         shapes.add(myShape);
-        notifyObservers("CREATE", myShape);
+        notifyObservers();
     }
 
     public void removeShape(MyShape myShape) {
         shapes.remove(myShape);
-        notifyObservers("DELETE", myShape);
+        notifyObservers();
     }
 
     public void modifyShape(MyShape oldShape, MyShape newShape) {
@@ -39,8 +39,7 @@ public class DrawingModel implements ShapeSubject {
         oldShape.setEndY(newShape.getEndY());
         oldShape.setBorderColor(newShape.getBorderColor());
         oldShape.setFillColor(newShape.getFillColor());
-        notifyObservers("MODIFY", oldShape);
-
+        notifyObservers();
     }
 
     public void bringToFront(MyShape myShape) {
@@ -51,7 +50,7 @@ public class DrawingModel implements ShapeSubject {
                 shapes.remove(currentIndex);
                 shapes.add(currentIndex + 1, myShape);
 
-                notifyObservers("BRINGTOFRONT", myShape);
+                notifyObservers();
             } else {
                 System.out.println("Shape is already at the front");
             }
@@ -68,7 +67,7 @@ public class DrawingModel implements ShapeSubject {
                 shapes.remove(currentIndex);
                 shapes.add(currentIndex - 1, myShape);
 
-                notifyObservers("SENDTOBACK", myShape);
+                notifyObservers();
             } else {
                 System.out.println("Shape is already at the back");
             }
@@ -77,21 +76,51 @@ public class DrawingModel implements ShapeSubject {
         }
     }
 
-    public void clearShapes() {
-        shapes.clear();
-        notifyObservers("CLEARALL", null);
+    public void bringToTop(MyShape myShape) {
+        if (shapes.contains(myShape)) {
+            shapes.remove(myShape);
+            shapes.add(myShape); // Aggiunge alla fine
+            notifyObservers();
+        } else {
+            System.out.println("Shape not found in the model");
+        }
     }
 
+    public void sendToBottom(MyShape myShape) {
+        if (shapes.contains(myShape)) {
+            shapes.remove(myShape);
+            shapes.add(0, myShape); // Inserisce all'inizio
+            notifyObservers();
+        } else {
+            System.out.println("Shape not found in the model");
+        }
+    }
 
-    public List<MyShape> getShapes() {
-        return new ArrayList<>(shapes);
+    public void moveToPosition(MyShape myShape, int targetIndex) {
+        if (shapes.contains(myShape) && targetIndex >= 0 && targetIndex < shapes.size()) {
+            shapes.remove(myShape);
+            shapes.add(targetIndex, myShape);
+            notifyObservers();
+        } else {
+            System.out.println("Invalid position or shape not found");
+        }
+    }
+
+    public void clearShapes() {
+        shapes.clear();
+        notifyObservers();
     }
 
     public void printAllShapes() {
         System.out.println("Forme nel modello:");
-        for (MyShape shape : shapes) {
-            System.out.println(shape);
+        for (int i = shapes.size() - 1; i >= 0; i--) {
+            System.out.println(shapes.get(i));
         }
+
+    }
+
+    public List<MyShape> getShapes() {
+        return new ArrayList<>(shapes);
     }
 
     @Override
@@ -105,9 +134,9 @@ public class DrawingModel implements ShapeSubject {
     }
 
     @Override
-    public void notifyObservers(String event, MyShape myShape) {
+    public void notifyObservers() {
         for (ShapeObserver observer : observers) {
-            observer.update(event, myShape);
+            observer.update();
         }
     }
 }

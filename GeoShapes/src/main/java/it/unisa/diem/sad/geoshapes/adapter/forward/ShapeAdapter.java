@@ -7,7 +7,6 @@ import javafx.scene.paint.Color;
 
 public interface ShapeAdapter {
     Shape getFxShape(MyShape modelShape, double width, double height);
-    void updateFxShape(MyShape modelShape, Shape fxShape);
 
     default Color convertToJavaFxColor(MyColor modelColor) {
         if (modelColor == null) {

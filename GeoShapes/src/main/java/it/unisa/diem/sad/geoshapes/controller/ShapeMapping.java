@@ -8,6 +8,7 @@ import java.util.List;
 
 public class ShapeMapping {
 
+    // Manteniamo due liste parallele per efficienza nelle ricerche bidirezionali
     private List<MyShape> modelShapes;
     private List<Shape> viewShapes;
 
@@ -34,64 +35,29 @@ public class ShapeMapping {
         return new ArrayList<>(viewShapes);
     }
 
-    public void register(MyShape modelShape, Shape viewShape) {
-        modelShapes.add(modelShape);
-        viewShapes.add(viewShape);
-    }
-
-    public void unregister(MyShape modelShape) {
-        int index = modelShapes.indexOf(modelShape);
-        if (index != -1) {
-            modelShapes.remove(index);
-            viewShapes.remove(index);
-        }
-    }
-
-    public void updateViewMapping(MyShape modelShape, Shape newViewShape) {
-        int index = modelShapes.indexOf(modelShape);
-        if (index != -1) {
-            viewShapes.set(index, newViewShape);
-        }
-    }
-
     public void clear() {
         modelShapes.clear();
         viewShapes.clear();
     }
 
-    public void moveShape(MyShape modelShape, int newIndex) {
-        int currentIndex = modelShapes.indexOf(modelShape);
-
-        if (currentIndex == -1) {
-            System.out.println("Shape not found in mapping");
-            return;
+    public void rebuildMapping(List<MyShape> orderedModelShapes, List<Shape> orderedViewShapes) {
+        if (orderedModelShapes.size() != orderedViewShapes.size()) {
+            throw new IllegalArgumentException("The lists of model and view must have same size");
         }
 
-        if (newIndex < 0 || newIndex >= modelShapes.size() || currentIndex == newIndex) {
-            return; // Nessun movimento necessario
-        }
+        clear();
 
-        // Sposta in entrambe le liste
-        MyShape tempModel = modelShapes.remove(currentIndex);
-        Shape tempView = viewShapes.remove(currentIndex);
-
-        modelShapes.add(newIndex, tempModel);
-        viewShapes.add(newIndex, tempView);
-    }
-
-    public void bringToFront(MyShape modelShape) {
-        int currentIndex = modelShapes.indexOf(modelShape);
-        if (currentIndex != -1 && currentIndex < modelShapes.size() - 1) {
-            moveShape(modelShape, currentIndex + 1);
+        for (int i = 0; i < orderedModelShapes.size(); i++) {
+            modelShapes.add(orderedModelShapes.get(i));
+            viewShapes.add(orderedViewShapes.get(i));
         }
     }
 
-    public void sendToBack(MyShape modelShape) {
-        int currentIndex = modelShapes.indexOf(modelShape);
-        if (currentIndex > 0) {
-            moveShape(modelShape, currentIndex - 1);
-        }
+    public int size() {
+        return modelShapes.size();
     }
 
-
+    public boolean isEmpty() {
+        return modelShapes.isEmpty();
+    }
 }

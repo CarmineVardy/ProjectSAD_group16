@@ -67,10 +67,7 @@ public class PersistenceServiceTest {
             return Objects.hash(id, getEndX(), getEndY(), getBorderColor(), getFillColor());
         }
 
-        @Override
-        public MyShape cloneShape() {
-            return new TestShape(this.id);
-        }
+
     }
 
     @BeforeEach

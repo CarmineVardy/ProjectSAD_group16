@@ -35,19 +35,5 @@ public class EllipseAdapter implements ShapeAdapter {
         return fxEllipse;
     }
 
-    @Override
-    public void updateFxShape(MyShape modelShape, Shape fxShape) {
-        if (!(modelShape instanceof MyEllipse myEllipse) || !(fxShape instanceof Ellipse fxEllipse)) {
-            throw new IllegalArgumentException("Type mismatch for EllipseAdapter update.");
-        }
-        fxEllipse.setCenterX(myEllipse.getCenterX());
-        fxEllipse.setCenterY(myEllipse.getCenterY());
-        fxEllipse.setRadiusX(myEllipse.getRadiusX());
-        fxEllipse.setRadiusY(myEllipse.getRadiusY());
-        fxEllipse.setStroke(convertToJavaFxColor(myEllipse.getBorderColor()));
-        fxEllipse.setFill(convertToJavaFxColor(myEllipse.getFillColor()));
-
-}
-
 
 }
