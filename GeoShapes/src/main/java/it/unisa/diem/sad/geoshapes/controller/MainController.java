@@ -32,17 +32,18 @@ import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
-
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-
 import javafx.scene.shape.Line;
 
 
 public class MainController implements ShapeObserver, InteractionCallback {
 
+
+    @FXML
+    private MenuBar menubar;
     @FXML
     private MenuItem menuItemLoad;
     @FXML
@@ -94,6 +95,12 @@ public class MainController implements ShapeObserver, InteractionCallback {
     @FXML
     private Label zoomPercentageLabel;
     @FXML
+    private Button zoom75Button;
+    @FXML
+    private Button zoom100Button;
+    @FXML
+    private Button zoom200Button;
+    @FXML
     private ScrollPane scrollPane;
     @FXML
     private ContextMenu contextMenu;
@@ -112,15 +119,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
     @FXML
     private VBox shapeManagerPanel;
     @FXML
+    private Label shapeManagerTitle;
+    @FXML
     private ListView<String> shapesListView;
-    @FXML
-    private Button zoom50Button;
-    @FXML
-    private Button zoom100Button;
-    @FXML
-    private Button zoom150Button;
-    @FXML
-    private Button zoom200Button;
 
     private Rectangle clipRect;
 
@@ -157,7 +158,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private double baseDrawingAreaWidth = 1024;
     private double baseDrawingAreaHeight = 500;
 
-
     @FXML
     public void initialize() {
         initializeCoreComponents();
@@ -165,9 +165,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
         setupEventListeners();
         setDefaultUIState();
         configureBind();
-        zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            applyZoom(newVal.doubleValue());
-        });
     }
 
     private void initializeCoreComponents() {
@@ -439,8 +436,8 @@ public class MainController implements ShapeObserver, InteractionCallback {
         bd = bd.setScale(2, RoundingMode.HALF_UP);
         final double newScale = bd.doubleValue();
 
-        zoomGroup.setScaleX(newScale);
-        zoomGroup.setScaleY(newScale);
+        drawingArea.setScaleX(newScale);
+        drawingArea.setScaleY(newScale);
         zoomPercentageLabel.setText(String.format("%.0f%%", newScale * 100));
     }
 
@@ -681,28 +678,17 @@ public class MainController implements ShapeObserver, InteractionCallback {
     }
 
     @FXML
-    private void handleZoom50() {
-        setZoomLevel(0.5);
+    public void handleZoom75(ActionEvent actionEvent) {
+        zoomSlider.setValue(0.75);
     }
 
     @FXML
-    private void handleZoom100() {
-        setZoomLevel(1.0);
+    public void handleZoom100(ActionEvent actionEvent) {
+        zoomSlider.setValue(1.0);
     }
 
     @FXML
-    private void handleZoom150() {
-        setZoomLevel(1.5);
+    public void handleZoom200(ActionEvent actionEvent) {
+        zoomSlider.setValue(2.0);
     }
-
-    @FXML
-    private void handleZoom200() {
-        setZoomLevel(2.0);
-    }
-
-    private void setZoomLevel(double scale) {
-        zoomSlider.setValue(scale); // aggiorna anche lo slider
-        applyZoom(scale);           // applica lo zoom al gruppo
-    }
-
 }
