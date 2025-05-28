@@ -596,11 +596,24 @@ public class MainController implements ShapeObserver, InteractionCallback {
     public void onShapeSelected(Shape shape) {
         hasShapeSelected.set(true);
         isLineSelected.set(shape instanceof Line);
-
-        int index = model.getShapes().indexOf(shapeMapping.getModelShape(shape));
-        if (index >= 0) {
-            shapesListView.getSelectionModel().select(index);
+        MyShape modelShape = shapeMapping.getModelShape(shape);
+        if (modelShape != null) {             int modelIndex = model.getShapes().indexOf(modelShape);
+            if (modelIndex >= 0) {
+                int listViewIndex = (model.getShapes().size() - 1) - modelIndex;
+                if (listViewIndex >= 0 && listViewIndex < shapesListView.getItems().size()) {
+                    shapesListView.getSelectionModel().select(listViewIndex);
+                } else {
+                    System.err.println("Index not valid: " + listViewIndex);
+                    shapesListView.getSelectionModel().clearSelection();
+                }
+            } else {
+                shapesListView.getSelectionModel().clearSelection();
+            }
+        } else {
+            shapesListView.getSelectionModel().clearSelection();
         }
+
+
     }
 
     @Override
