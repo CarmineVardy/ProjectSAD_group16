@@ -40,4 +40,8 @@ public class GridRenderer {
             gc.strokeLine(0, y, width, y);
         }
     }
+
+    public Canvas getGridCanvas() {
+        return gridCanvas;
+    }
 }

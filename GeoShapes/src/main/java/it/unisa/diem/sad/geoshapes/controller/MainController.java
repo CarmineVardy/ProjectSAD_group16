@@ -259,7 +259,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
     }
 
     private void setupGridListeners() {
-        gridRenderer = new GridRenderer(drawingArea, gridSettings);
         drawingArea.widthProperty().addListener((obs, oldVal, newVal) -> {
             gridRenderer.drawGrid();
         });
@@ -540,6 +539,8 @@ public class MainController implements ShapeObserver, InteractionCallback {
     public void update() {
 
         drawingArea.getChildren().clear();
+
+        drawingArea.getChildren().add(0, gridRenderer.getGridCanvas());
 
         List<MyShape> modelShapes = model.getShapes();
         List<Shape> newViewShapes = new ArrayList<>();
