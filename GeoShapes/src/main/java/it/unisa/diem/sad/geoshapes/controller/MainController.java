@@ -32,17 +32,18 @@ import javafx.scene.shape.Shape;
 import javafx.stage.FileChooser;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
-
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-
 import javafx.scene.shape.Line;
 
 
 public class MainController implements ShapeObserver, InteractionCallback {
 
+
+    @FXML
+    private MenuBar menubar;
     @FXML
     private MenuItem menuItemLoad;
     @FXML
@@ -94,6 +95,12 @@ public class MainController implements ShapeObserver, InteractionCallback {
     @FXML
     private Label zoomPercentageLabel;
     @FXML
+    private Button zoom75Button;
+    @FXML
+    private Button zoom100Button;
+    @FXML
+    private Button zoom200Button;
+    @FXML
     private ScrollPane scrollPane;
     @FXML
     private ContextMenu contextMenu;
@@ -111,6 +118,8 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private Pane drawingArea;
     @FXML
     private VBox shapeManagerPanel;
+    @FXML
+    private Label shapeManagerTitle;
     @FXML
     private ListView<String> shapesListView;
 
@@ -148,7 +157,6 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private double previousScale = 1.0;
     private double baseDrawingAreaWidth = 1024;
     private double baseDrawingAreaHeight = 500;
-
 
     @FXML
     public void initialize() {
@@ -591,11 +599,24 @@ public class MainController implements ShapeObserver, InteractionCallback {
     public void onShapeSelected(Shape shape) {
         hasShapeSelected.set(true);
         isLineSelected.set(shape instanceof Line);
-
-        int index = model.getShapes().indexOf(shapeMapping.getModelShape(shape));
-        if (index >= 0) {
-            shapesListView.getSelectionModel().select(index);
+        MyShape modelShape = shapeMapping.getModelShape(shape);
+        if (modelShape != null) {             int modelIndex = model.getShapes().indexOf(modelShape);
+            if (modelIndex >= 0) {
+                int listViewIndex = (model.getShapes().size() - 1) - modelIndex;
+                if (listViewIndex >= 0 && listViewIndex < shapesListView.getItems().size()) {
+                    shapesListView.getSelectionModel().select(listViewIndex);
+                } else {
+                    System.err.println("Index not valid: " + listViewIndex);
+                    shapesListView.getSelectionModel().clearSelection();
+                }
+            } else {
+                shapesListView.getSelectionModel().clearSelection();
+            }
+        } else {
+            shapesListView.getSelectionModel().clearSelection();
         }
+
+
     }
 
     @Override
@@ -672,5 +693,18 @@ public class MainController implements ShapeObserver, InteractionCallback {
         onDeleteShape(shape);
     }
 
+    @FXML
+    public void handleZoom75(ActionEvent actionEvent) {
+        zoomSlider.setValue(0.75);
+    }
 
+    @FXML
+    public void handleZoom100(ActionEvent actionEvent) {
+        zoomSlider.setValue(1.0);
+    }
+
+    @FXML
+    public void handleZoom200(ActionEvent actionEvent) {
+        zoomSlider.setValue(2.0);
+    }
 }
