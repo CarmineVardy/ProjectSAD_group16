@@ -1,15 +1,16 @@
 package it.unisa.diem.sad.geoshapes.controller.util;
 
-import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
+import javafx.beans.property.BooleanProperty;
+import javafx.scene.shape.Shape;
 import java.util.List;
 
 public interface ShapeClipboard {
 
-    //Copia una lista di forme nella clipboard.
-    void copy(List<MyShape> shapes);
+    void copy(List<Shape> shapes);
 
-    //Restituisce una nuova lista contenente copie delle forme nella clipboard.
-    List<MyShape> paste();
+    List<Shape> paste();
 
     boolean isEmpty();
+
+    BooleanProperty emptyProperty();
 }

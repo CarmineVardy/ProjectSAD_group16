@@ -1,6 +1,5 @@
 package it.unisa.diem.sad.geoshapes.controller.util;
 
-import it.unisa.diem.sad.geoshapes.model.util.GridSettings;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;

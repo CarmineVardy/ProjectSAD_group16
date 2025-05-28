@@ -4,6 +4,7 @@ import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.geometry.Point2D;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -43,16 +44,6 @@ public class LineToolStrategy implements ToolStrategy {
 
     @Override
     public void handleFillColorChange(Color color) {
-
-    }
-
-    @Override
-    public void handleBringToFront(ActionEvent actionEvent) {
-
-    }
-
-    @Override
-    public void handleSendToBack(ActionEvent actionEvent) {
 
     }
 
@@ -111,7 +102,6 @@ public class LineToolStrategy implements ToolStrategy {
         double length = Math.sqrt(dx * dx + dy * dy);
 
         if (length >= MIN_LENGTH) {
-            drawingArea.getChildren().remove(previewFxShape);
             callback.onCreateShape(previewFxShape);
         } else {
             reset();
@@ -120,6 +110,38 @@ public class LineToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseMoved(MouseEvent event) {
+    }
+
+    @Override
+    public void handleCopy(Event event) {
+    }
+
+    @Override
+    public void handleCut(Event event) {
+    }
+
+    @Override
+    public void handleDelete(Event event) {
+    }
+
+    @Override
+    public void handleBringToFront(ActionEvent actionEvent) {
+
+    }
+
+    @Override
+    public void handleBringToTop(ActionEvent actionEvent) {
+
+    }
+
+    @Override
+    public void handleSendToBack(ActionEvent actionEvent) {
+
+    }
+
+    @Override
+    public void handleSendToBottom(ActionEvent actionEvent) {
+
     }
 
     @Override

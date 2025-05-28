@@ -1,6 +1,6 @@
 /*package it.unisa.diem.sad.geoshapes.controller.util;
 
-import it.unisa.diem.sad.geoshapes.model.util.GridSettings;
+import it.unisa.diem.sad.geoshapes.controller.util.GridSettings;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;

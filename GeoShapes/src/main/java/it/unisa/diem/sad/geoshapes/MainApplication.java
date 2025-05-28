@@ -1,9 +1,11 @@
 package it.unisa.diem.sad.geoshapes;
 
+import it.unisa.diem.sad.geoshapes.controller.MainController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -15,6 +17,10 @@ public class MainApplication extends Application {
         Image icon = new Image(getClass().getResourceAsStream("/styles/icons/logo.png"));
         stage.getIcons().add(icon);
         Scene scene = new Scene(fxmlLoader.load());
+        scene.setOnKeyPressed(event -> {
+            MainController controller = fxmlLoader.getController();
+            controller.handleKeyPressed(event);
+        });
         stage.setScene(scene);
         stage.setTitle("GeoShapes");
         //stage.initStyle(StageStyle.UNDECORATED);

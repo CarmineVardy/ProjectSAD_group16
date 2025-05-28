@@ -4,6 +4,7 @@ import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseEvent;
@@ -52,16 +53,6 @@ public class RectangleToolStrategy implements ToolStrategy {
         if (previewFxShape instanceof Rectangle rect) {
             rect.setFill(this.fillColor);
         }
-    }
-
-    @Override
-    public void handleBringToFront(ActionEvent actionEvent) {
-
-    }
-
-    @Override
-    public void handleSendToBack(ActionEvent actionEvent) {
-
     }
 
     @Override
@@ -125,7 +116,6 @@ public class RectangleToolStrategy implements ToolStrategy {
         double height = Math.abs(endY - startY);
 
         if (width >= MIN_DIMENSION && height >= MIN_DIMENSION) {
-            drawingPane.getChildren().remove(previewFxShape);
             callback.onCreateShape(previewFxShape);
         } else {
             reset();
@@ -134,6 +124,35 @@ public class RectangleToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseMoved(MouseEvent event) {
+    }
+
+    @Override
+    public void handleBringToFront(ActionEvent actionEvent) {
+    }
+
+    @Override
+    public void handleBringToTop(ActionEvent actionEvent) {
+    }
+
+    @Override
+    public void handleSendToBack(ActionEvent actionEvent) {
+
+    }
+
+    @Override
+    public void handleSendToBottom(ActionEvent actionEvent) {
+    }
+
+    @Override
+    public void handleCopy(Event event) {
+    }
+
+    @Override
+    public void handleCut(Event event) {
+    }
+
+    @Override
+    public void handleDelete(Event event) {
     }
 
     @Override

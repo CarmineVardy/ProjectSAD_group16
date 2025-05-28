@@ -82,8 +82,6 @@ public abstract class MyShape implements Serializable, Cloneable {
         this.fillColor = color;
     }
 
-    public abstract MyShape cloneShape();
-
     @Override
     public MyShape clone() {
         try {
@@ -92,23 +90,6 @@ public abstract class MyShape implements Serializable, Cloneable {
         } catch (CloneNotSupportedException e) {
             throw new AssertionError("Clone not supported", e);
         }
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        MyShape other = (MyShape) obj;
-        return Objects.equals(getName(), other.getName());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getName());
     }
 
     @Override

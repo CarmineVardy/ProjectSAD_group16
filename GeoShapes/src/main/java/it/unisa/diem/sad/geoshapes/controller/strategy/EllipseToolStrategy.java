@@ -4,6 +4,7 @@ import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseEvent;
@@ -52,16 +53,6 @@ public class EllipseToolStrategy implements ToolStrategy {
         if (previewFxShape instanceof Ellipse ellipse) {
             ellipse.setFill(this.fillColor);
         }
-    }
-
-    @Override
-    public void handleBringToFront(ActionEvent actionEvent) {
-
-    }
-
-    @Override
-    public void handleSendToBack(ActionEvent actionEvent) {
-
     }
 
     @Override
@@ -126,8 +117,6 @@ public class EllipseToolStrategy implements ToolStrategy {
         double radiusY = Math.abs(endY - startY) / 2;
 
         if (radiusX >= MIN_RADIUS && radiusY >= MIN_RADIUS) {
-
-            drawingPane.getChildren().remove(previewFxShape);
             callback.onCreateShape(previewFxShape);
         } else {
             reset();
@@ -137,6 +126,34 @@ public class EllipseToolStrategy implements ToolStrategy {
     @Override
     public void handleMouseMoved(MouseEvent event) {
         // Nessun comportamento specifico richiesto per il movimento del mouse non trascinato
+    }
+
+    @Override
+    public void handleBringToFront(ActionEvent actionEvent) {
+    }
+
+    @Override
+    public void handleBringToTop(ActionEvent actionEvent) {
+    }
+
+    @Override
+    public void handleSendToBack(ActionEvent actionEvent) {
+    }
+
+    @Override
+    public void handleSendToBottom(ActionEvent actionEvent) {
+    }
+
+    @Override
+    public void handleCopy(Event event) {
+    }
+
+    @Override
+    public void handleCut(Event event) {
+    }
+
+    @Override
+    public void handleDelete(Event event) {
     }
 
     @Override
