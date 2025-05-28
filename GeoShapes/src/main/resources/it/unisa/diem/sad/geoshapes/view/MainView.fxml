@@ -182,22 +182,33 @@
                                         <Insets left="-7.0" />
                                     </HBox.margin>
                                 </Separator>
-                                <HBox alignment="CENTER_LEFT" spacing="5">
+                                <VBox alignment="CENTER_LEFT" spacing="15">
                                     <padding>
                                         <Insets left="20.0" />
                                     </padding>
                                     <children>
-                                        <VBox alignment="CENTER" spacing="2">
+                                        <HBox alignment="CENTER" spacing="5">
                                             <children>
-                                                <FontIcon iconLiteral="fas-search" iconSize="16" />
-                                                <Label styleClass="zoom-label" text="Zoom" />
+                                                <VBox alignment="CENTER" spacing="2">
+                                                    <children>
+                                                        <FontIcon iconLiteral="fas-search" iconSize="16" />
+                                                        <Label styleClass="zoom-label" text="Zoom" />
+                                                    </children>
+                                                </VBox>
+                                                <Slider fx:id="zoomSlider" majorTickUnit="0.25" max="2.5" min="0.25" showTickLabels="false" showTickMarks="false" value="1.0" />
+                                                <Label fx:id="zoomPercentageLabel" minWidth="50.0" prefWidth="50.0" styleClass="zoom-percentage-label" text="100%" />
                                             </children>
-                                        </VBox>
-                                        <Slider fx:id="zoomSlider" majorTickUnit="0.25" max="2.5" min="0.25" showTickLabels="false" showTickMarks="false" value="1.0" />
-                                        <Label fx:id="zoomPercentageLabel" minWidth="50.0" prefWidth="50.0" styleClass="zoom-percentage-label" text="100%">
-                                        </Label>
+                                        </HBox>
+                                        <HBox spacing="5" alignment="CENTER_LEFT">
+                                            <children>
+                                                <Button fx:id="zoom50Button" text="50%" onAction="#handleZoom50" />
+                                                <Button fx:id="zoom100Button" text="100%" onAction="#handleZoom100" />
+                                                <Button fx:id="zoom150Button" text="150%" onAction="#handleZoom150" />
+                                                <Button fx:id="zoom200Button" text="200%" onAction="#handleZoom200" />
+                                            </children>
+                                        </HBox>
                                     </children>
-                                </HBox>
+                                </VBox>
                             </children>
                         </HBox>
                     </items>

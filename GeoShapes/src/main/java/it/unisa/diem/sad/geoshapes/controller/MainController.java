@@ -113,6 +113,14 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private VBox shapeManagerPanel;
     @FXML
     private ListView<String> shapesListView;
+    @FXML
+    private Button zoom50Button;
+    @FXML
+    private Button zoom100Button;
+    @FXML
+    private Button zoom150Button;
+    @FXML
+    private Button zoom200Button;
 
     private Rectangle clipRect;
 
@@ -157,6 +165,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
         setupEventListeners();
         setDefaultUIState();
         configureBind();
+        zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            applyZoom(newVal.doubleValue());
+        });
     }
 
     private void initializeCoreComponents() {
@@ -428,8 +439,8 @@ public class MainController implements ShapeObserver, InteractionCallback {
         bd = bd.setScale(2, RoundingMode.HALF_UP);
         final double newScale = bd.doubleValue();
 
-        drawingArea.setScaleX(newScale);
-        drawingArea.setScaleY(newScale);
+        zoomGroup.setScaleX(newScale);
+        zoomGroup.setScaleY(newScale);
         zoomPercentageLabel.setText(String.format("%.0f%%", newScale * 100));
     }
 
@@ -669,5 +680,29 @@ public class MainController implements ShapeObserver, InteractionCallback {
         onDeleteShape(shape);
     }
 
+    @FXML
+    private void handleZoom50() {
+        setZoomLevel(0.5);
+    }
+
+    @FXML
+    private void handleZoom100() {
+        setZoomLevel(1.0);
+    }
+
+    @FXML
+    private void handleZoom150() {
+        setZoomLevel(1.5);
+    }
+
+    @FXML
+    private void handleZoom200() {
+        setZoomLevel(2.0);
+    }
+
+    private void setZoomLevel(double scale) {
+        zoomSlider.setValue(scale); // aggiorna anche lo slider
+        applyZoom(scale);           // applica lo zoom al gruppo
+    }
 
 }
