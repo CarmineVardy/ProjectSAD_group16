@@ -4,8 +4,7 @@ import it.unisa.diem.sad.geoshapes.adapter.AdapterFactory;
 import it.unisa.diem.sad.geoshapes.controller.command.*;
 import it.unisa.diem.sad.geoshapes.controller.strategy.*;
 import it.unisa.diem.sad.geoshapes.controller.util.GridRenderer;
-import it.unisa.diem.sad.geoshapes.controller.util.ShapeClipboard;
-import it.unisa.diem.sad.geoshapes.controller.util.ShapeClipboardImpl;
+import it.unisa.diem.sad.geoshapes.controller.util.Clipboard;
 import it.unisa.diem.sad.geoshapes.controller.util.UIUtils;
 import it.unisa.diem.sad.geoshapes.model.DrawingModel;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
@@ -129,7 +128,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private PersistenceService persistenceService;
     private UIUtils uiUtils;
     private ShapeMapping shapeMapping;
-    private ShapeClipboard clipboard;
+    private Clipboard clipboard;
 
     //Pattern Strategy
     private ToolStrategy currentStrategy;
@@ -182,7 +181,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
         initializeToolStrategies();
         adapterFactory = new AdapterFactory();
         commandInvoker = new CommandInvoker();
-        clipboard = new ShapeClipboardImpl();
+        clipboard = new Clipboard(adapterFactory);
 
         gridSettings = new GridSettings();
         gridRenderer = new GridRenderer(drawingArea, gridSettings);
@@ -521,10 +520,11 @@ public class MainController implements ShapeObserver, InteractionCallback {
             return;
         }
 
-        List<Shape> pastedShapes = clipboard.paste();
+        List<MyShape> pastedShapes = clipboard.paste();
 
-        for (Shape shape : pastedShapes) {
-            onCreateShape(shape);
+        for (MyShape shape : pastedShapes) {
+            Command createCommand = new CreateShapeCommand(model, shape);
+            commandInvoker.executeCommand(createCommand);
         }
     }
 
@@ -553,7 +553,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
         shapeMapping.rebuildMapping(modelShapes, newViewShapes);
 
-        updateShapesListView(modelShapes);
+        updateShapesListView();
 
         currentStrategy.reset();
 
@@ -563,18 +563,10 @@ public class MainController implements ShapeObserver, InteractionCallback {
         model.printAllShapes();
     }
 
-    private void updateShapesListView(List<MyShape> modelShapes) {
-        // Creo una ObservableList per la ListView
+    private void updateShapesListView() {
         ObservableList<String> shapeNames = FXCollections.observableArrayList();
-
-        // Aggiungo i nomi delle forme nell'ordine inverso rispetto al modello
-        for (int i = modelShapes.size() - 1; i >= 0; i--) {
-            shapeNames.add(modelShapes.get(i).getName());
-        }
-
-        // Aggiorno la ListView
+        model.getShapesReversed().forEach(shape -> shapeNames.add(shape.getName()));
         shapesListView.setItems(shapeNames);
-
     }
 
     @Override
@@ -600,24 +592,8 @@ public class MainController implements ShapeObserver, InteractionCallback {
     public void onShapeSelected(Shape shape) {
         hasShapeSelected.set(true);
         isLineSelected.set(shape instanceof Line);
-        MyShape modelShape = shapeMapping.getModelShape(shape);
-        if (modelShape != null) {             int modelIndex = model.getShapes().indexOf(modelShape);
-            if (modelIndex >= 0) {
-                int listViewIndex = (model.getShapes().size() - 1) - modelIndex;
-                if (listViewIndex >= 0 && listViewIndex < shapesListView.getItems().size()) {
-                    shapesListView.getSelectionModel().select(listViewIndex);
-                } else {
-                    System.err.println("Index not valid: " + listViewIndex);
-                    shapesListView.getSelectionModel().clearSelection();
-                }
-            } else {
-                shapesListView.getSelectionModel().clearSelection();
-            }
-        } else {
-            shapesListView.getSelectionModel().clearSelection();
-        }
 
-
+        shapesListView.getSelectionModel().select(model.getShapesReversed().indexOf(shapeMapping.getModelShape(shape)));
     }
 
     @Override
@@ -680,8 +656,8 @@ public class MainController implements ShapeObserver, InteractionCallback {
         if (shape == null) {
             return;
         }
-        List<Shape> shapesToCopy = new ArrayList<>();
-        shapesToCopy.add(shape);
+        List<MyShape> shapesToCopy = new ArrayList<>();
+        shapesToCopy.add(shapeMapping.getModelShape(shape));
         clipboard.copy(shapesToCopy);
     }
 

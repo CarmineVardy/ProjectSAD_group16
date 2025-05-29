@@ -64,5 +64,22 @@ public class AdapterFactory {
         return adapter.getModelShape(fxShape, width, height);
     }
 
+    public MyShape cloneWithOffset(MyShape original, double offsetX, double offsetY) {
+        if (original == null) {
+            return null;
+        }
+
+        // Clona la forma originale
+        MyShape cloned = original.clone();
+
+        // Applica l'offset alle coordinate normalizzate
+        cloned.setStartX(cloned.getStartX() + offsetX);
+        cloned.setStartY(cloned.getStartY() + offsetY);
+        cloned.setEndX(cloned.getEndX() + offsetX);
+        cloned.setEndY(cloned.getEndY() + offsetY);
+
+        return cloned;
+    }
+
 
 }

@@ -5,6 +5,7 @@ import it.unisa.diem.sad.geoshapes.observer.ShapeObserver;
 import it.unisa.diem.sad.geoshapes.observer.ShapeSubject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DrawingModel implements ShapeSubject {
@@ -121,6 +122,12 @@ public class DrawingModel implements ShapeSubject {
 
     public List<MyShape> getShapes() {
         return new ArrayList<>(shapes);
+    }
+
+    public List<MyShape> getShapesReversed() {
+        List<MyShape> reversedShapes = new ArrayList<>(shapes);
+        Collections.reverse(reversedShapes);
+        return reversedShapes;
     }
 
     @Override

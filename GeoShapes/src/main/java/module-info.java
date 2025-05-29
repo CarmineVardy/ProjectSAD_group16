@@ -8,6 +8,7 @@ module it.unisa.diem.sad.geoshapes {
     requires org.kordamp.ikonli.materialdesign;
     requires org.kordamp.ikonli.bootstrapicons;
     requires javafx.graphics;
+    requires java.desktop;
 
     opens it.unisa.diem.sad.geoshapes to javafx.fxml;
     exports it.unisa.diem.sad.geoshapes;
