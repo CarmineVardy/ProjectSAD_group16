@@ -44,17 +44,11 @@ public class RectangleToolStrategy implements ToolStrategy {
     @Override
     public void handleBorderColorChange(Color color) {
         this.borderColor = color;
-        if (previewFxShape instanceof Rectangle rect) {
-            rect.setStroke(this.borderColor);
-        }
     }
 
     @Override
     public void handleFillColorChange(Color color) {
         this.fillColor = color;
-        if (previewFxShape instanceof Rectangle rect) {
-            rect.setFill(this.fillColor);
-        }
     }
 
     @Override

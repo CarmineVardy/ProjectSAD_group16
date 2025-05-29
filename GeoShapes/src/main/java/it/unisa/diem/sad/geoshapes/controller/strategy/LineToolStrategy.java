@@ -45,7 +45,6 @@ public class LineToolStrategy implements ToolStrategy {
 
     @Override
     public void handleFillColorChange(Color color) {
-
     }
 
     @Override

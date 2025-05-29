@@ -44,17 +44,11 @@ private final Group zoomGroup;
     @Override
     public void handleBorderColorChange(Color color) {
         this.borderColor = color;
-        if (previewFxShape instanceof Ellipse ellipse) {
-            ellipse.setStroke(this.borderColor);
-        }
     }
 
     @Override
     public void handleFillColorChange(Color color) {
         this.fillColor = color;
-        if (previewFxShape instanceof Ellipse ellipse) {
-            ellipse.setFill(this.fillColor);
-        }
     }
 
     @Override
