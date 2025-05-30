@@ -1,4 +1,3 @@
-/*
 package it.unisa.diem.sad.geoshapes.model.shapes;
 
 import it.unisa.diem.sad.geoshapes.model.MyColor;
@@ -19,7 +18,7 @@ public class MyRectangleTest {
         assertEquals(fill, rect.getFillColor(), "Fill color must match the assigned blue");
     }
 
-    @Test
+    /*@Test
     public void testSetEndPointChangesSize() {
         MyRectangle rect = new MyRectangle(0, 0, 50, 50,
                 new MyColor(0.0, 0.0, 0.0), new MyColor(1.0, 1.0, 1.0));
@@ -29,7 +28,7 @@ public class MyRectangleTest {
 
         assertEquals(100, rect.getEndX(), 0.001);
         assertEquals(80, rect.getEndY(), 0.001);
-    }
+    }*/
 
     @Test
     public void testTransparentFillColor() {
@@ -41,5 +40,20 @@ public class MyRectangleTest {
         assertEquals(transparentFill, rect.getFillColor(), "The transparent fill color should be stored correctly");
     }
 
+    @Test
+    void testFlipHorizontal_rectangle() {
+        MyRectangle r = new MyRectangle(0.2, 0.4, 0.6, 0.8, null, null);
+        r.flipHorizontal();
+        assertEquals(0.2, r.getStartX(), 1e-6);
+        assertEquals(0.6, r.getEndX(), 1e-6);
+    }
+
+    @Test
+    void testFlipVertical_rectangle() {
+        MyRectangle rect = new MyRectangle(0.2, 0.4, 0.6, 0.8, null, null);
+        rect.flipVertical();
+
+        assertEquals(0.4, rect.getStartY(), 1e-6);
+        assertEquals(0.8, rect.getEndY(), 1e-6);
+    }
 }
-*/

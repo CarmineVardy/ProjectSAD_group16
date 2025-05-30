@@ -100,4 +100,8 @@ public abstract class MyShape implements Serializable, Cloneable {
     public abstract String getShapeType();
 
     public abstract void moveBy(double dx, double dy);
+
+    //MIRRORING
+    public abstract void flipHorizontal();
+    public abstract void flipVertical();
 }

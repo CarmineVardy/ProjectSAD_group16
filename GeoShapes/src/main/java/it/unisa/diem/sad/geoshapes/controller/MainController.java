@@ -157,6 +157,10 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private double baseDrawingAreaWidth = 1024;
     private double baseDrawingAreaHeight = 500;
 
+    //MIRRORING
+    private ToolStrategy toolStrategy;
+    private DrawingModel drawingModel;
+
     @FXML
     public void initialize() {
         initializeCoreComponents();
@@ -227,6 +231,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
             }
             currentStrategy = toolStrategies.get(selectedToggle);
             currentStrategy.activate(borderColorPicker.getValue(), fillColorPicker.getValue());
+            setToolStrategy(currentStrategy);
         });
     }
 
@@ -707,5 +712,43 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     public void updateClipboardMenuItems() {
         pasteMenuItem.setDisable(clipboard.isEmpty());
+    }
+
+    //MIRRORING
+    private List<MyShape> getSelectedShapes() {
+        System.out.println("Tool attivo: " + toolStrategy.getClass().getSimpleName());
+        if (toolStrategy instanceof SelectionToolStrategy selectionStrategy) {
+            return selectionStrategy.getSelectedShapes();
+        }
+        return Collections.emptyList();
+    }
+
+    @FXML
+    private void onFlipHorizontal() {
+        List<MyShape> selectedShapes = getSelectedShapes();
+        System.out.println("Figure selezionate: " + selectedShapes.size());
+
+        for (MyShape shape : selectedShapes) {
+            shape.flipHorizontal(); // Metodo da implementare
+        }
+
+        model.notifyObservers();
+    }
+
+    @FXML
+    private void onFlipVertical() {
+        List<MyShape> selectedShapes = getSelectedShapes();
+        for (MyShape shape : selectedShapes) {
+            shape.flipVertical();
+        }
+        model.notifyObservers();
+    }
+
+    public void setDrawingModel(DrawingModel drawingModel) {
+        this.drawingModel = drawingModel;
+    }
+
+    public void setToolStrategy(ToolStrategy toolStrategy) {
+        this.toolStrategy = toolStrategy;
     }
 }

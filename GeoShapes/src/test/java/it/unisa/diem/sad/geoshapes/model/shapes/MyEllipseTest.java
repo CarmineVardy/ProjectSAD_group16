@@ -1,8 +1,6 @@
-/*
 package it.unisa.diem.sad.geoshapes.model.shapes;
 
 import it.unisa.diem.sad.geoshapes.model.DrawingModel;
-import it.unisa.diem.sad.geoshapes.model.factory.EllipseFactory;
 import it.unisa.diem.sad.geoshapes.model.MyColor;
 import org.junit.jupiter.api.Test;
 
@@ -10,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class MyEllipseTest {
 
-    @Test
+    /*@Test
     public void testEllipseCreation() {
         EllipseFactory factory = new EllipseFactory();
         MyShape shape = factory.createShape(15, 25, 45, 65, null, null);
@@ -23,9 +21,9 @@ public class MyEllipseTest {
         assertEquals(25, ellipse.getStartY(), "Incorrect StartY");
         assertEquals(45, ellipse.getEndX(), "Incorrect EndX");
         assertEquals(65, ellipse.getEndY(), "Incorrect EndY");
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void testEllipseAddedToModel() {
         DrawingModel model = new DrawingModel();
         MyEllipse ellipse = new MyEllipse(0, 0, 50, 50, null, null);
@@ -34,9 +32,9 @@ public class MyEllipseTest {
 
         assertEquals(1, model.getShapes().size(), "Model must contain 1 shape!");
         assertSame(ellipse, model.getShapes().get(0), "Model's shape is not equal to the same added line!");
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void testCircleCreation() {
         EllipseFactory factory = new EllipseFactory();
         MyShape shape = factory.createShape(10, 10, 60, 60, null, null);
@@ -47,7 +45,7 @@ public class MyEllipseTest {
         MyEllipse circle = (MyEllipse) shape;
         double width = circle.getEndX() - circle.getStartX();
         double height = circle.getEndY() - circle.getStartY();
-    }
+    }*/
 
     @Test
     public void testColorAssignment() {
@@ -64,7 +62,7 @@ public class MyEllipseTest {
         assertEquals(fillColor, ellipse.getFillColor(), "Fill color should be correctly assigned");
     }
 
-    @Test
+    /*@Test
     public void testColorPersistenceAfterEndPointChange() {
         int r = 255;
         int g = 128;
@@ -80,7 +78,7 @@ public class MyEllipseTest {
         // I colori devono restare invariati
         assertEquals(borderColor, ellipse.getBorderColor(), "Border color should persist");
         assertEquals(fillColor, ellipse.getFillColor(), "Fill color should persist");
-    }
+    }*/
 
     @Test
     public void testTransparentFillColor() {
@@ -91,5 +89,20 @@ public class MyEllipseTest {
 
         assertEquals(transparentFill, elli.getFillColor(), "The transparent fill color must be stored correctly");
     }
+
+    @Test
+    void testFlipHorizontal_ellipse() {
+        MyEllipse e = new MyEllipse(0.2, 0.4, 0.6, 0.8, new MyColor(0, 0, 0), new MyColor(1, 1, 1));
+        e.flipHorizontal();
+        assertEquals(0.2, e.getStartX(), 1e-6);
+        assertEquals(0.6, e.getEndX(), 1e-6);
+    }
+
+    @Test
+    void testFlipVertical_ellipse() {
+        MyEllipse e = new MyEllipse(0.2, 0.4, 0.6, 0.8, new MyColor(0, 0, 0), new MyColor(1, 1, 1));
+        e.flipVertical();
+        assertEquals(0.4, e.getStartY(), 1e-6);
+        assertEquals(0.8, e.getEndY(), 1e-6);
+    }
 }
-*/

@@ -587,11 +587,9 @@ public class SelectionToolStrategy implements ToolStrategy {
         drawingPane.setCursor(Cursor.DEFAULT);
     }
 
-    private List<MyShape> selectedShapes;
-
     @Override
     public List<MyShape> getSelectedShapes() {
-        return this.selectedShapes;
+        return this.selectedModelShapes;
     }
 
     public void onMousePressed(double x, double y) {

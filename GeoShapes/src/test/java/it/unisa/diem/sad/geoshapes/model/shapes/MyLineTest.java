@@ -1,8 +1,6 @@
-/*
 package it.unisa.diem.sad.geoshapes.model.shapes;
 
 import it.unisa.diem.sad.geoshapes.model.DrawingModel;
-import it.unisa.diem.sad.geoshapes.model.factory.LineFactory;
 import it.unisa.diem.sad.geoshapes.model.MyColor;
 import org.junit.jupiter.api.Test;
 
@@ -10,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class MyLineTest {
 
-    //Scopo: verificare che la linea venga creata correttamente dalla factory
+    /*
     @Test
     public void testLineCreation() {
         LineFactory factory = new LineFactory();
@@ -24,7 +22,7 @@ public class MyLineTest {
         assertEquals(20, line.getStartY(), "Incorrect StartY");
         assertEquals(30, line.getEndX(), "Incorrect EndX");
         assertEquals(40, line.getEndY(), "Incorrect EndY");
-    }
+    }*/
 
     //Scopo: verificare che una Linea venga effettivamente aggiunta al modello DrawingModel
     @Test
@@ -45,13 +43,13 @@ public class MyLineTest {
         assertEquals(border, line.getBorderColor(), "Border color must match the assigned one");
     }
 
-    @Test   //Verifica che setEndPoint() aggiorni i valori finali
+    /*@Test   //Verifica che setEndPoint() aggiorni i valori finali
     public void testSetEndPointModifiesEndCoordinates() {
         MyLine line = new MyLine(0.2, 0.2, 0.5, 0.5, new MyColor(0, 0, 0));
         line.setEndPoint(0.9, 0.8);
         assertEquals(0.9, line.getEndX(), 0.001);
         assertEquals(0.8, line.getEndY(), 0.001);
-    }
+    }*/
 
     @Test   //Verifica le coordinate iniziali
     public void testGetStartCoordinates() {
@@ -59,5 +57,20 @@ public class MyLineTest {
         assertEquals(0.1, line.getStartX(), 0.001);
         assertEquals(0.1, line.getStartY(), 0.001);
     }
+
+    @Test
+    void testFlipHorizontal_line() {
+        MyLine l = new MyLine(0.1, 0.2, 0.7, 0.8, null); // linea da (0.1, 0.2) a (0.7, 0.8)
+        l.flipHorizontal();
+        assertEquals(0.7, l.getStartX(), 1e-6);
+        assertEquals(0.1, l.getEndX(), 1e-6);
+    }
+
+    @Test
+    void testFlipVertical_line() {
+        MyLine l = new MyLine(0.1, 0.2, 0.7, 0.8, null);
+        l.flipVertical();
+        assertEquals(0.8, l.getStartY(), 1e-6);
+        assertEquals(0.2, l.getEndY(), 1e-6);
+    }
 }
-*/

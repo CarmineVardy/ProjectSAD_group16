@@ -69,6 +69,27 @@ public class PersistenceServiceTest {
 
         @Override
         public void moveBy(double dx, double dy) {}
+
+        @Override
+        public void flipHorizontal() {
+            // Implementazione base per il test
+            double center = (getStartX() + getEndX()) / 2;
+            double newStartX = 2 * center - getStartX();
+            double newEndX = 2 * center - getEndX();
+            setStartX(newStartX);
+            setEndX(newEndX);
+        }
+
+        @Override
+        public void flipVertical() {
+            // Implementazione base per il test
+            double center = (getStartY() + getEndY()) / 2;
+            double newStartY = 2 * center - getStartY();
+            double newEndY = 2 * center - getEndY();
+            setStartY(newStartY);
+            setEndY(newEndY);
+        }
+
     }
 
     @BeforeEach

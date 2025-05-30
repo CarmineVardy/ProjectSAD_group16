@@ -4,8 +4,6 @@ import it.unisa.diem.sad.geoshapes.model.MyColor;
 
 public class MyLine extends MyShape {
 
-    private MyLine line;
-
     public MyLine(double startX, double startY, double endX, double endY, MyColor borderMyColor) {
         super(startX, startY, endX, endY, borderMyColor, null);
     }
@@ -31,5 +29,30 @@ public class MyLine extends MyShape {
         this.setStartY(this.getStartY() + dy);
         this.setEndX(this.getEndX() + dx);
         this.setEndY(this.getEndY() + dy);
+    }
+
+    //MIRRORING
+    @Override
+    public void flipHorizontal() {
+        double centerX = (getStartX() + getEndX()) / 2.0;
+
+        double newStartX = 2 * centerX - getStartX();
+        double newEndX   = 2 * centerX - getEndX();
+
+        setStartX(newStartX);
+        setEndX(newEndX);
+        // Y invariato
+    }
+
+    @Override
+    public void flipVertical() {
+        double centerY = (getStartY() + getEndY()) / 2.0;
+
+        double newStartY = 2 * centerY - getStartY();
+        double newEndY   = 2 * centerY - getEndY();
+
+        setStartY(newStartY);
+        setEndY(newEndY);
+        // X invariato
     }
 }

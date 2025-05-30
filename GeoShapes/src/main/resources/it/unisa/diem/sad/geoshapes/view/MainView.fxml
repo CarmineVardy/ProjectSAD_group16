@@ -63,6 +63,10 @@
                                 </Menu>
                             </menus>
                         </MenuBar>
+                        <ToolBar>
+                            <Button fx:id="flipHButton" text="Flip H" onAction="#onFlipHorizontal"/>
+                            <Button fx:id="flipVButton" text="Flip V" onAction="#onFlipVertical"/>
+                        </ToolBar>
                         <Button fx:id="undoButton" mnemonicParsing="false" onAction="#handleUndo" styleClass="tool-button">
                             <graphic>
                                 <FontIcon iconLiteral="fas-undo-alt" iconSize="10" />
