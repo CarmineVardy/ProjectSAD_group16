@@ -61,8 +61,4 @@ public final class Clipboard{
     private void updateEmptyProperty() {
         emptyProperty.set(clipboard.isEmpty());
     }
-
-
-
-
 }

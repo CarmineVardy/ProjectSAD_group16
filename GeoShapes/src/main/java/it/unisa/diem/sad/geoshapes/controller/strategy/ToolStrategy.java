@@ -44,6 +44,8 @@ public interface ToolStrategy {
 
     void reset();
 
+    List<MyShape> getSelectedShapes();
+
     default Point2D getTransformedCoordinates(MouseEvent event, Pane drawingArea) {
         Point2D localPoint = drawingArea.sceneToLocal(event.getSceneX(), event.getSceneY());
 return localPoint;

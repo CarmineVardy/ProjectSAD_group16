@@ -44,6 +44,8 @@ dependencies {
     implementation("org.kordamp.ikonli:ikonli-fontawesome5-pack:12.3.1")
     implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.3.1")
     implementation("org.kordamp.ikonli:ikonli-materialdesign-pack:12.3.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.12.0")
 }
 
 tasks.withType<Test> {

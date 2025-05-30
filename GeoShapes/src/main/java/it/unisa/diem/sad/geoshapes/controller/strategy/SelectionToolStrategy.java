@@ -3,6 +3,7 @@ package it.unisa.diem.sad.geoshapes.controller.strategy;
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.controller.ShapeMapping;
 import it.unisa.diem.sad.geoshapes.decorator.SelectionDecorator;
+import it.unisa.diem.sad.geoshapes.model.DrawingModel;
 import javafx.event.ActionEvent;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.event.Event;
@@ -34,11 +35,14 @@ public class SelectionToolStrategy implements ToolStrategy {
     private double initialTranslateX;
     private double initialTranslateY;
     private double initialLineStartX, initialLineStartY, initialLineEndX, initialLineEndY;
+    private double lastX;
+    private double lastY;
 
     private final List<MyShape> selectedModelShapes = new ArrayList<>();
     private final List<Shape> selectedJavaFxShapes = new ArrayList<>();
     private final  Group zoomGroup;
     private ResizeHandleType activeHandleType = ResizeHandleType.NONE;
+    private DrawingModel model;
 
     private enum ResizeHandleType {
         TOP_LEFT, TOP_CENTER, TOP_RIGHT,
@@ -582,4 +586,33 @@ public class SelectionToolStrategy implements ToolStrategy {
         selectedModelShapes.clear();
         drawingPane.setCursor(Cursor.DEFAULT);
     }
+
+    private List<MyShape> selectedShapes;
+
+    @Override
+    public List<MyShape> getSelectedShapes() {
+        return this.selectedShapes;
+    }
+
+    public void onMousePressed(double x, double y) {
+        lastX = x;
+        lastY = y;
+    }
+
+    public void onMouseDragged(double x, double y) {
+        double dx = x - lastX;
+        double dy = y - lastY;
+
+        for (MyShape shape : model.getSelectedShapes()) {
+            shape.moveBy(dx, dy);
+        }
+
+        lastX = x;
+        lastY = y;
+    }
+
+    public void setModel(DrawingModel model) {
+        this.model = model;
+    }
+
 }

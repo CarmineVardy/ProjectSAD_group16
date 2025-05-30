@@ -1,14 +1,44 @@
 package it.unisa.diem.sad.geoshapes.controller.strategy;
 
+import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
+import it.unisa.diem.sad.geoshapes.controller.ShapeMapping;
 import it.unisa.diem.sad.geoshapes.decorator.SelectionDecorator;
+import it.unisa.diem.sad.geoshapes.model.DrawingModel;
+import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
+import javafx.scene.Group;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+import static org.mockito.Mockito.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SelectionToolStrategyTest {
+
+    private DrawingModel model;
+    private MyShape shape1;
+    private MyShape shape2;
+    private SelectionToolStrategy strategy;
+
+    @BeforeEach
+    void setUp() {
+        model = mock(DrawingModel.class);
+        shape1 = mock(MyShape.class);
+        shape2 = mock(MyShape.class);
+        Pane drawingPane = mock(Pane.class);
+        Group zoomGroup = mock(Group.class);
+        ShapeMapping shapeMapping = mock(ShapeMapping.class);
+        InteractionCallback callback = mock(InteractionCallback.class);
+
+        strategy = new SelectionToolStrategy(drawingPane, zoomGroup, shapeMapping, callback);
+        strategy.setModel(model);
+    }
 
     @Test
     void testResizeUpdatesShapeCorrectly() {
@@ -66,4 +96,35 @@ public class SelectionToolStrategyTest {
         assertEquals(200.0, bottomRightHandle.getCenterX(), tolerance);
     }
 
+    @Test
+    void testMoveSingleShapeByDelta() {
+        when(model.getSelectedShapes()).thenReturn(Collections.singletonList(shape1));
+
+        strategy.onMousePressed(10, 10);
+        strategy.onMouseDragged(15, 15);
+
+        verify(shape1).moveBy(5.0, 5.0);
+    }
+
+    @Test
+    void testMoveMultipleShapes() {
+        when(model.getSelectedShapes()).thenReturn(Arrays.asList(shape1, shape2));
+
+        strategy.onMousePressed(0, 0);
+        strategy.onMouseDragged(20, 10);
+
+        verify(shape1).moveBy(20.0, 10.0);
+        verify(shape2).moveBy(20.0, 10.0);
+    }
+
+    @Test
+    void testNoSelectedShapes_NoMoveCalled() {
+        when(model.getSelectedShapes()).thenReturn(Collections.emptyList());
+
+        strategy.onMousePressed(50, 50);
+        strategy.onMouseDragged(100, 100);
+
+        verify(shape1, never()).moveBy(anyDouble(), anyDouble());
+        verify(shape2, never()).moveBy(anyDouble(), anyDouble());
+    }
 }

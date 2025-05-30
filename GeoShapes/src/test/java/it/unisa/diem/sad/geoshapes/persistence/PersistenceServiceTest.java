@@ -67,7 +67,8 @@ public class PersistenceServiceTest {
             return Objects.hash(id, getEndX(), getEndY(), getBorderColor(), getFillColor());
         }
 
-
+        @Override
+        public void moveBy(double dx, double dy) {}
     }
 
     @BeforeEach

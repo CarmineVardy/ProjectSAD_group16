@@ -684,4 +684,28 @@ public class MainController implements ShapeObserver, InteractionCallback {
     public void handleZoom200(ActionEvent actionEvent) {
         zoomSlider.setValue(2.0);
     }
+
+    public void setClipboard(Clipboard clipboard) {
+        this.clipboard = clipboard;
+    }
+
+    public void setDrawingArea(Pane drawingArea) {
+        this.drawingArea = drawingArea;
+    }
+
+    public void setPasteMenuItem(MenuItem pasteMenuItem) {
+        this.pasteMenuItem = pasteMenuItem;
+    }
+
+    public void setModel(DrawingModel model) {
+        this.model = model;
+    }
+
+    public void setCurrentStrategy(ToolStrategy currentStrategy) {
+        this.currentStrategy = currentStrategy;
+    }
+
+    public void updateClipboardMenuItems() {
+        pasteMenuItem.setDisable(clipboard.isEmpty());
+    }
 }

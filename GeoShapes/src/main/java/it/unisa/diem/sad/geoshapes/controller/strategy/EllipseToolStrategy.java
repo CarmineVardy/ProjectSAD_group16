@@ -3,6 +3,7 @@ package it.unisa.diem.sad.geoshapes.controller.strategy;
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
+import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.Point2D;
@@ -14,11 +15,15 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Shape;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class EllipseToolStrategy implements ToolStrategy {
 
     private final Pane drawingPane;
     private final InteractionCallback callback;
-private final Group zoomGroup;
+    private final Group zoomGroup;
     private Shape previewFxShape;
     private ShapeDecorator previewDecorator;
 
@@ -163,4 +168,10 @@ private final Group zoomGroup;
             previewFxShape = null;
         }
     }
+
+    @Override
+    public List<MyShape> getSelectedShapes() {
+        return Collections.emptyList();
+    }
+
 }

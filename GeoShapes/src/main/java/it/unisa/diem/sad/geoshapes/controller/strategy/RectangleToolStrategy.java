@@ -3,6 +3,7 @@ package it.unisa.diem.sad.geoshapes.controller.strategy;
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
 import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
 import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
+import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.Point2D;
@@ -13,6 +14,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+
+import java.util.Collections;
+import java.util.List;
 
 public class RectangleToolStrategy implements ToolStrategy {
 
@@ -159,5 +163,10 @@ public class RectangleToolStrategy implements ToolStrategy {
             drawingPane.getChildren().remove(previewFxShape);
             previewFxShape = null;
         }
+    }
+
+    @Override
+    public List<MyShape> getSelectedShapes() {
+        return Collections.emptyList();
     }
 }

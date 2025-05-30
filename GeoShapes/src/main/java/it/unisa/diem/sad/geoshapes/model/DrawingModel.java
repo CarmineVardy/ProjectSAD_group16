@@ -13,6 +13,7 @@ public class DrawingModel implements ShapeSubject {
     private final List<MyShape> shapes;
     private final List<ShapeObserver> observers;
     private static int idCounter = 0;
+    private List<MyShape> selectedShapes = new ArrayList<>();
 
     public DrawingModel() {
         shapes = new ArrayList<>();
@@ -145,5 +146,9 @@ public class DrawingModel implements ShapeSubject {
         for (ShapeObserver observer : observers) {
             observer.update();
         }
+    }
+
+    public List<MyShape> getSelectedShapes() {
+        return selectedShapes;
     }
 }

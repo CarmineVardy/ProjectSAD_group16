@@ -12,4 +12,12 @@ public class MyRectangle extends MyShape {
     public String getShapeType() {
         return "Rectangle";
     }
+
+    @Override
+    public void moveBy(double dx, double dy) {
+        setStartX(getStartX() + dx);
+        setEndX(getEndX() + dx);
+        setStartY(getStartY() + dy);
+        setEndY(getEndY() + dy);
+    }
 }
