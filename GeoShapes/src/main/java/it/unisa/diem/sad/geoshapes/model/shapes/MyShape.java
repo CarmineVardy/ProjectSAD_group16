@@ -15,6 +15,7 @@ public abstract class MyShape implements Serializable, Cloneable {
     protected double endY;
     protected MyColor borderColor;
     protected MyColor fillColor;
+    private double rotation;
 
     public MyShape(double startX, double startY, double endX, double endY, MyColor borderColor, MyColor fillColor) {
         this.name = null;
@@ -103,5 +104,15 @@ public abstract class MyShape implements Serializable, Cloneable {
 
     //MIRRORING
     public abstract void flipHorizontal();
+
     public abstract void flipVertical();
+
+
+    public void setRotation(double angle) {
+        this.rotation = angle;
+    }
+
+    public double getRotation() {
+        return rotation;
+    }
 }

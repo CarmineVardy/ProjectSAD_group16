@@ -46,11 +46,16 @@ public class AdapterFactory {
         if (modelShape == null) {
             return null;
         }
+
         ShapeAdapter adapter = forwardAdapters.get(modelShape.getClass());
         if (adapter == null) {
             throw new IllegalArgumentException("No adapter found for shape type: " + modelShape.getClass().getSimpleName());
         }
-        return adapter.getFxShape(modelShape, width, height);
+
+        Shape fxShape = adapter.getFxShape(modelShape, width, height);
+        fxShape.setRotate(modelShape.getRotation());
+        return fxShape;
+
     }
 
     public MyShape convertToModel(Shape fxShape, double width, double height) {
@@ -61,7 +66,11 @@ public class AdapterFactory {
         if (adapter == null) {
             throw new IllegalArgumentException("No reverse adapter found for JavaFX shape type: " + fxShape.getClass().getSimpleName());
         }
-        return adapter.getModelShape(fxShape, width, height);
+        MyShape modelShape = adapter.getModelShape(fxShape, width, height);
+        // Copia la rotazione dalla forma JavaFX al modello
+        modelShape.setRotation(fxShape.getRotate());
+        return modelShape;
+
     }
 
     public MyShape cloneWithOffset(MyShape original, double offsetX, double offsetY) {
@@ -77,6 +86,7 @@ public class AdapterFactory {
         cloned.setStartY(cloned.getStartY() + offsetY);
         cloned.setEndX(cloned.getEndX() + offsetX);
         cloned.setEndY(cloned.getEndY() + offsetY);
+        cloned.setRotation(original.getRotation());
 
         return cloned;
     }

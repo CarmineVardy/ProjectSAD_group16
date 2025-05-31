@@ -633,6 +633,14 @@ public class MainController implements ShapeObserver, InteractionCallback {
     }
 
     @Override
+    public void onRotateShape(Shape shape, double oldAngle, double newAngle) {
+        RotateShapeCommand command = new RotateShapeCommand(model, shapeMapping.getModelShape(shape), oldAngle, newAngle);
+        commandInvoker.executeCommand(command);
+
+    }
+
+
+    @Override
     public void onBringToFront(Shape shape) {
         Command bringToFrontCommand = new BringToFrontCommand(model, shapeMapping.getModelShape(shape));
         commandInvoker.executeCommand(bringToFrontCommand);
