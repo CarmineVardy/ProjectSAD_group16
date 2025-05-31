@@ -27,6 +27,10 @@ public class SelectionToolStrategy implements ToolStrategy {
     private SelectionDecorator currentDecorator;
     private Shape selectedJavaFxShape;
     private InteractionCallback callback;
+    private boolean isRotating ;
+    private double lastAngle;
+    private Shape currentShape;
+
 
     private boolean isResizing = false;
     private boolean isMoving = false;
@@ -47,7 +51,7 @@ public class SelectionToolStrategy implements ToolStrategy {
     private enum ResizeHandleType {
         TOP_LEFT, TOP_CENTER, TOP_RIGHT,
         MIDDLE_LEFT, MIDDLE_RIGHT,
-        BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT, LINE_START, LINE_END,
+        BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT, LINE_START, LINE_END,ROTATION,
         NONE
     }
 
@@ -104,7 +108,36 @@ public class SelectionToolStrategy implements ToolStrategy {
             return;
         }
 
+
+
+
+
+
+
+
         Circle handleAtPosition = findHandleAt(x, y);
+
+
+        if (handleAtPosition != null && selectedJavaFxShape !=null && handleAtPosition.getUserData().equals("ROTATION")) {
+                isRotating = true;
+            this.currentShape = selectedJavaFxShape; // <-- CRUCIALE: DEVE ESSERE QUI
+            activeHandleType = ResizeHandleType.ROTATION;
+            System.out.println("\n HANDLE CLICCATO: " + handleAtPosition.getUserData()); // <--- INSERISCILA QUI
+            System.out.println("\n ROTATING: " + isRotating);
+
+            System.out.println("\n CURRENT SHAPE SELECTED: " + currentShape);
+
+            lastAngle = calculateAngle(x, y, selectedJavaFxShape);
+                event.consume();
+                return;
+
+        }
+
+
+
+
+
+
         if (handleAtPosition != null && selectedJavaFxShape != null && event.getButton() == MouseButton.PRIMARY) {
             bakeTranslation(selectedJavaFxShape);
             isResizing = true;
@@ -155,7 +188,9 @@ public class SelectionToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseDragged(MouseEvent event) {
-        if (!isMoving && !isResizing || selectedJavaFxShape == null || initialMousePress == null) return;
+        if (!isMoving && !isResizing && !isRotating|| selectedJavaFxShape == null || initialMousePress == null) return;
+
+        System.out.println("\n DRAGGED ROTATING: " + isRotating);
 
         //Point2D localPoint = getTransformedCoordinates(event, zoomGroup);
         double x = event.getX();
@@ -163,6 +198,29 @@ public class SelectionToolStrategy implements ToolStrategy {
 
         double deltaX = x - initialMousePress.getX();
         double deltaY = y - initialMousePress.getY();
+
+        if (isRotating && currentShape != null) {
+            double currentAngle = calculateAngle(x, y, currentShape);
+            double deltaAngle = currentAngle - lastAngle;
+
+            if (currentDecorator != null) {
+                currentDecorator.removeDecoration();
+            }
+            // Applica la rotazione
+            currentShape.setRotate(currentShape.getRotate() + deltaAngle);
+
+            // Aggiorna la posizione dell'handle di rotazione
+            //updateRotationHandlePosition(currentShape);
+
+            lastAngle = currentAngle;
+            event.consume();
+
+
+            return;
+        }
+
+
+
 
         if (isResizing) {
             updateJavaFxShapeDimensions(deltaX, deltaY, activeHandleType);
@@ -195,13 +253,23 @@ public class SelectionToolStrategy implements ToolStrategy {
 
         boolean wasResizing = isResizing;
         boolean wasMoving = isMoving;
+        boolean wasRotating = isRotating;
 
         isResizing = false;
         isMoving = false;
+        isRotating=false;
         activeHandleType = ResizeHandleType.NONE;
 
+        if (isRotating) {
+            isRotating = false;
+            currentShape = null;
+            callback.onModifyShape(selectedJavaFxShape);
+            event.consume();
+            return;
+        }
+
         boolean significantChange = false;
-        if (initialMousePress != null && (wasResizing || wasMoving) && selectedJavaFxShape != null) {
+        if (initialMousePress != null && (wasResizing || wasMoving||wasRotating) && selectedJavaFxShape != null) {
             double dx = x - initialMousePress.getX();
             double dy = y - initialMousePress.getY();
             significantChange = (dx * dx + dy * dy) > 4;
@@ -612,5 +680,26 @@ public class SelectionToolStrategy implements ToolStrategy {
     public void setModel(DrawingModel model) {
         this.model = model;
     }
+
+
+    private double calculateAngle(double x, double y, Shape shape) {
+        Bounds bounds = shape.getBoundsInParent();
+        double centerX = bounds.getMinX() + bounds.getWidth() / 2;
+        double centerY = bounds.getMinY() + bounds.getHeight() / 2;
+
+        return Math.toDegrees(Math.atan2(y - centerY, x - centerX));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

@@ -19,7 +19,8 @@ public class SelectionDecorator implements ShapeDecorator {
     private StrokeType originalStrokeType;
     private double originalOpacity;
     private Paint originalFill;
-
+    private Circle rotationHandle;
+    private static final double ROTATION_HANDLE_OFFSET = 30;
 
     //dichiarazioni che mi servono per il resize il resto lo metto tutto sotto cosi da vedere facilmente le modifiche relative
     private final Pane drawingArea;
@@ -116,11 +117,18 @@ public class SelectionDecorator implements ShapeDecorator {
 
         Bounds bounds = shape.getBoundsInParent();
         double circleRadius = HANDLE_SIZE / 2;
+        rotationHandle = new Circle(circleRadius, Color.DARKORANGE); // Colore distintivo per la rotazione
+        rotationHandle.setStroke(Color.WHITE);
+        rotationHandle.setStrokeWidth(1);
+        rotationHandle.setUserData("ROTATION"); // UserData per identificarlo nella strategia
+        resizeHandles.add(rotationHandle);
+        double centerX = bounds.getMinX() + bounds.getWidth() / 2;
+        double centerY = bounds.getMinY() - ROTATION_HANDLE_OFFSET; // Posiziona sopra la forma
 
-        // Utilizzo dello switch classico con instanceof e cast espliciti
-        // Nota: non puoi usare 'shape' direttamente come espressione dello switch
-        // perché lo switch su oggetti è limitato ai tipi Enum, String, o wrapper di tipi primitivi.
-        // Dobbiamo usare un workaround con un tipo che rappresenti la categoria di shape.
+        rotationHandle.setCenterX(centerX);
+        rotationHandle.setCenterY(centerY);
+        drawingArea.getChildren().add(rotationHandle);
+
         String shapeCategory;
         if (shape instanceof Line) {
             shapeCategory = "LINE";
