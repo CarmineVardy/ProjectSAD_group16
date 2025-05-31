@@ -56,7 +56,7 @@ public class MyEllipseTest {
         MyColor borderColor = new MyColor(r / 255.0, 0, 0); // Rosso
         MyColor fillColor = new MyColor(0, g / 255.0, 0);   // Verde
 
-        MyEllipse ellipse = new MyEllipse(10, 20, 30, 40, borderColor, fillColor);
+        MyEllipse ellipse = new MyEllipse(10, 20, 30, 40,0.0, borderColor, fillColor);
 
         assertEquals(borderColor, ellipse.getBorderColor(), "Border color should be correctly assigned");
         assertEquals(fillColor, ellipse.getFillColor(), "Fill color should be correctly assigned");
@@ -85,14 +85,14 @@ public class MyEllipseTest {
         MyColor border = new MyColor(0.0, 0.0, 0.0, 1.0);         // Nero opaco
         MyColor transparentFill = new MyColor(1.0, 0.0, 0.0, 0.0); // Trasparente
 
-        MyEllipse elli = new MyEllipse(0, 0, 50, 50, border, transparentFill);
+        MyEllipse elli = new MyEllipse(0, 0, 50, 50,0.0, null,null);
 
         assertEquals(transparentFill, elli.getFillColor(), "The transparent fill color must be stored correctly");
     }
 
     @Test
     void testFlipHorizontal_ellipse() {
-        MyEllipse e = new MyEllipse(0.2, 0.4, 0.6, 0.8, new MyColor(0, 0, 0), new MyColor(1, 1, 1));
+        MyEllipse e = new MyEllipse(0.2, 0.4, 0.6, 0.8, 90,new MyColor(0, 0, 0), new MyColor(1, 1, 1));
         e.flipHorizontal();
         assertEquals(0.2, e.getStartX(), 1e-6);
         assertEquals(0.6, e.getEndX(), 1e-6);
@@ -100,7 +100,7 @@ public class MyEllipseTest {
 
     @Test
     void testFlipVertical_ellipse() {
-        MyEllipse e = new MyEllipse(0.2, 0.4, 0.6, 0.8, new MyColor(0, 0, 0), new MyColor(1, 1, 1));
+        MyEllipse e = new MyEllipse(0.2, 0.4, 0.6, 0.8,-50, new MyColor(0, 0, 0), new MyColor(1, 1, 1));
         e.flipVertical();
         assertEquals(0.4, e.getStartY(), 1e-6);
         assertEquals(0.8, e.getEndY(), 1e-6);

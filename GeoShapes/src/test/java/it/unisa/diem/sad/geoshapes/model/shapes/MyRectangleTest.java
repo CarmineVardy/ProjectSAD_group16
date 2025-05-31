@@ -12,7 +12,7 @@ public class MyRectangleTest {
         MyColor border = new MyColor(1.0, 0.0, 0.0); // Rosso
         MyColor fill = new MyColor(0.0, 0.0, 1.0);   // Blu
 
-        MyRectangle rect = new MyRectangle(10, 10, 100, 100, border, fill);
+        MyRectangle rect = new MyRectangle(10, 10, 100, 100,0.0, border, fill);
 
         assertEquals(border, rect.getBorderColor(), "Border color must match the assigned red");
         assertEquals(fill, rect.getFillColor(), "Fill color must match the assigned blue");
@@ -35,14 +35,14 @@ public class MyRectangleTest {
         MyColor border = new MyColor(0.0, 0.0, 0.0, 1.0);         // Nero opaco
         MyColor transparentFill = new MyColor(1.0, 0.0, 0.0, 0.0); // Trasparente
 
-        MyRectangle rect = new MyRectangle(0, 0, 50, 50, border, transparentFill);
+        MyRectangle rect = new MyRectangle(0, 0, 50, 50,0.0, border, transparentFill);
 
         assertEquals(transparentFill, rect.getFillColor(), "The transparent fill color should be stored correctly");
     }
 
     @Test
     void testFlipHorizontal_rectangle() {
-        MyRectangle r = new MyRectangle(0.2, 0.4, 0.6, 0.8, null, null);
+        MyRectangle r = new MyRectangle(0.2, 0.4, 0.6, 0.8,2.0, null, null);
         r.flipHorizontal();
         assertEquals(0.2, r.getStartX(), 1e-6);
         assertEquals(0.6, r.getEndX(), 1e-6);
@@ -50,7 +50,7 @@ public class MyRectangleTest {
 
     @Test
     void testFlipVertical_rectangle() {
-        MyRectangle rect = new MyRectangle(0.2, 0.4, 0.6, 0.8, null, null);
+        MyRectangle rect = new MyRectangle(0.2, 0.4, 0.6, 0.8, 0.0,null, null);
         rect.flipVertical();
 
         assertEquals(0.4, rect.getStartY(), 1e-6);

@@ -20,6 +20,9 @@ public class ModifyShapeCommand implements Command {
     @Override
     public void execute() {
         model.modifyShape(targetShape, newShape);
+        System.out.println("\nCOMMAND  ANGOLO vechio:  " +oldShape.getRotation());
+        System.out.println("\nCOMMAND  ANGOLO nuovo:  " +newShape.getRotation());
+
     }
 
     @Override

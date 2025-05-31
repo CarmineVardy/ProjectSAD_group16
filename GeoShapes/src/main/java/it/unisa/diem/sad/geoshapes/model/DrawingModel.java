@@ -41,6 +41,7 @@ public class DrawingModel implements ShapeSubject {
         oldShape.setEndY(newShape.getEndY());
         oldShape.setBorderColor(newShape.getBorderColor());
         oldShape.setFillColor(newShape.getFillColor());
+        oldShape.setRotation(newShape.getRotation());
         notifyObservers();
     }
 

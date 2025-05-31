@@ -21,7 +21,7 @@ public class ReverseRectangleAdapter implements ReverseShapeAdapter {
         if (!(fxShape instanceof Rectangle)) {
             throw new IllegalArgumentException("Expected Rectangle");
         }
-
+        System.out.println("\nREVERSE ADAPTER  ANGOLO  SHAPE nuovo:  " +fxShape.getRotate());
         Rectangle fxRectangle = (Rectangle) fxShape;
 
         // Converti da x, y, width, height a startX, startY, endX, endY
@@ -29,13 +29,16 @@ public class ReverseRectangleAdapter implements ReverseShapeAdapter {
         double startY = fxRectangle.getY() / height;
         double endX = (fxRectangle.getX() + fxRectangle.getWidth()) / width;
         double endY = (fxRectangle.getY() + fxRectangle.getHeight()) / height;
-
+        double rotation = fxRectangle.getRotate();
+        System.out.println("\nrotation dento adapter revre  " +rotation);
         MyRectangle modelRectangle = new MyRectangle(
-                startX, startY, endX, endY,
+                startX, startY, endX, endY,rotation,
                 convertToModelColor((Color) fxRectangle.getStroke()),
                 convertToModelColor((Color) fxRectangle.getFill())
         );
 
+
+        System.out.println("\nREVERSE ADAPTER  ANGOLO  MODELLO nuovo:  " +modelRectangle.getRotation());
         return modelRectangle;
     }
 }

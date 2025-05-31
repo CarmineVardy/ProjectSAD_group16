@@ -4,8 +4,8 @@ import it.unisa.diem.sad.geoshapes.model.MyColor;
 
 public class MyLine extends MyShape {
 
-    public MyLine(double startX, double startY, double endX, double endY, MyColor borderMyColor) {
-        super(startX, startY, endX, endY, borderMyColor, null);
+    public MyLine(double startX, double startY, double endX, double endY,double rotation, MyColor borderMyColor) {
+        super(startX, startY, endX, endY,rotation, borderMyColor, null);
     }
 
     @Override
@@ -55,4 +55,14 @@ public class MyLine extends MyShape {
         setEndY(newEndY);
         // X invariato
     }
+
+
+    public double getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
+    }
 }
+

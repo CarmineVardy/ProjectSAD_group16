@@ -31,6 +31,7 @@ public class RectangleAdapter implements ShapeAdapter {
         fxRectangle.setStroke(convertToJavaFxColor(modelRectangle.getBorderColor()));
         fxRectangle.setFill(convertToJavaFxColor(modelRectangle.getFillColor()));
         fxRectangle.setStrokeWidth(2.0);
+        fxRectangle.setRotate(modelRectangle.getRotation());
         return fxRectangle;
     }
 

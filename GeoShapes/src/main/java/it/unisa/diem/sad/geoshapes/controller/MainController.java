@@ -628,6 +628,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     @Override
     public void onModifyShape(Shape shape) {
+        System.out.println("\nModifico la forma conmtroller   ANGOLO:  " +shape.getRotate());
         Command modifyShapeCommand = new ModifyShapeCommand(model, shapeMapping.getModelShape(shape), shapeMapping.getModelShape(shape).clone(), adapterFactory.convertToModel(shape, drawingArea.getWidth(), drawingArea.getHeight()));
         commandInvoker.executeCommand(modifyShapeCommand);
     }

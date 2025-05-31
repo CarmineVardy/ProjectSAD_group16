@@ -4,10 +4,12 @@ import it.unisa.diem.sad.geoshapes.model.MyColor;
 
 public class MyRectangle extends MyShape {
 
-    private double x, y, width, height;
+    private double x, y, width, height,rotation;
 
-    public MyRectangle(double startX, double startY, double endX, double endY, MyColor borderMyColor, MyColor fillMyColor) {
-        super(startX, startY, endX, endY, borderMyColor, fillMyColor);
+    public MyRectangle(double startX, double startY, double endX, double endY, double rotation,MyColor borderMyColor, MyColor fillMyColor) {
+        super(startX, startY, endX, endY, rotation,borderMyColor, fillMyColor);
+
+        this.rotation = rotation;
     }
 
     @Override
@@ -73,4 +75,13 @@ public class MyRectangle extends MyShape {
         setStartY(Math.min(newStartY, newEndY));
         setEndY(Math.max(newStartY, newEndY));
     }
+
+    public double getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
+    }
+
 }

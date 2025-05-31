@@ -57,6 +57,7 @@ public class AdapterFactory {
         if (fxShape == null) {
             return null;
         }
+        System.out.println("\nfactory  ANGOLO nuovo:  " + fxShape.getRotate());
         ReverseShapeAdapter adapter = reverseAdapters.get(fxShape.getClass());
         if (adapter == null) {
             throw new IllegalArgumentException("No reverse adapter found for JavaFX shape type: " + fxShape.getClass().getSimpleName());
@@ -77,6 +78,7 @@ public class AdapterFactory {
         cloned.setStartY(cloned.getStartY() + offsetY);
         cloned.setEndX(cloned.getEndX() + offsetX);
         cloned.setEndY(cloned.getEndY() + offsetY);
+        cloned.setRotation(cloned.getRotation() );
 
         return cloned;
     }

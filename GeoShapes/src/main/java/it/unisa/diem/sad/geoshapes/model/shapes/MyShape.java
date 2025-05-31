@@ -13,15 +13,17 @@ public abstract class MyShape implements Serializable, Cloneable {
     protected double startY;
     protected double endX;
     protected double endY;
+    protected double rotation;
     protected MyColor borderColor;
     protected MyColor fillColor;
 
-    public MyShape(double startX, double startY, double endX, double endY, MyColor borderColor, MyColor fillColor) {
+    public MyShape(double startX, double startY, double endX, double endY, double rotation ,MyColor borderColor, MyColor fillColor) {
         this.name = null;
         this.startX = startX;
         this.startY = startY;
         this.endX = endX;
         this.endY = endY;
+        this.rotation=rotation;
         this.borderColor = borderColor;
         this.fillColor = fillColor;
     }
@@ -82,6 +84,8 @@ public abstract class MyShape implements Serializable, Cloneable {
         this.fillColor = color;
     }
 
+
+
     @Override
     public MyShape clone() {
         try {
@@ -104,4 +108,9 @@ public abstract class MyShape implements Serializable, Cloneable {
     //MIRRORING
     public abstract void flipHorizontal();
     public abstract void flipVertical();
+
+    public abstract double getRotation();
+
+
+    public abstract void setRotation(double rotation);
 }

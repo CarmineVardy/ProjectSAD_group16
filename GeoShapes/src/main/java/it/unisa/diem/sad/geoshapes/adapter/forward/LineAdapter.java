@@ -18,18 +18,20 @@ public class LineAdapter implements ShapeAdapter {
 
     @Override
     public Shape getFxShape(MyShape modelShape, double width, double height) {
-        if (!(modelShape instanceof MyLine)) {
+        if (!(modelShape instanceof MyLine modelLine)) {
             throw new IllegalArgumentException("Expected MyLine");
         }
-        MyLine modelLine = (MyLine) modelShape;
         Line fxLine = new Line(
                 modelLine.getStartX() * width,
                 modelLine.getStartY() * height,
                 modelLine.getEndX() * width,
                 modelLine.getEndY() * height
+
         );
         fxLine.setStroke(convertToJavaFxColor(modelLine.getBorderColor()));
         fxLine.setStrokeWidth(2.0);
+        fxLine.setRotate(modelLine.getRotation());
+
         return fxLine;
     }
 

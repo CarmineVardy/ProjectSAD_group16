@@ -7,8 +7,8 @@ public class MyEllipse extends MyShape {
     private double centerX, centerY;
     private Ellipse ellipse;
 
-    public MyEllipse(double startX, double startY, double endX, double endY, MyColor borderMyColor, MyColor fillMyColor) {
-        super(startX, startY, endX, endY, borderMyColor, fillMyColor);
+    public MyEllipse(double startX, double startY, double endX, double endY, double rotation, MyColor borderMyColor, MyColor fillMyColor) {
+        super(startX, startY, endX, endY,rotation, borderMyColor, fillMyColor);
 
         this.centerX = (startX + endX) / 2;
         this.centerY = (startY + endY) / 2;
@@ -55,5 +55,13 @@ public class MyEllipse extends MyShape {
         double newEndY = 2 * centerY - getStartY();
         setStartY(Math.min(newStartY, newEndY));
         setEndY(Math.max(newStartY, newEndY));
+    }
+
+    public double getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
     }
 }

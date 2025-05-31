@@ -28,6 +28,7 @@ public class ReverseLineAdapter implements ReverseShapeAdapter {
                 fxLine.getStartY() / height,
                 fxLine.getEndX() / width,
                 fxLine.getEndY() / height,
+                fxLine.getRotate(),
                 convertToModelColor((Color) fxLine.getStroke())
         );
 
