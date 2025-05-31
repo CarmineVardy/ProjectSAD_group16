@@ -33,4 +33,6 @@ public interface InteractionCallback {
 
     void onSelectionMenuOpened(double x, double y);
 
+
+    void onRotateShape(Shape selectedJavaFxShape, double oldAngle, double newAngle);
 }
