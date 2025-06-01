@@ -25,6 +25,7 @@ public class SelectionToolStrategyTest {
     private MyShape shape1;
     private MyShape shape2;
     private SelectionToolStrategy strategy;
+    Pane drawingPane = mock(Pane.class);
 
     @BeforeEach
     void setUp() {
@@ -47,7 +48,7 @@ public class SelectionToolStrategyTest {
         drawingArea.getChildren().add(rect);
 
         // Applica il decoratore per abilitare le maniglie di ridimensionamento
-        SelectionDecorator decorator = new SelectionDecorator(rect);
+        SelectionDecorator decorator = new SelectionDecorator(rect,drawingPane);
         drawingArea.getChildren().addAll(decorator.getResizeHandles()); // garantisce che le maniglie possano essere visualizzate
         decorator.applyDecoration();
 
@@ -75,7 +76,7 @@ public class SelectionToolStrategyTest {
         Rectangle rect = new Rectangle(100, 100, 50, 50);
         Pane pane = new Pane(rect);
 
-        SelectionDecorator decorator = new SelectionDecorator(rect);
+        SelectionDecorator decorator = new SelectionDecorator(rect,drawingPane);
         decorator.applyDecoration();
 
         rect.setWidth(100);

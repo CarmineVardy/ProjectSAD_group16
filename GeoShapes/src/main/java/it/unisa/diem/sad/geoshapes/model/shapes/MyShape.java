@@ -1,6 +1,8 @@
 package it.unisa.diem.sad.geoshapes.model.shapes;
 
 import it.unisa.diem.sad.geoshapes.model.MyColor;
+import javafx.geometry.Point2D;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -113,4 +115,21 @@ public abstract class MyShape implements Serializable, Cloneable {
 
 
     public abstract void setRotation(double rotation);
+
+    protected Point2D rotatePoint(Point2D point, Point2D center, double angleDegrees) {
+        double angleRadians = Math.toRadians(angleDegrees);
+        double cos = Math.cos(angleRadians);
+        double sin = Math.sin(angleRadians);
+
+        // Trasla il punto al centro
+        double translatedX = point.getX() - center.getX();
+        double translatedY = point.getY() - center.getY();
+
+        // Ruota
+        double rotatedX = translatedX * cos - translatedY * sin;
+        double rotatedY = translatedX * sin + translatedY * cos;
+
+        // Ritrasla
+        return new Point2D(rotatedX + center.getX(), rotatedY + center.getY());
+    }
 }

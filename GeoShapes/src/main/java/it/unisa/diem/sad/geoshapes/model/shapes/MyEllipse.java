@@ -41,21 +41,56 @@ public class MyEllipse extends MyShape {
 
     @Override
     public void flipHorizontal() {
-        double centerX = (getStartX() + getEndX()) / 2;
-        double newStartX = 2 * centerX - getEndX();
-        double newEndX = 2 * centerX - getStartX();
-        setStartX(Math.min(newStartX, newEndX));
-        setEndX(Math.max(newStartX, newEndX));
+        System.out.println("ELLIPSE FLIP HORIZONTAL - Before: startX=" + startX + ", endX=" + endX + ", rotation=" + rotation);
+
+        // Calcola il centro dell'ellisse
+        double centerX = (startX + endX) / 2.0;
+        double centerY = (startY + endY) / 2.0;
+
+        // Riflette le coordinate rispetto al centro orizzontale
+        double newStartX = 2 * centerX - startX;
+        double newEndX = 2 * centerX - endX;
+
+        this.startX = newStartX;
+        this.endX = newEndX;
+
+        // Gestisce la rotazione: per l'ellisse il flip orizzontale inverte l'angolo
+        if (Math.abs(rotation) > 1e-6) {
+            this.rotation = -rotation;
+            // Normalizza l'angolo tra -180 e 180
+            while (this.rotation > 180.0) this.rotation -= 360.0;
+            while (this.rotation < -180.0) this.rotation += 360.0;
+        }
+
+        System.out.println("ELLIPSE FLIP HORIZONTAL - After: startX=" + startX + ", endX=" + endX + ", rotation=" + rotation);
     }
 
     @Override
     public void flipVertical() {
-        double centerY = (getStartY() + getEndY()) / 2;
-        double newStartY = 2 * centerY - getEndY();
-        double newEndY = 2 * centerY - getStartY();
-        setStartY(Math.min(newStartY, newEndY));
-        setEndY(Math.max(newStartY, newEndY));
+        System.out.println("ELLIPSE FLIP VERTICAL - Before: startY=" + startY + ", endY=" + endY + ", rotation=" + rotation);
+
+        // Calcola il centro dell'ellisse
+        double centerX = (startX + endX) / 2.0;
+        double centerY = (startY + endY) / 2.0;
+
+        // Riflette le coordinate rispetto al centro verticale
+        double newStartY = 2 * centerY - startY;
+        double newEndY = 2 * centerY - endY;
+
+        this.startY = newStartY;
+        this.endY = newEndY;
+
+        // Gestisce la rotazione: per l'ellisse il flip verticale modifica l'angolo
+        if (Math.abs(rotation) > 1e-6) {
+            this.rotation = 180.0 - rotation;
+            // Normalizza l'angolo tra -180 e 180
+            while (this.rotation > 180.0) this.rotation -= 360.0;
+            while (this.rotation < -180.0) this.rotation += 360.0;
+        }
+
+        System.out.println("ELLIPSE FLIP VERTICAL - After: startY=" + startY + ", endY=" + endY + ", rotation=" + rotation);
     }
+
 
     public double getRotation() {
         return rotation;
