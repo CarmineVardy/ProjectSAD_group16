@@ -30,6 +30,7 @@
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
+<?import javafx.scene.control.TextField?>
 <BorderPane prefHeight="610.0" prefWidth="810.0" stylesheets="@../../../../../../styles/style.css" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.diem.sad.geoshapes.controller.MainController">
     <top>
         <VBox fillWidth="true">
@@ -67,6 +68,16 @@
                             <Button fx:id="flipHButton" text="Flip H" onAction="#onFlipHorizontal"/>
                             <Button fx:id="flipVButton" text="Flip V" onAction="#onFlipVertical"/>
                         </ToolBar>
+                        <ToggleButton fx:id="textToolButton"
+                                      mnemonicParsing="false"
+                                      styleClass="tool-button"
+                                      toggleGroup="$toolToggleGroup"
+                                      onAction="#handleTextTool">
+                            <graphic>
+                                <FontIcon iconLiteral="mdi-format-text" iconSize="16" />
+                            </graphic>
+                            <minWidth>50</minWidth>
+                        </ToggleButton>
                         <Button fx:id="undoButton" mnemonicParsing="false" onAction="#handleUndo" styleClass="tool-button">
                             <graphic>
                                 <FontIcon iconLiteral="fas-undo-alt" iconSize="10" />

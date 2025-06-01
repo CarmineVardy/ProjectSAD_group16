@@ -1,15 +1,10 @@
 package it.unisa.diem.sad.geoshapes.adapter;
 
-import it.unisa.diem.sad.geoshapes.adapter.forward.EllipseAdapter;
-import it.unisa.diem.sad.geoshapes.adapter.forward.LineAdapter;
-import it.unisa.diem.sad.geoshapes.adapter.forward.RectangleAdapter;
-import it.unisa.diem.sad.geoshapes.adapter.forward.ShapeAdapter;
+import it.unisa.diem.sad.geoshapes.adapter.forward.*;
 import it.unisa.diem.sad.geoshapes.model.shapes.*;
 import it.unisa.diem.sad.geoshapes.adapter.reverse.*;
-import javafx.scene.shape.Shape;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Ellipse;
+import javafx.scene.text.Text;
+import javafx.scene.shape.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +25,7 @@ public class AdapterFactory {
         adapters.put(MyLine.class, LineAdapter.getInstance());
         adapters.put(MyRectangle.class, RectangleAdapter.getInstance());
         adapters.put(MyEllipse.class, EllipseAdapter.getInstance());
+        adapters.put(MyText.class, TextAdapter.getInstance());
         return adapters;
     }
 
@@ -39,6 +35,7 @@ public class AdapterFactory {
         adapters.put(Line.class, ReverseLineAdapter.getInstance());
         adapters.put(Rectangle.class, ReverseRectangleAdapter.getInstance());
         adapters.put(Ellipse.class, ReverseEllipseAdapter.getInstance());
+        adapters.put(Text.class, ReverseTextAdapter.getInstance());
         return adapters;
     }
 

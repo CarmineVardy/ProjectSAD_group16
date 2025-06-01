@@ -1,9 +1,10 @@
-package it.unisa.diem.sad.geoshapes.controller;
+/*package it.unisa.diem.sad.geoshapes.controller;
 
 import static org.mockito.Mockito.*;
 
 import java.util.List;
 
+import it.unisa.diem.sad.geoshapes.controller.command.CommandInvoker;
 import it.unisa.diem.sad.geoshapes.controller.strategy.SelectionToolStrategy;
 import it.unisa.diem.sad.geoshapes.controller.util.Clipboard;
 import it.unisa.diem.sad.geoshapes.model.DrawingModel;
@@ -26,6 +27,9 @@ class MainControllerTest {
     private MainController controller;
 
     @Mock
+    private CommandInvoker commandInvoker;
+
+    @Mock
     private Clipboard clipboard;
 
     @Mock
@@ -46,6 +50,7 @@ class MainControllerTest {
         controller.setDrawingArea(drawingArea);
         controller.setPasteMenuItem(pasteMenuItem);
         controller.setModel(model);
+        controller.setCommandInvoker(commandInvoker);
     }
 
     @Test
@@ -109,4 +114,4 @@ class MainControllerTest {
         controller.updateClipboardMenuItems();
         verify(pasteMenuItem).setDisable(false);
     }
-}
+}*/

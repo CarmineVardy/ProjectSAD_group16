@@ -16,6 +16,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.geometry.Point2D;
+import javafx.scene.text.Text;
+import it.unisa.diem.sad.geoshapes.model.shapes.MyText;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -546,6 +548,8 @@ public class SelectionToolStrategy implements ToolStrategy {
             applyDimensionsToEllipse(fxEllipse, calc);
         } else if (fxShape instanceof Line fxLine) {
             applyDimensionsToLine(fxLine, calc);
+        } else if (fxShape instanceof Text fxText) {
+            applyDimensionsToText(fxText, calc);
         }
     }
 
@@ -611,6 +615,23 @@ public class SelectionToolStrategy implements ToolStrategy {
 
     public void setModel(DrawingModel model) {
         this.model = model;
+    }
+
+    private void applyDimensionsToText(Text fxText, ResizeCalculations calc) {
+        // Ricava modello associato
+        MyShape modelShape = shapeMapping.getModelShape(fxText);
+        if (modelShape instanceof MyText myText) {
+            double initialFontSize = myText.getFontSize();
+            double scaleY = calc.newHeight / initialShapeBounds.getHeight();
+            double newFontSize = initialFontSize * scaleY;
+            newFontSize = Math.max(6, Math.min(200, newFontSize)); // Limiti ragionevoli
+            myText.setFontSize(newFontSize);
+            fxText.setFont(javafx.scene.text.Font.font(myText.getFontFamily(),
+                    myText.isBold() ? javafx.scene.text.FontWeight.BOLD : javafx.scene.text.FontWeight.NORMAL,
+                    myText.isItalic() ? javafx.scene.text.FontPosture.ITALIC : javafx.scene.text.FontPosture.REGULAR,
+                    newFontSize
+            ));
+        }
     }
 
 }

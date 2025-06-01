@@ -9,8 +9,10 @@ import it.unisa.diem.sad.geoshapes.controller.util.UIUtils;
 import it.unisa.diem.sad.geoshapes.model.DrawingModel;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import it.unisa.diem.sad.geoshapes.controller.util.GridSettings;
+import it.unisa.diem.sad.geoshapes.model.shapes.MyText;
 import it.unisa.diem.sad.geoshapes.observer.ShapeObserver;
 import it.unisa.diem.sad.geoshapes.persistence.PersistenceService;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -24,10 +26,12 @@ import javafx.scene.control.*;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
@@ -121,6 +125,8 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private Label shapeManagerTitle;
     @FXML
     private ListView<String> shapesListView;
+    @FXML
+    private ToggleButton textToolButton;
 
     private Rectangle clipRect;
 
@@ -161,6 +167,8 @@ public class MainController implements ShapeObserver, InteractionCallback {
     private ToolStrategy toolStrategy;
     private DrawingModel drawingModel;
 
+    private Pane drawingPane;
+
     @FXML
     public void initialize() {
         initializeCoreComponents();
@@ -194,10 +202,11 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     private void initializeToolStrategies() {
         toolStrategies = new HashMap<>();
-        toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea,zoomGroup,shapeMapping, this));
-        toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, this,zoomGroup));
-        toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, this,zoomGroup));
-        toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, this,zoomGroup));
+        toolStrategies.put(selectionButton, new SelectionToolStrategy(drawingArea, zoomGroup, shapeMapping, this));
+        toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, this, zoomGroup));
+        toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, this, zoomGroup));
+        toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, this, zoomGroup));
+        toolStrategies.put(textToolButton, new TextToolStrategy(drawingArea, this));
     }
 
     private void configureDrawingArea() {
@@ -217,6 +226,10 @@ public class MainController implements ShapeObserver, InteractionCallback {
         setupZoomListerners();
         setupGridListeners();
         scrollPane.addEventFilter(ContextMenuEvent.CONTEXT_MENU_REQUESTED, Event::consume);
+        drawingArea.setOnMousePressed(this::handleMousePressed);
+        drawingArea.setOnMouseDragged(this::handleMouseDragged);
+        drawingArea.setOnMouseReleased(this::handleMouseReleased);
+        drawingArea.setOnMouseMoved(this::handleMouseMoved);
     }
 
     private void setupToolToggleListener() {
@@ -449,6 +462,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     @FXML
     private void handleMousePressed(MouseEvent event) {
+        System.out.println("▶ Click sul canvas - strategia attuale: " + currentStrategy);
         if (currentStrategy != null) {
             if (!(currentStrategy instanceof SelectionToolStrategy))
                 scrollPane.setPannable(false);
@@ -751,4 +765,44 @@ public class MainController implements ShapeObserver, InteractionCallback {
     public void setToolStrategy(ToolStrategy toolStrategy) {
         this.toolStrategy = toolStrategy;
     }
+
+    @FXML
+    private void handleTextTool(ActionEvent event) {
+        if (textToolButton.isSelected()) {
+            System.out.println("✔ TextTool attivato");
+            if (currentStrategy != null) currentStrategy.reset();
+            currentStrategy = toolStrategies.get(textToolButton);
+            currentStrategy.activate(borderColorPicker.getValue(), fillColorPicker.getValue());
+            setToolStrategy(currentStrategy);
+        } else {
+            System.out.println("❌ TextTool disattivato");
+            currentStrategy = null;
+        }
+    }
+
+    public void setDrawingPane(Pane pane) {
+        this.drawingPane = pane;
+    }
+
+    @Override
+    public void onMoveText(Text textFx, double newNormX, double newNormY) {
+        Object ud = textFx.getUserData();
+        if (!(ud instanceof MyText)) {
+            System.out.println("⚠ onMoveText: UserData non è MyText");
+            return;
+        }
+
+        MyText model = (MyText) ud;
+        double oldX = model.getStartX();  // legge la vecchia X normalizzata
+        double oldY = model.getStartY();  // legge la vecchia Y normalizzata
+
+        // 1) Creo ed eseguo il comando
+        MoveTextCommand cmd = new MoveTextCommand(model, oldX, oldY, newNormX, newNormY);
+        commandInvoker.executeCommand(cmd);
+
+        // 2) Aggiorno subito la vista (in pixel) sulla base delle nuove normalizzate:
+        textFx.setX(newNormX * drawingPane.getWidth());
+        textFx.setY(newNormY * drawingPane.getHeight());
+    }
+
 }

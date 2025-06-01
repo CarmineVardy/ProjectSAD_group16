@@ -33,4 +33,5 @@ public interface InteractionCallback {
 
     void onSelectionMenuOpened(double x, double y);
 
+    void onMoveText(javafx.scene.text.Text text, double newNormX, double newNormY);
 }

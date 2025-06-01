@@ -5,6 +5,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.*;
+import javafx.scene.text.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -124,7 +125,7 @@ public class SelectionDecorator implements ShapeDecorator {
         String shapeCategory;
         if (shape instanceof Line) {
             shapeCategory = "LINE";
-        } else if (shape instanceof Rectangle || shape instanceof Ellipse) {
+        } else if (shape instanceof Rectangle || shape instanceof Ellipse || shape instanceof Text) {
             shapeCategory = "RECT_ELLIPSE";
         } else {
             shapeCategory = "OTHER";

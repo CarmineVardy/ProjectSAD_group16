@@ -68,7 +68,7 @@ public class EllipseToolStrategy implements ToolStrategy {
         Point2D localPoint = getTransformedCoordinates(event,drawingPane);
         startX = localPoint.getX();
         startY = localPoint.getY();
-        endX = startX; // Inizializza endX e endY con le stesse coordinate di start
+        endX = startX; // Inizializza endX ed endY con le stesse coordinate di start
         endY = startY;
 
         Ellipse ellipse = new Ellipse(startX, startY, 0, 0);
