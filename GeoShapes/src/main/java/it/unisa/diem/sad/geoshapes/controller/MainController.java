@@ -733,25 +733,25 @@ public class MainController implements ShapeObserver, InteractionCallback {
     }
 
     @FXML
-    private void onFlipHorizontal() {
-        List<MyShape> selectedShapes = getSelectedShapes();
-        System.out.println("Figure selezionate: " + selectedShapes.size());
-
-        for (MyShape shape : selectedShapes) {
-            shape.flipHorizontal(); // Metodo da implementare
+    private void onFlipHorizontal()  {
+        if (currentStrategy.getClass() == SelectionToolStrategy.class) {
+            List<MyShape> selectedShapes = currentStrategy.getSelectedShapes();
+            FlipHShapeCommand command = new FlipHShapeCommand(model,selectedShapes);
+            commandInvoker.executeCommand(command);
         }
-
-        model.notifyObservers();
     }
 
     @FXML
     private void onFlipVertical() {
-        List<MyShape> selectedShapes = getSelectedShapes();
-        for (MyShape shape : selectedShapes) {
-            shape.flipVertical();
+        if (currentStrategy.getClass() == SelectionToolStrategy.class) {
+            List<MyShape> selectedShapes = currentStrategy.getSelectedShapes();
+            FlipVShapeCommand command = new FlipVShapeCommand(model,selectedShapes);
+            commandInvoker.executeCommand(command);
         }
-        model.notifyObservers();
     }
+
+
+
 
     public void setDrawingModel(DrawingModel drawingModel) {
         this.drawingModel = drawingModel;

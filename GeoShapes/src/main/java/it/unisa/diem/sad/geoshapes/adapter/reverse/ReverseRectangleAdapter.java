@@ -21,7 +21,6 @@ public class ReverseRectangleAdapter implements ReverseShapeAdapter {
         if (!(fxShape instanceof Rectangle)) {
             throw new IllegalArgumentException("Expected Rectangle");
         }
-        System.out.println("\nREVERSE ADAPTER  ANGOLO  SHAPE nuovo:  " +fxShape.getRotate());
         Rectangle fxRectangle = (Rectangle) fxShape;
 
         // Converti da x, y, width, height a startX, startY, endX, endY

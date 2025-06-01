@@ -10,13 +10,7 @@ public class RotateShapeCommand implements Command {
     private final double oldAngle;
     private final double newAngle;
 
-    /**
-     * Costruttore per il comando di rotazione.
-     * @param model Il modello che contiene le forme
-     * @param shape La forma del modello da ruotare
-     * @param oldAngle L'angolo originale
-     * @param newAngle Il nuovo angolo di rotazione
-     */
+
     public RotateShapeCommand(DrawingModel model, MyShape shape, double oldAngle, double newAngle) {
         this.model = model;
         this.shape = shape;

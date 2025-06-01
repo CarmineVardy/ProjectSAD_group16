@@ -4,11 +4,13 @@ import it.unisa.diem.sad.geoshapes.model.MyColor;
 
 public class MyRectangle extends MyShape {
 
-    private double x, y, width, height,rotation;
+    // La rotazione è l'unica proprietà specifica di MyRectangle,
+    // dato che startX, startY, endX, endY sono in MyShape.
+    // Le proprietà x, y, width, height sono state rimosse perché ridondanti.
+    private double rotation;
 
-    public MyRectangle(double startX, double startY, double endX, double endY, double rotation,MyColor borderMyColor, MyColor fillMyColor) {
-        super(startX, startY, endX, endY, rotation,borderMyColor, fillMyColor);
-
+    public MyRectangle(double startX, double startY, double endX, double endY, double rotation, MyColor borderMyColor, MyColor fillMyColor) {
+        super(startX, startY, endX, endY, rotation, borderMyColor, fillMyColor);
         this.rotation = rotation;
     }
 
@@ -25,104 +27,57 @@ public class MyRectangle extends MyShape {
         setEndY(getEndY() + dy);
     }
 
-    public double getX() {
-        return x;
-    }
-
-    public void setX(double x) {
-        this.x = x;
-    }
-
-    public double getY() {
-        return y;
-    }
-
-    public void setY(double y) {
-        this.y = y;
-    }
-
-    public double getWidth() {
-        return width;
-    }
-
-    public void setWidth(double width) {
-        this.width = width;
-    }
-
-    public double getHeight() {
-        return height;
-    }
-
-    public void setHeight(double height) {
-        this.height = height;
-    }
-
-    //MIRRORING
     @Override
     public void flipHorizontal() {
-        // Per forme ruotate, dobbiamo:
-        // 1. Calcolare il centro della forma
-        double centerX = (startX + endX) / 2.0;
-        double centerY = (startY + endY) / 2.0;
+        // Calcola il centro della bounding box attuale (indipendentemente dalla rotazione)
+        double centerX = (getStartX() + getEndX()) / 2.0;
 
-        // 2. Calcolare la larghezza e altezza
-        double width = Math.abs(endX - startX);
-        double height = Math.abs(endY - startY);
+        // Rifletti le coordinate X rispetto al centro
+        double newStartX = centerX - (getEndX() - centerX); // Il nuovo startX è il vecchio endX riflesso
+        double newEndX = centerX - (getStartX() - centerX); // Il nuovo endX è il vecchio startX riflesso
 
-        // 3. Il flip orizzontale di una forma ruotata corrisponde a
-        //    cambiare il segno della rotazione e riflettere
+        // Imposta le nuove coordinate (normalizzando per mantenere startX <= endX)
+        setStartX(Math.min(newStartX, newEndX));
+        setEndX(Math.max(newStartX, newEndX));
+
+        // Inverti il segno della rotazione per riflettere l'orientamento
         this.rotation = -this.rotation;
-
-        // Mantieni le dimensioni ma inverti l'orientamento orizzontale
-        // Questo dipende da come interpreti il "flip" di una forma ruotata
+        // Normalizza l'angolo per mantenerlo in un intervallo ragionevole, ad es. tra -360 e 360
+        this.rotation = this.rotation % 360;
+        if (this.rotation > 180) {
+            this.rotation -= 360;
+        } else if (this.rotation <= -180) {
+            this.rotation += 360;
+        }
     }
 
     @Override
     public void flipVertical() {
-        // Simile al flip orizzontale ma per l'asse verticale
-        double centerX = (startX + endX) / 2.0;
-        double centerY = (startY + endY) / 2.0;
+        System.out.println("Rectangle FLIP VERTICAL - Before: startX=" + startX + ", endX=" + endX + ", rotation=" + rotation);
+        double centerY = (getStartY() + getEndY()) / 2.0;
 
-        // Per il flip verticale, modifica la rotazione di conseguenza
+        double newStartY = centerY - (getEndY() - centerY); // Il nuovo startY è il vecchio endY riflesso
+        double newEndY = centerY - (getStartY() - centerY); // Il nuovo endY è il vecchio startY riflesso
+
+        setStartY(Math.min(newStartY, newEndY));
+        setEndY(Math.max(newStartY, newEndY));
+
         this.rotation = 180 - this.rotation;
         if (this.rotation > 180.0) {
             this.rotation -= 360.0;
-        } else if (this.rotation < -180.0) {
+        } else if (this.rotation <= -180.0) {
             this.rotation += 360.0;
         }
     }
 
-    private void flipHorizontalWithRotation() {
-        // Per forme ruotate, dobbiamo:
-        // 1. Calcolare il centro della forma
-        double centerX = (startX + endX) / 2.0;
-        double centerY = (startY + endY) / 2.0;
 
-        // 2. Calcolare la larghezza e altezza
-        double width = Math.abs(endX - startX);
-        double height = Math.abs(endY - startY);
+    @Override
+    public MyShape clone() {
+        return new MyRectangle(getStartX(), getStartY(), getEndX(), getEndY(),
+                this.rotation, this.borderColor,this.fillColor);
 
-        // 3. Il flip orizzontale di una forma ruotata corrisponde a
-        //    cambiare il segno della rotazione e riflettere
-        this.rotation = -this.rotation;
-
-        // Mantieni le dimensioni ma inverti l'orientamento orizzontale
-        // Questo dipende da come interpreti il "flip" di una forma ruotata
     }
 
-    private void flipVerticalWithRotation() {
-        // Simile al flip orizzontale ma per l'asse verticale
-        double centerX = (startX + endX) / 2.0;
-        double centerY = (startY + endY) / 2.0;
-
-        // Per il flip verticale, modifica la rotazione di conseguenza
-        this.rotation = 180 - this.rotation;
-        if (this.rotation > 180.0) {
-            this.rotation -= 360.0;
-        } else if (this.rotation < -180.0) {
-            this.rotation += 360.0;
-        }
-    }
 
     public double getRotation() {
         return rotation;
@@ -131,5 +86,4 @@ public class MyRectangle extends MyShape {
     public void setRotation(double rotation) {
         this.rotation = rotation;
     }
-
 }

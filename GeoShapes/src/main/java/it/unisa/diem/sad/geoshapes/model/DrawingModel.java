@@ -122,6 +122,30 @@ public class DrawingModel implements ShapeSubject {
 
     }
 
+    public void flipHorizontal(List<MyShape> selectedShapes) {
+        if (selectedShapes == null || selectedShapes.isEmpty()) {
+            return;
+        }
+        for (MyShape shape : selectedShapes) {
+            if (shapes.contains(shape)) {
+                shape.flipHorizontal();
+            }
+        }
+        notifyObservers();
+    }
+    public void flipVertical(List<MyShape> selectedShapes) {
+        if (selectedShapes == null || selectedShapes.isEmpty()) {
+            return;
+        }
+        for (MyShape shape : selectedShapes) {
+            if (shapes.contains(shape)) {
+                shape.flipVertical();
+            }
+        }
+        notifyObservers();
+    }
+
+
     public List<MyShape> getShapes() {
         return new ArrayList<>(shapes);
     }
