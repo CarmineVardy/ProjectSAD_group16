@@ -20,7 +20,7 @@ public class SelectionDecorator implements ShapeDecorator {
     private double originalOpacity;
     private Paint originalFill;
     private Circle rotationHandle;
-    private static final double ROTATION_HANDLE_OFFSET = 30;
+    private static final double ROTATION_HANDLE_OFFSET = 15;
 
     private Pane drawingArea;
 
@@ -28,7 +28,6 @@ public class SelectionDecorator implements ShapeDecorator {
     private final List<Shape> selectionBorders;
     private static final double HANDLE_SIZE = 8;
 
-    // Flag per tenere traccia dello stato della decorazione (attiva/disattiva)
     private boolean isActive = false;
 
     public SelectionDecorator(Shape shape) {
@@ -39,7 +38,6 @@ public class SelectionDecorator implements ShapeDecorator {
 
     @Override
     public void applyDecoration() {
-        // Se la decorazione è già attiva, non fare nulla
         if (isActive) {
             return;
         }
@@ -64,7 +62,7 @@ public class SelectionDecorator implements ShapeDecorator {
         }
 
         createAndAddDecorations();
-        isActive = true; // Imposta lo stato su attivo
+        isActive = true;
     }
 
     private void storeOriginalProperties() {
@@ -78,12 +76,10 @@ public class SelectionDecorator implements ShapeDecorator {
 
     @Override
     public void removeDecoration() {
-        // Se la decorazione non è attiva, non fare nulla
         if (!isActive) {
             return;
         }
 
-        // Ripristina le proprietà originali solo se erano state modificate
         decoratedShape.setStroke(originalStrokeColor);
         decoratedShape.setStrokeWidth(originalStrokeWidth);
         decoratedShape.setStrokeType(originalStrokeType);
@@ -91,7 +87,7 @@ public class SelectionDecorator implements ShapeDecorator {
         decoratedShape.setOpacity(originalOpacity);
 
         removeDecorationsFromPane();
-        isActive = false; // Imposta lo stato su disattivo
+        isActive = false;
     }
 
     @Override
@@ -141,35 +137,10 @@ public class SelectionDecorator implements ShapeDecorator {
 
         decoratedShape.toFront();
 
-        if (!(decoratedShape instanceof Line)) {
-            Rectangle selectionRect = new Rectangle(shapeLocalX, shapeLocalY, shapeLocalWidth, shapeLocalHeight);
-            selectionRect.setStroke(Color.DODGERBLUE);
-            selectionRect.setStrokeWidth(2);
-            selectionRect.getStrokeDashArray().addAll(5.0, 5.0);
-            selectionRect.setFill(Color.TRANSPARENT);
-
-            selectionRect.setRotate(shapeRotateAngle);
-            selectionRect.setTranslateX(translateX);
-            selectionRect.setTranslateY(translateY);
-
-            selectionBorders.add(selectionRect);
-            drawingArea.getChildren().add(selectionRect);
-            selectionRect.toFront();
-        }
-
         double circleRadius = HANDLE_SIZE / 2;
 
-        Point2D rotationHandleLocalPos = new Point2D(shapeLocalCenterX, shapeLocalY - ROTATION_HANDLE_OFFSET);
-        Point2D finalRotationHandlePos = rotateTransform.transform(rotationHandleLocalPos);
-
-        rotationHandle = new Circle(finalRotationHandlePos.getX() + translateX, finalRotationHandlePos.getY() + translateY, circleRadius, Color.DARKORANGE);
-        rotationHandle.setStroke(Color.WHITE);
-        rotationHandle.setStrokeWidth(1);
-        rotationHandle.setUserData("ROTATION");
-        allHandles.add(rotationHandle);
-        drawingArea.getChildren().add(rotationHandle);
-
         if (decoratedShape instanceof Line fxLine) {
+            // Handle di ridimensionamento per la linea: alle estremità (start e end point)
             Point2D startPointLocal = new Point2D(fxLine.getStartX(), fxLine.getStartY());
             Point2D endPointLocal = new Point2D(fxLine.getEndX(), fxLine.getEndY());
 
@@ -194,7 +165,37 @@ public class SelectionDecorator implements ShapeDecorator {
             allHandles.add(handleEnd);
             drawingArea.getChildren().add(handleEnd);
 
+            // Per la Linea, NON si crea né il rettangolo di selezione né l'handle di rotazione.
+
         } else if (decoratedShape instanceof Rectangle || decoratedShape instanceof Ellipse) {
+            // Rettangolo di selezione per Rectangle e Ellipse
+            Rectangle selectionRect = new Rectangle(shapeLocalX, shapeLocalY, shapeLocalWidth, shapeLocalHeight);
+            selectionRect.setStroke(Color.DODGERBLUE);
+            selectionRect.setStrokeWidth(2);
+            selectionRect.getStrokeDashArray().addAll(5.0, 5.0);
+            selectionRect.setFill(Color.TRANSPARENT);
+
+            selectionRect.setRotate(shapeRotateAngle);
+            selectionRect.setTranslateX(translateX);
+            selectionRect.setTranslateY(translateY);
+
+            selectionBorders.add(selectionRect);
+            drawingArea.getChildren().add(selectionRect);
+            selectionRect.toFront();
+
+            // Handle di rotazione per Rectangle e Ellipse (basato sulla bounding box)
+            Point2D rotationHandleLocalPos = new Point2D(shapeLocalCenterX, shapeLocalY - ROTATION_HANDLE_OFFSET);
+            Point2D finalRotationHandlePos = rotateTransform.transform(rotationHandleLocalPos);
+
+            rotationHandle = new Circle(finalRotationHandlePos.getX() + translateX, finalRotationHandlePos.getY() + translateY, circleRadius, Color.DARKORANGE);
+            rotationHandle.setStroke(Color.WHITE);
+            rotationHandle.setStrokeWidth(1);
+            rotationHandle.setUserData("ROTATION");
+            allHandles.add(rotationHandle);
+            drawingArea.getChildren().add(rotationHandle);
+
+
+            // Handle di ridimensionamento per Rectangle e Ellipse (basato sulla bounding box)
             String[] handleTypes = {
                     "NORTH_WEST", "NORTH", "NORTH_EAST",
                     "WEST", "EAST",
@@ -229,43 +230,43 @@ public class SelectionDecorator implements ShapeDecorator {
             System.err.println("Unsupported shape type for resize handles: " + decoratedShape.getClass().getSimpleName());
         }
 
+        // Porta tutti gli handle (quelli che sono stati aggiunti) in primo piano
         for (Circle handle : allHandles) {
             handle.toFront();
+        }
+        // Se l'handle di rotazione è stato creato (per Rect/Ellipse), portalo in primo piano
+        if (rotationHandle != null) {
+            rotationHandle.toFront();
         }
     }
 
 
-
     public void deactivateDecoration() {
         if (!isActive) {
-            return; // Already deactivated
+            return;
         }
-        // Restore original properties (already done in removeDecoration, but good to be explicit if this were a standalone method)
         decoratedShape.setStroke(originalStrokeColor);
         decoratedShape.setStrokeWidth(originalStrokeWidth);
         decoratedShape.setStrokeType(originalStrokeType);
         decoratedShape.setFill(originalFill);
         decoratedShape.setOpacity(originalOpacity);
 
-        // Remove the visual elements
         removeDecorationsFromPane();
-        isActive = false; // Mark as deactivated
+        isActive = false;
     }
 
 
     public void activateDecoration() {
         if (isActive) {
-            return; // Already active
+            return;
         }
 
-        // Re-check parent in case it changed since last deactivation
         if (decoratedShape.getParent() instanceof Pane) {
             this.drawingArea = (Pane) decoratedShape.getParent();
         } else {
             System.err.println("Cannot activate decoration: The decorated shape is not currently part of a Pane.");
             return;
         }
-
 
         decoratedShape.setStroke(Color.GREEN);
         decoratedShape.setStrokeWidth(originalStrokeWidth + 0.5);
@@ -278,8 +279,9 @@ public class SelectionDecorator implements ShapeDecorator {
             }
         }
 
-        // Recreate and add the visual elements
         createAndAddDecorations();
-        isActive = true; // Mark as active
+        isActive = true;
     }
+
+
 }

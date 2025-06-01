@@ -724,13 +724,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
     }
 
     //MIRRORING
-    private List<MyShape> getSelectedShapes() {
-        System.out.println("Tool attivo: " + toolStrategy.getClass().getSimpleName());
-        if (toolStrategy instanceof SelectionToolStrategy selectionStrategy) {
-            return selectionStrategy.getSelectedShapes();
-        }
-        return Collections.emptyList();
-    }
+
 
     @FXML
     private void onFlipHorizontal()  {

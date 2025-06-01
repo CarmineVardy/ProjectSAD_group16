@@ -15,12 +15,12 @@ public class FlipVShapeCommand implements Command {
 
     @Override
     public void execute() {
+
         model.flipVertical(shapes);
     }
 
     @Override
     public void undo() {
-        // I flip sono operazioni che si annullano a vicenda
         execute();
     }
 }
