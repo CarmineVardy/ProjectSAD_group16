@@ -5,6 +5,8 @@ import javafx.geometry.Bounds;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 
+import java.util.List;
+
 public interface InteractionCallback {
 
     void onCreateShape(Shape shape);
@@ -13,7 +15,7 @@ public interface InteractionCallback {
 
     void onDeleteShape(Shape shape);
 
-    void onCopyShape(Shape shape);
+    void onCopyShape(List<Shape> shapes);
 
     void onCutShape(Shape shape);
 
@@ -33,6 +35,16 @@ public interface InteractionCallback {
 
     void onSelectionMenuOpened(double x, double y);
 
+    void onShapesSelected(List<Shape> selectedJavaShapes);
 
     void onRotateShape(Shape selectedJavaFxShape, double oldAngle, double newAngle);
+
+
+    void onCopyShapes(List<Shape> shapes);
+    void onCutShapes(List<Shape> shapes);
+    void onDeleteShapes(List<Shape> shapes);
+
+
+    void onModifyGroup(List<Shape> oldStates, List<Shape> newStates);
 }
+

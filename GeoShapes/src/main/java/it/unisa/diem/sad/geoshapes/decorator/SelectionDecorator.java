@@ -283,5 +283,4 @@ public class SelectionDecorator implements ShapeDecorator {
         isActive = true;
     }
 
-
 }
