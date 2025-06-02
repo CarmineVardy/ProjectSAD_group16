@@ -652,6 +652,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     @Override
     public void onModifyShape(Shape shape) {
+        System.out.println("\nModifico la forma conmtroller   ANGOLO:  " +shape.getRotate());
         Command modifyShapeCommand = new ModifyShapeCommand(model, shapeMapping.getModelShape(shape), shapeMapping.getModelShape(shape).clone(), adapterFactory.convertToModel(shape, drawingArea.getWidth(), drawingArea.getHeight()));
         commandInvoker.executeCommand(modifyShapeCommand);
     }
@@ -747,34 +748,28 @@ public class MainController implements ShapeObserver, InteractionCallback {
     }
 
     //MIRRORING
-    private List<MyShape> getSelectedShapes() {
-        System.out.println("Tool attivo: " + toolStrategy.getClass().getSimpleName());
-        if (toolStrategy instanceof SelectionToolStrategy selectionStrategy) {
-            return selectionStrategy.getSelectedShapes();
-        }
-        return Collections.emptyList();
-    }
+
 
     @FXML
-    private void onFlipHorizontal() {
-        List<MyShape> selectedShapes = getSelectedShapes();
-        System.out.println("Figure selezionate: " + selectedShapes.size());
-
-        for (MyShape shape : selectedShapes) {
-            shape.flipHorizontal(); // Metodo da implementare
+    private void onFlipHorizontal()  {
+        if (currentStrategy.getClass() == SelectionToolStrategy.class) {
+            List<MyShape> selectedShapes = currentStrategy.getSelectedShapes();
+            FlipHShapeCommand command = new FlipHShapeCommand(model,selectedShapes);
+            commandInvoker.executeCommand(command);
         }
-
-        model.notifyObservers();
     }
 
     @FXML
     private void onFlipVertical() {
-        List<MyShape> selectedShapes = getSelectedShapes();
-        for (MyShape shape : selectedShapes) {
-            shape.flipVertical();
+        if (currentStrategy.getClass() == SelectionToolStrategy.class) {
+            List<MyShape> selectedShapes = currentStrategy.getSelectedShapes();
+            FlipVShapeCommand command = new FlipVShapeCommand(model,selectedShapes);
+            commandInvoker.executeCommand(command);
         }
-        model.notifyObservers();
     }
+
+
+
 
     public void setDrawingModel(DrawingModel drawingModel) {
         this.drawingModel = drawingModel;

@@ -4,8 +4,8 @@ import it.unisa.diem.sad.geoshapes.model.MyColor;
 
 public class MyLine extends MyShape {
 
-    public MyLine(double startX, double startY, double endX, double endY, MyColor borderMyColor) {
-        super(startX, startY, endX, endY, borderMyColor, null);
+    public MyLine(double startX, double startY, double endX, double endY,double rotation, MyColor borderMyColor) {
+        super(startX, startY, endX, endY,rotation, borderMyColor, null);
     }
 
     @Override
@@ -34,6 +34,11 @@ public class MyLine extends MyShape {
     //MIRRORING
     @Override
     public void flipHorizontal() {
+        System.out.println("--- DEBUG: MyLine.flipHorizontal() ---");
+        System.out.println("BEFORE flipHorizontal:");
+        System.out.println("  startX: " + getStartX() + ", startY: " + getStartY());
+        System.out.println("  endX:   " + getEndX()   + ", endY:   " + getEndY());
+
         double centerX = (getStartX() + getEndX()) / 2.0;
 
         double newStartX = 2 * centerX - getStartX();
@@ -41,11 +46,14 @@ public class MyLine extends MyShape {
 
         setStartX(newStartX);
         setEndX(newEndX);
-        // Y invariato
+
+
     }
 
     @Override
     public void flipVertical() {
+
+
         double centerY = (getStartY() + getEndY()) / 2.0;
 
         double newStartY = 2 * centerY - getStartY();
@@ -53,6 +61,15 @@ public class MyLine extends MyShape {
 
         setStartY(newStartY);
         setEndY(newEndY);
-        // X invariato
+
+    }
+
+    public double getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
     }
 }
+
