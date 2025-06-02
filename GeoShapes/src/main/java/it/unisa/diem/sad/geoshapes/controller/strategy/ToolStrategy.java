@@ -14,7 +14,7 @@ import java.util.List;
 
 public interface ToolStrategy {
 
-    void activate(Color borderColor, Color fillColor);
+    void activate(Color borderColor, Color fillColor, int polygonVertices, boolean regularPolygon);
 
     void handleBorderColorChange(Color color);
 
@@ -42,6 +42,10 @@ public interface ToolStrategy {
 
     void handleDelete(Event event);
 
+    void handleChangePolygonVertices(int polygonVertices);
+
+    void handleRegularPolygon(boolean regularPolygon);
+
     void reset();
 
     List<MyShape> getSelectedShapes();
@@ -51,3 +55,5 @@ public interface ToolStrategy {
 return localPoint;
     };
 }
+
+

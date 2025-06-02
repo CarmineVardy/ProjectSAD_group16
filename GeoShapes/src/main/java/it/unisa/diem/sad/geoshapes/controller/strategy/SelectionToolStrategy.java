@@ -61,7 +61,7 @@ public class SelectionToolStrategy implements ToolStrategy {
     }
 
     @Override
-    public void activate(Color borderColor, Color fillColor) {
+    public void activate(Color borderColor, Color fillColor, int polygonVertices, boolean regularPolygon) {
         callback.onLineSelected(false);
     }
 
@@ -387,6 +387,16 @@ public class SelectionToolStrategy implements ToolStrategy {
         if (selectedJavaFxShape != null) {
             callback.onDeleteShape(selectedJavaFxShape);
         }
+    }
+
+    @Override
+    public void handleChangePolygonVertices(int polygonVertices) {
+
+    }
+
+    @Override
+    public void handleRegularPolygon(boolean regularPolygon) {
+
     }
 
     @Override

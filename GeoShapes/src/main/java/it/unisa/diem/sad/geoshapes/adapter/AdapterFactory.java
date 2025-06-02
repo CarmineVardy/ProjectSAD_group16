@@ -3,6 +3,7 @@ package it.unisa.diem.sad.geoshapes.adapter;
 import it.unisa.diem.sad.geoshapes.adapter.forward.EllipseAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.forward.LineAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.forward.RectangleAdapter;
+import it.unisa.diem.sad.geoshapes.adapter.forward.PolygonAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.forward.ShapeAdapter;
 import it.unisa.diem.sad.geoshapes.model.shapes.*;
 import it.unisa.diem.sad.geoshapes.adapter.reverse.*;
@@ -10,13 +11,12 @@ import javafx.scene.shape.Shape;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Ellipse;
+import javafx.scene.shape.Polygon;
 import java.util.HashMap;
 import java.util.Map;
 
 public class AdapterFactory {
-
     private final Map<Class<? extends MyShape>, ShapeAdapter> forwardAdapters;
-
     private final Map<Class<? extends Shape>, ReverseShapeAdapter> reverseAdapters;
 
     public AdapterFactory() {
@@ -26,19 +26,19 @@ public class AdapterFactory {
 
     private Map<Class<? extends MyShape>, ShapeAdapter> initializeForwardAdapters() {
         Map<Class<? extends MyShape>, ShapeAdapter> adapters = new HashMap<>();
-        // Usa i singleton invece di creare nuove istanze
         adapters.put(MyLine.class, LineAdapter.getInstance());
         adapters.put(MyRectangle.class, RectangleAdapter.getInstance());
         adapters.put(MyEllipse.class, EllipseAdapter.getInstance());
+        adapters.put(MyPolygon.class, PolygonAdapter.getInstance());
         return adapters;
     }
 
     private Map<Class<? extends Shape>, ReverseShapeAdapter> initializeReverseAdapters() {
         Map<Class<? extends Shape>, ReverseShapeAdapter> adapters = new HashMap<>();
-        // Usa i singleton invece di creare nuove istanze
         adapters.put(Line.class, ReverseLineAdapter.getInstance());
         adapters.put(Rectangle.class, ReverseRectangleAdapter.getInstance());
         adapters.put(Ellipse.class, ReverseEllipseAdapter.getInstance());
+        adapters.put(Polygon.class, ReversePolygonAdapter.getInstance());
         return adapters;
     }
 
@@ -55,22 +55,21 @@ public class AdapterFactory {
         Shape fxShape = adapter.getFxShape(modelShape, width, height);
         fxShape.setRotate(modelShape.getRotation());
         return fxShape;
-
     }
 
     public MyShape convertToModel(Shape fxShape, double width, double height) {
         if (fxShape == null) {
             return null;
         }
+
         ReverseShapeAdapter adapter = reverseAdapters.get(fxShape.getClass());
         if (adapter == null) {
             throw new IllegalArgumentException("No reverse adapter found for JavaFX shape type: " + fxShape.getClass().getSimpleName());
         }
+
         MyShape modelShape = adapter.getModelShape(fxShape, width, height);
-        // Copia la rotazione dalla forma JavaFX al modello
         modelShape.setRotation(fxShape.getRotate());
         return modelShape;
-
     }
 
     public MyShape cloneWithOffset(MyShape original, double offsetX, double offsetY) {
@@ -78,10 +77,8 @@ public class AdapterFactory {
             return null;
         }
 
-        // Clona la forma originale
         MyShape cloned = original.clone();
 
-        // Applica l'offset alle coordinate normalizzate
         cloned.setStartX(cloned.getStartX() + offsetX);
         cloned.setStartY(cloned.getStartY() + offsetY);
         cloned.setEndX(cloned.getEndX() + offsetX);
@@ -90,6 +87,4 @@ public class AdapterFactory {
 
         return cloned;
     }
-
-
 }

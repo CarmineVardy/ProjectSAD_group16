@@ -37,7 +37,7 @@ public class LineToolStrategy implements ToolStrategy {
     }
 
     @Override
-    public void activate(Color borderColor, Color fillColor) {
+    public void activate(Color borderColor, Color fillColor, int polygonVertices, boolean regularPolygon) {
         this.borderColor = borderColor;
         callback.onLineSelected(true);
     }
@@ -126,6 +126,16 @@ public class LineToolStrategy implements ToolStrategy {
 
     @Override
     public void handleDelete(Event event) {
+    }
+
+    @Override
+    public void handleChangePolygonVertices(int polygonVertices) {
+
+    }
+
+    @Override
+    public void handleRegularPolygon(boolean regularPolygon) {
+
     }
 
     @Override

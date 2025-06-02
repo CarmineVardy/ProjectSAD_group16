@@ -39,7 +39,7 @@ public class RectangleToolStrategy implements ToolStrategy {
     }
 
     @Override
-    public void activate(Color borderColor, Color fillColor) {
+    public void activate(Color borderColor, Color fillColor, int polygonVertices, boolean regularPolygon) {
         this.borderColor = borderColor;
         this.fillColor = fillColor;
         callback.onLineSelected(false);
@@ -151,6 +151,16 @@ public class RectangleToolStrategy implements ToolStrategy {
 
     @Override
     public void handleDelete(Event event) {
+    }
+
+    @Override
+    public void handleChangePolygonVertices(int polygonVertices) {
+
+    }
+
+    @Override
+    public void handleRegularPolygon(boolean regularPolygon) {
+
     }
 
     @Override

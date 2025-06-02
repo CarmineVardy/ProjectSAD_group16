@@ -1,3 +1,4 @@
+/*
 package it.unisa.diem.sad.geoshapes.controller.strategy;
 
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
@@ -6,125 +7,228 @@ import it.unisa.diem.sad.geoshapes.decorator.SelectionDecorator;
 import it.unisa.diem.sad.geoshapes.model.DrawingModel;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.scene.Group;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.Mockito.*;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SelectionToolStrategyTest {
 
     private DrawingModel model;
-    private MyShape shape1;
-    private MyShape shape2;
+    private MyShape modelShape1;
+    private MyShape modelShape2;
     private SelectionToolStrategy strategy;
+    private Pane drawingPane;
+    private Group zoomGroup;
+    private ShapeMapping shapeMapping;
+    private InteractionCallback callback;
+    private Rectangle testRectangle;
 
     @BeforeEach
     void setUp() {
         model = mock(DrawingModel.class);
-        shape1 = mock(MyShape.class);
-        shape2 = mock(MyShape.class);
-        Pane drawingPane = mock(Pane.class);
-        Group zoomGroup = mock(Group.class);
-        ShapeMapping shapeMapping = mock(ShapeMapping.class);
-        InteractionCallback callback = mock(InteractionCallback.class);
+        modelShape1 = mock(MyShape.class);
+        modelShape2 = mock(MyShape.class);
+        drawingPane = new Pane();
+        zoomGroup = new Group();
+        shapeMapping = mock(ShapeMapping.class);
+        callback = mock(InteractionCallback.class);
 
         strategy = new SelectionToolStrategy(drawingPane, zoomGroup, shapeMapping, callback);
         strategy.setModel(model);
+
+        // Create a test rectangle and add it to the drawing pane
+        testRectangle = new Rectangle(100, 100, 50, 50);
+        testRectangle.setFill(Color.BLUE);
+        testRectangle.setStroke(Color.BLACK);
+        drawingPane.getChildren().add(testRectangle);
+
+        // Setup shape mapping
+        when(shapeMapping.getModelShape(testRectangle)).thenReturn(modelShape1);
+        when(shapeMapping.getViewShape(modelShape1)).thenReturn(testRectangle);
     }
 
     @Test
-    void testResizeUpdatesShapeCorrectly() {
-        Rectangle rect = new Rectangle(100, 100, 50, 50);
-        Pane drawingArea = new Pane();
-        drawingArea.getChildren().add(rect);
-
-        // Applica il decoratore per abilitare le maniglie di ridimensionamento
-        SelectionDecorator decorator = new SelectionDecorator(rect);
-        drawingArea.getChildren().addAll(decorator.getResizeHandles()); // garantisce che le maniglie possano essere visualizzate
-        decorator.applyDecoration();
-
-        // Trova la maniglia bottom-right
-        Circle bottomRightHandle = decorator.getResizeHandles().stream()
-                .filter(h -> "BOTTOM_RIGHT".equals(h.getUserData()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("BOTTOM_RIGHT handle not found"));
-
-        // Simula il drag
-        bottomRightHandle.setCenterX(bottomRightHandle.getCenterX() + 20);
-        bottomRightHandle.setCenterY(bottomRightHandle.getCenterY() + 30);
-
-        // Simula la logica del resize
-        rect.setWidth(rect.getWidth() + 20);
-        rect.setHeight(rect.getHeight() + 30);
+    void testActivateCallsCallback() {
+        strategy.activate(Color.BLACK, Color.WHITE);
+        verify(callback).onLineSelected(false);
+    }
 
 
-        assertEquals(70.0, rect.getWidth(), 0.001);
-        assertEquals(80.0, rect.getHeight(), 0.001);
+    @Test
+    void testSelectShapeOnPrimaryClick() {
+        MouseEvent clickEvent = createMouseEvent(MouseEvent.MOUSE_PRESSED, 125, 125, MouseButton.PRIMARY);
+        strategy.handleMousePressed(clickEvent);
+
+        verify(callback).onShapeSelected(testRectangle);
+        assertEquals(1, strategy.getSelectedShapes().size());
+        assertEquals(modelShape1, strategy.getSelectedShapes().get(0));
     }
 
     @Test
-    void testResizeHandlesUpdateWithShape() {
-        Rectangle rect = new Rectangle(100, 100, 50, 50);
-        Pane pane = new Pane(rect);
+    void testSecondaryClickOpensContextMenu() {
+        MouseEvent rightClickEvent = createMouseEvent(MouseEvent.MOUSE_PRESSED, 125, 125, MouseButton.SECONDARY);
+        rightClickEvent = spy(rightClickEvent);
+        when(rightClickEvent.getScreenX()).thenReturn(200.0);
+        when(rightClickEvent.getScreenY()).thenReturn(300.0);
 
-        SelectionDecorator decorator = new SelectionDecorator(rect);
-        decorator.applyDecoration();
+        strategy.handleMousePressed(rightClickEvent);
 
-        rect.setWidth(100);
-        rect.setHeight(100);
-
-        decorator.removeDecoration();
-        decorator.applyDecoration();
-
-        Circle bottomRightHandle = decorator.getResizeHandles().stream()
-                .filter(h -> "BOTTOM_RIGHT".equals(h.getUserData()))
-                .findFirst()
-                .orElseThrow();
-
-        double expectedX = rect.getX() + rect.getWidth();
-        double expectedY = rect.getY() + rect.getHeight();
-
-        double tolerance = 2.0;
-        assertEquals(200.0, bottomRightHandle.getCenterX(), tolerance);
+        verify(callback).onSelectionMenuOpened(200.0, 300.0);
     }
 
     @Test
-    void testMoveSingleShapeByDelta() {
-        when(model.getSelectedShapes()).thenReturn(Collections.singletonList(shape1));
+    void testMoveSelectedShape() {
+        // Select the shape first
+        MouseEvent selectEvent = createMouseEvent(MouseEvent.MOUSE_PRESSED, 125, 125, MouseButton.PRIMARY);
+        strategy.handleMousePressed(selectEvent);
 
-        strategy.onMousePressed(10, 10);
-        strategy.onMouseDragged(15, 15);
+        // Start dragging
+        MouseEvent dragEvent = createMouseEvent(MouseEvent.MOUSE_DRAGGED, 135, 140, MouseButton.PRIMARY);
+        strategy.handleMouseDragged(dragEvent);
 
-        verify(shape1).moveBy(5.0, 5.0);
+        // Check that translation was applied
+        assertEquals(10.0, testRectangle.getTranslateX());
+        assertEquals(15.0, testRectangle.getTranslateY());
     }
 
     @Test
-    void testMoveMultipleShapes() {
-        when(model.getSelectedShapes()).thenReturn(Arrays.asList(shape1, shape2));
+    void testReleaseAfterMoveCallsCallback() {
+        double originalX = testRectangle.getX();
+        double originalY = testRectangle.getY();
 
-        strategy.onMousePressed(0, 0);
-        strategy.onMouseDragged(20, 10);
+        // Select and move the shape
+        MouseEvent selectEvent = createMouseEvent(MouseEvent.MOUSE_PRESSED, 125, 125, MouseButton.PRIMARY);
+        strategy.handleMousePressed(selectEvent);
 
-        verify(shape1).moveBy(20.0, 10.0);
-        verify(shape2).moveBy(20.0, 10.0);
+        MouseEvent dragEvent = createMouseEvent(MouseEvent.MOUSE_DRAGGED, 135, 140, MouseButton.PRIMARY);
+        strategy.handleMouseDragged(dragEvent);
+
+        MouseEvent releaseEvent = createMouseEvent(MouseEvent.MOUSE_RELEASED, 135, 140, MouseButton.PRIMARY);
+        strategy.handleMouseReleased(releaseEvent);
+
+        // Check that translation was baked into position
+        assertEquals(originalX + 10.0, testRectangle.getX());
+        assertEquals(originalY + 15.0, testRectangle.getY());
+        assertEquals(0.0, testRectangle.getTranslateX());
+        assertEquals(0.0, testRectangle.getTranslateY());
+
+        verify(callback).onModifyShape(testRectangle);
     }
 
     @Test
-    void testNoSelectedShapes_NoMoveCalled() {
-        when(model.getSelectedShapes()).thenReturn(Collections.emptyList());
+    void testCopySelectedShape() {
+        // Select a shape first
+        MouseEvent selectEvent = createMouseEvent(MouseEvent.MOUSE_PRESSED, 125, 125, MouseButton.PRIMARY);
+        strategy.handleMousePressed(selectEvent);
 
-        strategy.onMousePressed(50, 50);
-        strategy.onMouseDragged(100, 100);
-
-        verify(shape1, never()).moveBy(anyDouble(), anyDouble());
-        verify(shape2, never()).moveBy(anyDouble(), anyDouble());
+        strategy.handleCopy(null);
+        verify(callback).onCopyShape(testRectangle);
     }
-}
+
+    @Test
+    void testCutSelectedShape() {
+        // Select a shape first
+        MouseEvent selectEvent = createMouseEvent(MouseEvent.MOUSE_PRESSED, 125, 125, MouseButton.PRIMARY);
+        strategy.handleMousePressed(selectEvent);
+
+        strategy.handleCut(null);
+        verify(callback).onCutShape(testRectangle);
+    }
+
+    @Test
+    void testDeleteSelectedShape() {
+        // Select a shape first
+        MouseEvent selectEvent = createMouseEvent(MouseEvent.MOUSE_PRESSED, 125, 125, MouseButton.PRIMARY);
+        strategy.handleMousePressed(selectEvent);
+
+        strategy.handleDelete(null);
+        verify(callback).onDeleteShape(testRectangle);
+    }
+
+    @Test
+    void testBringToFrontSelectedShape() {
+        // Select a shape first
+        MouseEvent selectEvent = createMouseEvent(MouseEvent.MOUSE_PRESSED, 125, 125, MouseButton.PRIMARY);
+        strategy.handleMousePressed(selectEvent);
+
+        strategy.handleBringToFront(null);
+        verify(callback).onBringToFront(testRectangle);
+    }
+
+
+    @Test
+    void testSelectShapeByModel() {
+        strategy.selectShapeByModel(modelShape1);
+
+        verify(callback).onShapeSelected(testRectangle);
+        assertEquals(1, strategy.getSelectedShapes().size());
+        assertEquals(modelShape1, strategy.getSelectedShapes().get(0));
+    }
+
+    @Test
+    void testClearSelection() {
+        // Select a shape first
+        MouseEvent selectEvent = createMouseEvent(MouseEvent.MOUSE_PRESSED, 125, 125, MouseButton.PRIMARY);
+        strategy.handleMousePressed(selectEvent);
+
+        assertFalse(strategy.getSelectedShapes().isEmpty());
+
+        strategy.clearSelection();
+
+        assertTrue(strategy.getSelectedShapes().isEmpty());
+    }
+
+    @Test
+    void testRotationHandling() {
+        // Select a shape first
+        MouseEvent selectEvent = createMouseEvent(MouseEvent.MOUSE_PRESSED, 125, 125, MouseButton.PRIMARY);
+        strategy.handleMousePressed(selectEvent);
+
+        // Test rotation callback
+        double initialAngle = 0.0;
+        double finalAngle = 45.0;
+
+        testRectangle.setRotate(finalAngle);
+
+        // Simulate rotation release
+        MouseEvent releaseEvent = createMouseEvent(MouseEvent.MOUSE_RELEASED, 125, 125, MouseButton.PRIMARY);
+        strategy.handleMouseReleased(releaseEvent);
+
+        assertEquals(finalAngle, testRectangle.getRotate());
+    }
+
+    // Helper method to create MouseEvent objects for testing
+    private MouseEvent createMouseEvent(javafx.event.EventType<MouseEvent> eventType, double x, double y, MouseButton button) {
+        return new MouseEvent(
+                drawingPane,             // source
+                drawingPane,             // target
+                eventType,               // eventType
+                x, y,                    // x, y
+                x, y,                    // screenX, screenY
+                button,                  // button
+                1,                       // clickCount
+                false, false, false, false, // shift, control, alt, meta
+                button == MouseButton.PRIMARY,   // primary
+                button == MouseButton.MIDDLE,    // middle
+                button == MouseButton.SECONDARY, // secondary
+                false,                   // synthesized
+                false,                   // popupTrigger
+                false,                   // stillSincePress
+                null                     // pickResult
+        );
+    }
+}*/

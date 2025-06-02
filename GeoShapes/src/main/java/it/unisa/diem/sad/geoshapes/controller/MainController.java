@@ -72,6 +72,12 @@ public class MainController implements ShapeObserver, InteractionCallback {
     @FXML
     private ToggleButton ellipseButton;
     @FXML
+    private ToggleButton polygonButton;
+    @FXML
+    private ComboBox<Integer> polygonVertices;
+    @FXML
+    private CheckBox regularPolygon;
+    @FXML
     private ColorPicker borderColorPicker;
     @FXML
     private ColorPicker fillColorPicker;
@@ -160,6 +166,11 @@ public class MainController implements ShapeObserver, InteractionCallback {
     //MIRRORING
     private ToolStrategy toolStrategy;
     private DrawingModel drawingModel;
+    @FXML
+    private Button flipVButton;
+    @FXML
+    private Button flipHButton;
+
 
     @FXML
     public void initialize() {
@@ -198,6 +209,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
         toolStrategies.put(lineButton, new LineToolStrategy(drawingArea, this,zoomGroup));
         toolStrategies.put(rectangleButton, new RectangleToolStrategy(drawingArea, this,zoomGroup));
         toolStrategies.put(ellipseButton, new EllipseToolStrategy(drawingArea, this,zoomGroup));
+        toolStrategies.put(polygonButton, new PolygonToolStrategy(drawingArea, this,zoomGroup));
     }
 
     private void configureDrawingArea() {
@@ -217,6 +229,14 @@ public class MainController implements ShapeObserver, InteractionCallback {
         setupZoomListerners();
         setupGridListeners();
         scrollPane.addEventFilter(ContextMenuEvent.CONTEXT_MENU_REQUESTED, Event::consume);
+
+        polygonVertices.valueProperty().addListener((obs, oldVal, newVal) -> {
+            currentStrategy.handleChangePolygonVertices(newVal.byteValue());
+        });
+
+        regularPolygon.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            currentStrategy.handleRegularPolygon(newVal);
+        });
     }
 
     private void setupToolToggleListener() {
@@ -230,8 +250,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 currentStrategy.reset();
             }
             currentStrategy = toolStrategies.get(selectedToggle);
-            currentStrategy.activate(borderColorPicker.getValue(), fillColorPicker.getValue());
-            setToolStrategy(currentStrategy);
+            currentStrategy.activate(borderColorPicker.getValue(), fillColorPicker.getValue(), polygonVertices.getValue().intValue(), regularPolygon.isSelected());
         });
     }
 
@@ -288,6 +307,11 @@ public class MainController implements ShapeObserver, InteractionCallback {
         // Aggiorna l'etichetta dello zoom per mostrare il valore iniziale
         zoomPercentageLabel.setText(String.format("%.0f%%", zoomSlider.getValue() * 100));
 
+        if (polygonVertices.getItems().isEmpty()) {
+            polygonVertices.getItems().addAll(3, 4, 5, 6, 7, 8);
+        }
+        polygonVertices.setValue(3); // Default
+        regularPolygon.setSelected(false);
     }
 
     private void configureBind() {
@@ -756,7 +780,4 @@ public class MainController implements ShapeObserver, InteractionCallback {
         this.drawingModel = drawingModel;
     }
 
-    public void setToolStrategy(ToolStrategy toolStrategy) {
-        this.toolStrategy = toolStrategy;
-    }
 }
