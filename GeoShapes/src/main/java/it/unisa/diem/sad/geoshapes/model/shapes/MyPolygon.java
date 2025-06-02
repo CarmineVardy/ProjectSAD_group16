@@ -10,10 +10,10 @@ public class MyPolygon extends MyShape {
     private List<Double> yPoints;
     private int nPoints;
 
-    public MyPolygon(List<Double> xPoints, List<Double> yPoints, MyColor borderColor, MyColor fillColor) {
+    public MyPolygon(List<Double> xPoints, List<Double> yPoints, double rotation, MyColor borderColor, MyColor fillColor) {
         super(calculateMinX(xPoints), calculateMinY(yPoints),
                 calculateMaxX(xPoints), calculateMaxY(yPoints),
-                borderColor, fillColor);
+                rotation, borderColor, fillColor);
 
         if (xPoints.size() != yPoints.size()) {
             throw new IllegalArgumentException("xPoints and yPoints must have the same size");
@@ -29,8 +29,8 @@ public class MyPolygon extends MyShape {
 
     // Costruttore alternativo che prende le coordinate normalizzate e calcola i punti
     public MyPolygon(double startX, double startY, double endX, double endY,
-                     int nPoints, MyColor borderColor, MyColor fillColor) {
-        super(startX, startY, endX, endY, borderColor, fillColor);
+                     int nPoints, double rotation, MyColor borderColor, MyColor fillColor) {
+        super(startX, startY, endX, endY, rotation, borderColor, fillColor);
 
         if (nPoints < 3 || nPoints > 8) {
             throw new IllegalArgumentException("Polygon must have between 3 and 8 vertices");
@@ -129,6 +129,7 @@ public class MyPolygon extends MyShape {
     public void flipHorizontal() {
         double centerX = (getStartX() + getEndX()) / 2.0;
 
+        // Rifletti tutti i punti del poligono rispetto al centro X
         for (int i = 0; i < xPoints.size(); i++) {
             double newX = 2 * centerX - xPoints.get(i);
             xPoints.set(i, newX);
@@ -139,12 +140,23 @@ public class MyPolygon extends MyShape {
         double newEndX = 2 * centerX - getStartX();
         setStartX(Math.min(newStartX, newEndX));
         setEndX(Math.max(newStartX, newEndX));
+
+        // Inverti il segno della rotazione per riflettere l'orientamento
+        this.rotation = -this.rotation;
+        // Normalizza l'angolo per mantenerlo in un intervallo ragionevole
+        this.rotation = this.rotation % 360;
+        if (this.rotation > 180) {
+            this.rotation -= 360;
+        } else if (this.rotation <= -180) {
+            this.rotation += 360;
+        }
     }
 
     @Override
     public void flipVertical() {
         double centerY = (getStartY() + getEndY()) / 2.0;
 
+        // Rifletti tutti i punti del poligono rispetto al centro Y
         for (int i = 0; i < yPoints.size(); i++) {
             double newY = 2 * centerY - yPoints.get(i);
             yPoints.set(i, newY);
@@ -155,6 +167,24 @@ public class MyPolygon extends MyShape {
         double newEndY = 2 * centerY - getStartY();
         setStartY(Math.min(newStartY, newEndY));
         setEndY(Math.max(newStartY, newEndY));
+
+        // Applica la stessa logica di rotazione del rettangolo
+        this.rotation = 180 - this.rotation;
+        if (this.rotation > 180.0) {
+            this.rotation -= 360.0;
+        } else if (this.rotation <= -180.0) {
+            this.rotation += 360.0;
+        }
+    }
+
+    @Override
+    public double getRotation() {
+        return rotation;
+    }
+
+    @Override
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
     }
 
     @Override

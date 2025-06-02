@@ -42,6 +42,7 @@ public class ReversePolygonAdapter implements ReverseShapeAdapter {
         MyPolygon modelPolygon = new MyPolygon(
                 xPoints,
                 yPoints,
+                fxPolygon.getRotate(),
                 convertToModelColor((Color) fxPolygon.getStroke()),
                 convertToModelColor((Color) fxPolygon.getFill())
         );
