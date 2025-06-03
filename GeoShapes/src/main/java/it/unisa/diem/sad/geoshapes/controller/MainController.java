@@ -542,9 +542,13 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     @Override
     public void update() {
+        System.out.println("--- MC.update() START ---");
+        System.out.println("  ShapeMapping size BEFORE clear/rebuild: " + shapeMapping.size()); // Vediamo lo stato prima di pulire
+
+        // Salva le forme del modello che erano selezionate PRIMA dell'aggiornamento
+        List<MyShape> previouslySelectedModelShapes = currentStrategy.getSelectedShapes(); // Assicurati che getSelectedShapes restituisca i MyShape
 
         drawingArea.getChildren().clear();
-
         drawingArea.getChildren().add(0, gridRenderer.getGridCanvas());
 
         List<MyShape> modelShapes = model.getShapes();
@@ -557,17 +561,32 @@ public class MainController implements ShapeObserver, InteractionCallback {
         }
 
         shapeMapping.rebuildMapping(modelShapes, newViewShapes);
+        System.out.println("--- DEBUG MAPPING REBUILT IN MC.update() ---");
+        System.out.println("  ShapeMapping size AFTER rebuild: " + shapeMapping.size());
+        System.out.println("  New Mapped FX Shapes identities:");
+        for (Shape mappedFxShape : shapeMapping.getViewShapes()) {
+            System.out.println("    - New Mapped: " + mappedFxShape.getClass().getSimpleName() + " (ID: " + mappedFxShape.getId() + ") @" + System.identityHashCode(mappedFxShape));
+        }
+        System.out.println("---------------------------------------------");
 
         updateShapesListView();
 
-        currentStrategy.reset();
+        currentStrategy.reset(); // Resetta lo stato dello strumento di selezione (deseleziona graficamente tutto)
+        // DEBUG: Vediamo lo stato di selectedJavaFxShapes DOPO reset() / clearSelection()
+        System.out.println("DEBUG: SelectionToolStrategy state after reset() in MC.update():");
+        // Non puoi accedere direttamente selectedJavaFxShapes qui, ma i log dentro clearSelection() dovrebbero mostrarlo.
 
-        System.out.println("Forme nel modello: " + modelShapes.size());
-        System.out.println("Forme nel mapping: " + shapeMapping.size());
-        System.out.println("Forme nella view: " + drawingArea.getChildren().size());
-        model.printAllShapes();
+        for (MyShape modelShape : previouslySelectedModelShapes) {
+            Shape newJavafxShape = shapeMapping.getViewShape(modelShape); // Trova la nuova istanza JavaFX
+            if (newJavafxShape != null) {
+                System.out.println("DEBUG: Re-selecting model shape: " + modelShape.getName() + " @" + System.identityHashCode(modelShape) + " to new FX Shape: " + newJavafxShape.getClass().getSimpleName() + " (ID: " + newJavafxShape.getId() + ") @" + System.identityHashCode(newJavafxShape));
+            } else {
+                System.err.println("WARNING: Previously selected model shape " + modelShape.getName() + " @" + System.identityHashCode(modelShape) + " NOT FOUND in new mapping!");
+            }
+        }
+        // ... (resto del metodo)
+        System.out.println("--- MC.update() END ---");
     }
-
     private void updateShapesListView() {
         ObservableList<String> shapeNames = FXCollections.observableArrayList();
         model.getShapesReversed().forEach(shape -> shapeNames.add(shape.getName()));
@@ -607,6 +626,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     }
 
+
     @Override
     public void onShapeDeselected() {
         hasShapeSelected.set(false);
@@ -627,10 +647,32 @@ public class MainController implements ShapeObserver, InteractionCallback {
     }
 
     @Override
-    public void onModifyShape(Shape shape) {
-        System.out.println("\nModifico la forma conmtroller   ANGOLO:  " +shape.getRotate());
-        Command modifyShapeCommand = new ModifyShapeCommand(model, shapeMapping.getModelShape(shape), shapeMapping.getModelShape(shape).clone(), adapterFactory.convertToModel(shape, drawingArea.getWidth(), drawingArea.getHeight()));
-        commandInvoker.executeCommand(modifyShapeCommand);
+    public void onModifyShape(Shape fxShape) {
+        System.out.println("--- MC.onModifyShape START ---");
+        System.out.println("  FX Shape received: " + fxShape.getClass().getSimpleName() + " (ID: " + fxShape.getId() + ") @" + System.identityHashCode(fxShape));
+        System.out.println("  Current shapeMapping size: " + shapeMapping.size());
+        // Aggiungi un loop per stampare le identità delle FX Shape attualmente mappate
+        System.out.println("  Mapped FX Shapes identities:");
+        for (Shape mappedFxShape : shapeMapping.getViewShapes()) {
+            System.out.println("    - Mapped: " + mappedFxShape.getClass().getSimpleName() + " (ID: " + mappedFxShape.getId() + ") @" + System.identityHashCode(mappedFxShape));
+        }
+
+        MyShape oldModelShape = shapeMapping.getModelShape(fxShape);
+        if (oldModelShape == null) {
+            System.err.println("ERROR: Shape not mapped in onModifyShape for: " + fxShape.getClass().getSimpleName() + " (ID: " + fxShape.getId() + ") @" + System.identityHashCode(fxShape));
+            throw new IllegalStateException("Shape not mapped: " + fxShape);
+        }
+    }
+    @Override
+    public void onModifyShapes(List<Shape> shape) {
+        for (Shape s : shape) {
+            MyShape modelShape = shapeMapping.getModelShape(s);
+            if (modelShape == null) {
+                throw new IllegalStateException("Shape not mapped: " + shape);
+            }
+            Command modifyShapeCommand = new ModifyShapeCommand(model, shapeMapping.getModelShape(s), shapeMapping.getModelShape(s).clone(), adapterFactory.convertToModel(s, drawingArea.getWidth(), drawingArea.getHeight()));
+            commandInvoker.executeCommand(modifyShapeCommand);
+        }
     }
 
     @Override

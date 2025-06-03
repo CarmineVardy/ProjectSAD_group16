@@ -12,10 +12,11 @@ public interface InteractionCallback {
     void onCreateShape(Shape shape);
 
     void onModifyShape(Shape shape);
+    void onModifyShapes(List<Shape> shape);
 
     void onDeleteShape(Shape shape);
 
-    void onCopyShape(List<Shape> shapes);
+    void onCopyShape(Shape shape);
 
     void onCutShape(Shape shape);
 
@@ -35,16 +36,6 @@ public interface InteractionCallback {
 
     void onSelectionMenuOpened(double x, double y);
 
-    void onShapesSelected(List<Shape> selectedJavaShapes);
 
     void onRotateShape(Shape selectedJavaFxShape, double oldAngle, double newAngle);
-
-
-    void onCopyShapes(List<Shape> shapes);
-    void onCutShapes(List<Shape> shapes);
-    void onDeleteShapes(List<Shape> shapes);
-
-
-    void onModifyGroup(List<Shape> oldStates, List<Shape> newStates);
 }
-

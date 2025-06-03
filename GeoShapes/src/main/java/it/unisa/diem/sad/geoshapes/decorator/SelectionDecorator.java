@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SelectionDecorator implements ShapeDecorator {
-
+    private boolean decorated = false;
     private final Shape decoratedShape;
     private Color originalStrokeColor;
     private double originalStrokeWidth;
@@ -21,12 +21,15 @@ public class SelectionDecorator implements ShapeDecorator {
     private Paint originalFill;
     private Circle rotationHandle;
     private static final double ROTATION_HANDLE_OFFSET = 15;
-
     private Pane drawingArea;
 
     private final List<Circle> allHandles;
     private final List<Shape> selectionBorders;
     private static final double HANDLE_SIZE = 8;
+
+
+
+
 
     private boolean isActive = false;
 
@@ -41,6 +44,10 @@ public class SelectionDecorator implements ShapeDecorator {
         if (isActive) {
             return;
         }
+
+
+        if (decorated) return;
+        decorated = true;
 
         if (decoratedShape.getParent() instanceof Pane) {
             this.drawingArea = (Pane) decoratedShape.getParent();
@@ -67,7 +74,6 @@ public class SelectionDecorator implements ShapeDecorator {
 
     private void storeOriginalProperties() {
         originalStrokeColor = (Color) decoratedShape.getStroke();
-        System.out.println("\nCOLOR ORIGINAL" + originalStrokeColor.toString());
         originalStrokeWidth = decoratedShape.getStrokeWidth();
         originalStrokeType = decoratedShape.getStrokeType();
         originalOpacity = decoratedShape.getOpacity();
@@ -174,7 +180,6 @@ public class SelectionDecorator implements ShapeDecorator {
             selectionRect.setStrokeWidth(2);
             selectionRect.getStrokeDashArray().addAll(5.0, 5.0);
             selectionRect.setFill(Color.TRANSPARENT);
-
             selectionRect.setRotate(shapeRotateAngle);
             selectionRect.setTranslateX(translateX);
             selectionRect.setTranslateY(translateY);
@@ -282,5 +287,6 @@ public class SelectionDecorator implements ShapeDecorator {
         createAndAddDecorations();
         isActive = true;
     }
+
 
 }

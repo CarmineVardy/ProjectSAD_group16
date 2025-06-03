@@ -50,6 +50,8 @@ public class AdapterFactory {
         if (adapter == null) {
             throw new IllegalArgumentException("No adapter found for shape type: " + modelShape.getClass().getSimpleName());
         }
+
+
         return adapter.getFxShape(modelShape, width, height);
     }
 

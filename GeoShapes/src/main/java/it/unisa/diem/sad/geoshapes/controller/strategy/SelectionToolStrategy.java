@@ -8,9 +8,9 @@ import javafx.event.ActionEvent;
 import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
 import javafx.event.Event;
 import javafx.geometry.Bounds;
-import javafx.geometry.Point3D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -27,66 +27,30 @@ public class SelectionToolStrategy implements ToolStrategy {
 
     private final Pane drawingPane;
     private final ShapeMapping shapeMapping;
-
+    private SelectionDecorator currentDecorator;
+    private Shape selectedJavaFxShape;
     private InteractionCallback callback;
     private boolean isRotating;
     private double lastAngle;
+    private Shape currentShapeBeingRotated;
+    private final Map<Shape, SelectionDecorator> decorators = new HashMap<>();
 
-    //VARIABILI VECCHIE CHE NON USO
-    //private SelectionDecorator currentDecorator;
-    // private Shape selectedJavaFxShape;
-    //private Shape currentShape;
-    //private double initialTranslateX;
-    //private double initialTranslateY;
-    // private double initialLineStartX, initialLineStartY, initialLineEndX, initialLineEndY;
-    //private double lastX;
-    //private double lastY;
-    // private boolean isResizing;
-    // #################################################################
-
-
-    //VARIABILI NUOVE
-    private final Map<Shape, SelectionDecorator> activeDecorators = new HashMap<>();
-    // Per le operazioni di gruppo
-    private Bounds initialGroupBounds; // Bounding box iniziale del gruppo per ridimensionamento/rotazione
-    private Point2D initialMousePressForGroup; // Punto iniziale del click per trascinamento/ridimensionamento/rotazione del gruppo
-
-    // Mappe per memorizzare le proprietà iniziali di OGNI forma selezionata
-    private final Map<Shape, Double> initialShapeX = new HashMap<>();
-    private final Map<Shape, Double> initialShapeY = new HashMap<>();
-    private final Map<Shape, Double> initialShapeWidth = new HashMap<>(); // Per Rect/Ellipse
-    private final Map<Shape, Double> initialShapeHeight = new HashMap<>(); // Per Rect/Ellipse
-    private final Map<Shape, Double> initialShapeRotate = new HashMap<>(); // Per la rotazione
-
-    // Per le linee, memorizza start/end
-    private final Map<Line, Point2D> initialLineStart = new HashMap<>();
-    private final Map<Line, Point2D> initialLineEnd = new HashMap<>();
-
-    // Flag di stato per le operazioni di gruppo
-    private boolean isGroupMoving = false;
-    private boolean isGroupResizing = false;
-    private boolean isGroupRotating = false;
-
-    // Handle per il gruppo (se visibili, in questo caso solo per interazione, non per highlighting)
-    private Circle groupRotationHandle;
-    private final List<Circle> groupResizeHandles = new ArrayList<>(); // Inizializza come lista vuota
-
-    // Variabili per il ridimensionamento/rotazione individuale se si clicca sull'handle di una singola forma
-    private Shape currentShapeBeingTransformed; // La singola forma attualmente in trasformazione (ridimensionamento/rotazione)
-    private boolean isIndividualResizing = false;
-    private double lastXForIndividualResize; // Solo per il delta X/Y per resize individuale
-    private double lastYForIndividualResize; // Solo per il delta X/Y per resize individuale
-
+    private Shape primarySelectedShape;
     private boolean isMoving = false;
     private Point2D initialMousePress;
-
-
+    private final Map<Shape, Point2D> initialTranslations = new HashMap<>();
+    private final Map<Line, Point2D[]> initialLinePositions = new HashMap<>();
     private final List<MyShape> selectedModelShapes = new ArrayList<>();
     private final List<Shape> selectedJavaFxShapes = new ArrayList<>();
+
+    private double lastX;
+    private double lastY;
+
+
     private final Group zoomGroup;
     private ResizeHandleType activeHandleType = ResizeHandleType.NONE;
     private DrawingModel model;
-
+    private boolean isResizing;
 
     private enum ResizeHandleType {
         ROTATION,
@@ -107,7 +71,7 @@ public class SelectionToolStrategy implements ToolStrategy {
         callback.onLineSelected(false);
     }
 
-   /* @Override
+    @Override
     public void handleBorderColorChange(Color color) {
         if (selectedJavaFxShape != null) {
             if (currentDecorator != null) currentDecorator.removeDecoration();
@@ -127,27 +91,34 @@ public class SelectionToolStrategy implements ToolStrategy {
         }
     }
 
-
-    /*
     @Override
     public void handleMousePressed(MouseEvent event) {
         Point2D localPoint = getTransformedCoordinates(event, drawingPane);
         double x = localPoint.getX();
         double y = localPoint.getY();
 
+        // --- Gestione del Click Destro (Menu Contestuale) ---
         if (event.getButton() == MouseButton.SECONDARY) {
             Shape shapeAtPosition = findShapeAt(x, y);
-            if (shapeAtPosition != null && shapeAtPosition != selectedJavaFxShape) {
-                selectShape(shapeAtPosition);
+            if (shapeAtPosition != null && !selectedJavaFxShapes.contains(shapeAtPosition)) {
+                // Se clicco con il destro su una forma non selezionata, la seleziono
+                // Se Ctrl non è premuto, svuoto prima la selezione corrente
+                if (!event.isControlDown()) {
+                    clearSelection();
+                }
+                addShapeToSelection(shapeAtPosition); // Aggiungo la forma alla selezione
             }
-            callback.onSelectionMenuOpened(event.getScreenX(), event.getScreenY());
-            event.consume();
-            return;
+            callback.onSelectionMenuOpened(event.getScreenX(), event.getScreenY()); // Apre il menu contestuale
+            event.consume(); // Consuma l'evento per evitare propagazione indesiderata
+            return; // Esci dal metodo
         }
 
+        // --- Gestione del Click Primario (Sinistro) ---
         if (event.getButton() == MouseButton.PRIMARY) {
+
+            // 1. Controllo se clicco su un HANDLE (di qualsiasi forma selezionata)
             Circle handleAtPosition = findHandleAt(x, y);
-            if (handleAtPosition != null) {
+            if (handleAtPosition != null && !selectedJavaFxShapes.isEmpty()) { // Solo se ci sono forme selezionate
                 String handleTypeStr = (String) handleAtPosition.getUserData();
                 try {
                     activeHandleType = ResizeHandleType.valueOf(handleTypeStr);
@@ -157,46 +128,79 @@ public class SelectionToolStrategy implements ToolStrategy {
 
                 if (activeHandleType == ResizeHandleType.ROTATION) {
                     isRotating = true;
-                    this.currentShape = selectedJavaFxShape;
-                    lastAngle = calculateAngle(x, y, selectedJavaFxShape);
-                    isMoving = false;
+                    // Uso la forma primaria come riferimento per calcolare l'angolo di rotazione
+                    this.currentShapeBeingRotated = primarySelectedShape != null ? primarySelectedShape : selectedJavaFxShapes.get(0);
+                    lastAngle = calculateAngle(x, y, this.currentShapeBeingRotated);
+                    isMoving = false; // Non sto muovendo
                     drawingPane.setCursor(Cursor.CROSSHAIR);
                     event.consume();
-                    return;
-                } else if (activeHandleType != ResizeHandleType.NONE) {
-                    isMoving = false;
-                    isRotating = false;
-                    isResizing = true;
-                    lastX = x;
+                    return; // Esci
+                } else if (activeHandleType != ResizeHandleType.NONE) { // È un handle di ridimensionamento
+                    isMoving = false;    // Non sto muovendo
+                    isRotating = false;  // Non sto ruotando
+                    isResizing = true;   // Sto ridimensionando
+                    lastX = x;           // Salvo le coordinate iniziali per il resize
                     lastY = y;
                     event.consume();
-                    return;
+                    return; // Esci
                 }
             }
 
+            // 2. Controllo se clicco su una FORMA
             Shape shapeAtPosition = findShapeAt(x, y);
             if (shapeAtPosition != null) {
-                if (shapeAtPosition != selectedJavaFxShape) {
-                    selectShape(shapeAtPosition);
+                // Gestione selezione multipla con Ctrl
+                if (event.isControlDown()) {
+                    if (selectedJavaFxShapes.contains(shapeAtPosition)) {
+                        // Se la forma è già selezionata e premo Ctrl, la deseleziono
+                        removeShapeFromSelection(shapeAtPosition);
+                    } else {
+                        // Se la forma non è selezionata e premo Ctrl, la aggiungo alla selezione
+                        addShapeToSelection(shapeAtPosition);
+                    }
+                } else {
+                    // Selezione singola: se non è già selezionata, svuoto e seleziono solo questa
+                    if (!selectedJavaFxShapes.contains(shapeAtPosition)) {
+                        clearSelection(); // Svuoto la selezione precedente
+                        addShapeToSelection(shapeAtPosition); // Seleziono solo questa forma
+                    }
+                    // Imposto la forma cliccata come primaria (anche se era già selezionata)
+                    setPrimarySelectedShape(shapeAtPosition);
                 }
-                isMoving = true;
-                isRotating = false;
-                activeHandleType = ResizeHandleType.NONE;
-                initialMousePress = new Point2D(x, y);
-                initialTranslateX = selectedJavaFxShape.getTranslateX();
-                initialTranslateY = selectedJavaFxShape.getTranslateY();
-                if (selectedJavaFxShape instanceof Line line) {
-                    initialLineStartX = line.getStartX();
-                    initialLineStartY = line.getStartY();
-                    initialLineEndX = line.getEndX();
-                    initialLineEndY = line.getEndY();
+
+                // Preparo il movimento per TUTTE le forme selezionate, se ce ne sono
+                if (!selectedJavaFxShapes.isEmpty()) {
+                    isMoving = true;
+                    isRotating = false; // Assicurati che non si stia ruotando
+                    isResizing = false; // Assicurati che non si stia ridimensionando
+                    activeHandleType = ResizeHandleType.NONE; // Nessun handle attivo
+
+                    initialMousePress = new Point2D(x, y); // Punto di partenza del drag per il movimento
+
+                    // Salvo le posizioni iniziali di TUTTE le forme selezionate
+                    initialTranslations.clear();    // Pulisco le mappe
+                    initialLinePositions.clear();
+
+                    for (Shape shape : selectedJavaFxShapes) {
+                        initialTranslations.put(shape, new Point2D(shape.getTranslateX(), shape.getTranslateY()));
+                        if (shape instanceof Line line) {
+                            Point2D[] linePos = {
+                                    new Point2D(line.getStartX(), line.getStartY()),
+                                    new Point2D(line.getEndX(), line.getEndY())
+                            };
+                            initialLinePositions.put(line, linePos);
+                        }
+                    }
+                    drawingPane.setCursor(Cursor.MOVE); // Imposta il cursore di movimento
                 }
-                drawingPane.setCursor(Cursor.MOVE);
                 event.consume();
-                return;
+                return; // Esci
             }
 
-            reset();
+            // 3. Clicco su uno SPAZIO VUOTO
+            if (!event.isControlDown()) { // Se Ctrl non è premuto, deseleziona tutto
+                clearSelection();
+            }
             event.consume();
         }
     }
@@ -207,367 +211,257 @@ public class SelectionToolStrategy implements ToolStrategy {
         double x = localPoint.getX();
         double y = localPoint.getY();
 
-        if (selectedJavaFxShape == null) return;
+        // Se non ci sono forme selezionate, non fare nulla
+        if (selectedJavaFxShapes.isEmpty()) return;
 
-        if (isRotating && currentShape != null) {
-            double currentAngle = calculateAngle(x, y, currentShape);
+        // --- Gestione Rotazione (per tutte le forme selezionate) ---
+        // La rotazione si basa sulla forma primaria (o quella su cui è stato cliccato l'handle di rotazione)
+        if (isRotating && currentShapeBeingRotated != null) {
+            double currentAngle = calculateAngle(x, y, currentShapeBeingRotated);
             double deltaAngle = currentAngle - lastAngle;
-            if (currentDecorator != null) currentDecorator.removeDecoration();
-            currentShape.setRotate(currentShape.getRotate() + deltaAngle);
-            lastAngle = currentAngle;
-            if (currentDecorator != null) currentDecorator.applyDecoration();
+
+            // Applica la rotazione a TUTTE le forme selezionate
+            for (Shape shape : selectedJavaFxShapes) {
+                SelectionDecorator decorator = decorators.get(shape);
+                if (decorator != null) decorator.removeDecoration(); // Rimuovi temporaneamente il decoratore
+                shape.setRotate(shape.getRotate() + deltaAngle); // Applica la rotazione
+                if (decorator != null) decorator.applyDecoration(); // Riapplica il decoratore per aggiornare gli handle
+            }
+
+            lastAngle = currentAngle; // Aggiorna l'ultimo angolo per il prossimo drag
             event.consume();
-            return;
+            return; // Esci
         }
 
+        // --- Gestione Resize (per tutte le forme selezionate) ---
+        // Il resize si applica in base all'handle attivo
         if (isResizing && activeHandleType != ResizeHandleType.NONE && activeHandleType != ResizeHandleType.ROTATION) {
             double deltaX = x - lastX;
             double deltaY = y - lastY;
 
-            if (currentDecorator != null) currentDecorator.deactivateDecoration();
-
-            double minSize = 5;
-
-            if (selectedJavaFxShape instanceof Rectangle rect) {
-                double currentX = rect.getX();
-                double currentY = rect.getY();
-                double currentWidth = rect.getWidth();
-                double currentHeight = rect.getHeight();
-                double newX = currentX, newY = currentY, newWidth = currentWidth, newHeight = currentHeight;
-
-                switch (activeHandleType) {
-                    case NORTH_WEST:
-                        newX += deltaX;
-                        newY += deltaY;
-                        newWidth -= deltaX;
-                        newHeight -= deltaY;
-                        break;
-                    case NORTH_EAST:
-                        newY += deltaY;
-                        newWidth += deltaX;
-                        newHeight -= deltaY;
-                        break;
-                    case SOUTH_WEST:
-                        newX += deltaX;
-                        newWidth -= deltaX;
-                        newHeight += deltaY;
-                        break;
-                    case SOUTH_EAST:
-                        newWidth += deltaX;
-                        newHeight += deltaY;
-                        break;
-                    case NORTH:
-                        newY += deltaY;
-                        newHeight -= deltaY;
-                        break;
-                    case SOUTH:
-                        newHeight += deltaY;
-                        break;
-                    case EAST:
-                        newWidth += deltaX;
-                        break;
-                    case WEST:
-                        newX += deltaX;
-                        newWidth -= deltaX;
-                        break;
-                    default:
-                        break;
-                }
-
-                if (newWidth < minSize) {
-                    if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.SOUTH_WEST || activeHandleType == ResizeHandleType.WEST)
-                        newX += (newWidth - minSize);
-                    newWidth = minSize;
-                }
-                if (newHeight < minSize) {
-                    if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.NORTH_EAST || activeHandleType == ResizeHandleType.NORTH)
-                        newY += (newHeight - minSize);
-                    newHeight = minSize;
-                }
-                rect.setX(newX);
-                rect.setY(newY);
-                rect.setWidth(newWidth);
-                rect.setHeight(newHeight);
-
-            } else if (selectedJavaFxShape instanceof Ellipse ellipse) {
-                double currentCenterX = ellipse.getCenterX();
-                double currentCenterY = ellipse.getCenterY();
-                double currentRadiusX = ellipse.getRadiusX();
-                double currentRadiusY = ellipse.getRadiusY();
-                double newX = currentCenterX - currentRadiusX;
-                double newY = currentCenterY - currentRadiusY;
-                double newWidth = currentRadiusX * 2;
-                double newHeight = currentRadiusY * 2;
-
-                switch (activeHandleType) {
-                    case NORTH_WEST:
-                        newX += deltaX;
-                        newY += deltaY;
-                        newWidth -= deltaX;
-                        newHeight -= deltaY;
-                        break;
-                    case NORTH_EAST:
-                        newY += deltaY;
-                        newWidth += deltaX;
-                        newHeight -= deltaY;
-                        break;
-                    case SOUTH_WEST:
-                        newX += deltaX;
-                        newWidth -= deltaX;
-                        newHeight += deltaY;
-                        break;
-                    case SOUTH_EAST:
-                        newWidth += deltaX;
-                        newHeight += deltaY;
-                        break;
-                    case NORTH:
-                        newY += deltaY;
-                        newHeight -= deltaY;
-                        break;
-                    case SOUTH:
-                        newHeight += deltaY;
-                        break;
-                    case EAST:
-                        newWidth += deltaX;
-                        break;
-                    case WEST:
-                        newX += deltaX;
-                        newWidth -= deltaX;
-                        break;
-                    default:
-                        break;
-                }
-
-                if (newWidth < minSize) {
-                    if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.SOUTH_WEST || activeHandleType == ResizeHandleType.WEST)
-                        newX += (newWidth - minSize);
-                    newWidth = minSize;
-                }
-                if (newHeight < minSize) {
-                    if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.NORTH_EAST || activeHandleType == ResizeHandleType.NORTH)
-                        newY += (newHeight - minSize);
-                    newHeight = minSize;
-                }
-                ellipse.setCenterX(newX + newWidth / 2);
-                ellipse.setCenterY(newY + newHeight / 2);
-                ellipse.setRadiusX(newWidth / 2);
-                ellipse.setRadiusY(newHeight / 2);
-
-            } else if (selectedJavaFxShape instanceof Line line) {
-                switch (activeHandleType) {
-                    case NORTH_WEST:
-                        line.setStartX(line.getStartX() + deltaX);
-                        line.setStartY(line.getStartY() + deltaY);
-                        break;
-                    case NORTH_EAST:
-                        line.setEndX(line.getEndX() + deltaX);
-                        line.setStartY(line.getStartY() + deltaY);
-                        break;
-                    case SOUTH_WEST:
-                        line.setStartX(line.getStartX() + deltaX);
-                        line.setEndY(line.getEndY() + deltaY);
-                        break;
-                    case SOUTH_EAST:
-                        line.setEndX(line.getEndX() + deltaX);
-                        line.setEndY(line.getEndY() + deltaY);
-                        break;
-                    case NORTH:
-                        line.setStartY(line.getStartY() + deltaY);
-                        break;
-                    case SOUTH:
-                        line.setEndY(line.getEndY() + deltaY);
-                        break;
-                    case EAST:
-                        line.setEndX(line.getEndX() + deltaX);
-                        break;
-                    case WEST:
-                        line.setStartX(line.getStartX() + deltaX);
-                        break;
-                    default:
-                        break;
-                }
+            // Applica il resize a TUTTE le forme selezionate
+            for (Shape shape : selectedJavaFxShapes) {
+                SelectionDecorator decorator = decorators.get(shape);
+                if (decorator != null) decorator.deactivateDecoration(); // Disattiva il decoratore per non interferire con il resize
+                performResize(shape, deltaX, deltaY); // Chiama il metodo performResize (che aggiorneremo dopo)
+                if (decorator != null) decorator.activateDecoration(); // Riapplica il decoratore dopo il resize
             }
 
-            lastX = x;
+            lastX = x; // Aggiorna l'ultima posizione del mouse per il prossimo drag
             lastY = y;
-            if (currentDecorator != null) currentDecorator.applyDecoration();
             event.consume();
-            return;
+            return; // Esci
         }
 
-        if (isMoving) {
+        // --- Gestione Movimento (per tutte le forme selezionate) ---
+        if (isMoving && !selectedJavaFxShapes.isEmpty()) {
             double deltaX = x - initialMousePress.getX();
             double deltaY = y - initialMousePress.getY();
 
-            if (selectedJavaFxShape instanceof Line line) {
-                line.setStartX(initialLineStartX + deltaX);
-                line.setStartY(initialLineStartY + deltaY);
-                line.setEndX(initialLineEndX + deltaX);
-                line.setEndY(initialLineEndY + deltaY);
-            } else {
-                selectedJavaFxShape.setTranslateX(initialTranslateX + deltaX);
-                selectedJavaFxShape.setTranslateY(initialTranslateY + deltaY);
+            // Muovi TUTTE le forme selezionate
+            for (Shape shape : selectedJavaFxShapes) {
+                Point2D initialTranslation = initialTranslations.get(shape);
+                if (shape instanceof Line line) {
+                    Point2D[] initialPos = initialLinePositions.get(line);
+                    if (initialPos != null) {
+                        line.setStartX(initialPos[0].getX() + deltaX);
+                        line.setStartY(initialPos[0].getY() + deltaY);
+                        line.setEndX(initialPos[1].getX() + deltaX);
+                        line.setEndY(initialPos[1].getY() + deltaY);
+                    }
+                } else if (initialTranslation != null) {
+                    shape.setTranslateX(initialTranslation.getX() + deltaX);
+                    shape.setTranslateY(initialTranslation.getY() + deltaY);
+                }
             }
 
-            if (currentDecorator != null) {
-                currentDecorator.deactivateDecoration();
-                currentDecorator.activateDecoration();
+            // Aggiorna tutti i decoratori delle forme selezionate (li sposta insieme alle forme)
+            for (SelectionDecorator decorator : decorators.values()) {
+                decorator.deactivateDecoration(); // Disattiva per muovere
+                decorator.activateDecoration();   // Riapplica nella nuova posizione
             }
             event.consume();
         }
     }
 
+
     @Override
     public void handleMouseReleased(MouseEvent event) {
+        System.out.println("--- STS.handleMouseReleased START ---");
+        System.out.println("  Event source: " + event.getSource().getClass().getSimpleName() + " @" + System.identityHashCode(event.getSource()));
+        System.out.println("  SelectedJavaFxShapes size: " + selectedJavaFxShapes.size());
+        System.out.println("  Shapes in selectedJavaFxShapes before processing:");
+        for (Shape s : selectedJavaFxShapes) {
+            System.out.println("    - From list: " + s.getClass().getSimpleName() + " (ID: " + s.getId() + ") @" + System.identityHashCode(s));
+        }
         boolean wasMoving = isMoving;
         boolean wasRotating = isRotating;
         boolean wasResizing = isResizing;
 
+        // Reset degli stati di interazione
         isMoving = false;
         isRotating = false;
         isResizing = false;
-        ResizeHandleType previousActiveHandleType = activeHandleType; // Store before resetting
+        ResizeHandleType previousActiveHandleType = activeHandleType;
         activeHandleType = ResizeHandleType.NONE;
 
-
-        if (selectedJavaFxShape == null) {
+        if (selectedJavaFxShapes.isEmpty()) {
             handleMouseMoved(event);
             return;
         }
 
-        if (wasRotating || (wasResizing && previousActiveHandleType != ResizeHandleType.NONE && previousActiveHandleType != ResizeHandleType.ROTATION)) {
-            if (currentDecorator != null) currentDecorator.removeDecoration();
-            callback.onModifyShape(selectedJavaFxShape);
-            if (currentDecorator != null) currentDecorator.applyDecoration();
-        } else if (wasMoving) {
-            double dx = event.getX() - initialMousePress.getX(); // Use event.getX() relative to scene/source for consistency if localPoint transformation not needed here
-            double dy = event.getY() - initialMousePress.getY(); // Same as above
+        // --- CREA UNA COPIA DELLA LISTA PER EVITARE ConcurrentModificationException ---
+        // Questo è il CAMBIAMENTO FONDAMENTALE.
+        List<Shape> shapesToProcess = new ArrayList<>(selectedJavaFxShapes);
+        // Anche se la lista esterna non viene modificata, il tuo callback potrebbe
+        // rimuovere/riaggiungere forme dal DrawingPane o dal Mapping, causando problemi.
+        // Processare una copia è sempre più sicuro.
+
+        // --- Gestione Rotazione ---
+        if (wasRotating) {
+            for (Shape shape : shapesToProcess) { // <--- Ora itero sulla COPIA
+                SelectionDecorator decorator = decorators.get(shape);
+                if (decorator != null) decorator.removeDecoration();
+
+                callback.onModifyShape(shape); // Chiamo il callback
+
+                // Nota: Rimuovi e riapplica il decoratore dopo il callback.
+                // Se il callback rimuove e riaggiunge la JavaFX shape, il vecchio decoratore
+                // potrebbe essere "orfano". Se il decoratore gestisce la riapplicazione
+                // anche in caso di rimozione dal DrawingPane, puoi tenerlo.
+                // Se i decoratori non si riattivano correttamente dopo il callback,
+                // significa che la tua logica di "onModifyShape" ricrea/sostituisce la JavaFX Shape.
+                // In quel caso, il decoratore deve essere ricreato o la logica di callback rivista.
+                // Per ora, teniamo la rimozione/applicazione del decoratore qui.
+                if (decorator != null) decorator.applyDecoration();
+            }
+        }
+        // --- Gestione Resize ---
+        else if (wasResizing && previousActiveHandleType != ResizeHandleType.NONE) {
+            for (Shape shape : shapesToProcess) { // <--- Ora itero sulla COPIA
+                SelectionDecorator decorator = decorators.get(shape);
+                if (decorator != null) decorator.removeDecoration();
+
+                callback.onModifyShape(shape);
+
+                if (decorator != null) decorator.applyDecoration();
+            }
+        }
+        // --- Gestione Movimento ---
+        else if (wasMoving) {
+            Point2D localPoint = getTransformedCoordinates(event, drawingPane);
+            double dx = localPoint.getX() - initialMousePress.getX();
+            double dy = localPoint.getY() - initialMousePress.getY();
             boolean significantChange = (dx * dx + dy * dy) > 4;
 
             if (significantChange) {
-                bakeTranslation(selectedJavaFxShape);
-                if (currentDecorator != null) currentDecorator.removeDecoration();
-                callback.onModifyShape(selectedJavaFxShape);
-                // Re-apply decoration after baking and model update, which might involve re-creating decorator
-                if (this.selectedJavaFxShape != null) { // Ensure shape is still selected
-                    selectShape(this.selectedJavaFxShape); // This will re-apply decorator correctly
+                for (Shape shape : shapesToProcess) { // <--- Ora itero sulla COPIA
+                    bakeTranslation(shape);
+                    SelectionDecorator decorator = decorators.get(shape);
+                    if (decorator != null) decorator.removeDecoration();
+
+                    callback.onModifyShape(shape);
+
+                    if (decorator != null) decorator.applyDecoration();
                 }
             } else {
-                if (currentDecorator != null) {
-                    currentDecorator.deactivateDecoration();
-                    currentDecorator.activateDecoration();
+                // Se il movimento non è significativo (es. un semplice click senza drag),
+                // riattiva semplicemente i decoratori per assicurare la loro visibilità.
+                // Questa parte è un po' più delicata se il callback modifica la lista.
+                // In questo caso, i decoratori vanno comunque riattivati sulle forme attuali.
+                // Se la lista `decorators` viene modificata da `onModifyShape` (che non viene chiamato qui),
+                // potresti ancora avere un problema. Ma la logica di non-significant-change non chiama il callback.
+                // Quindi, il loop su `decorators.values()` qui dovrebbe essere sicuro.
+                for (SelectionDecorator decorator : decorators.values()) {
+                    decorator.deactivateDecoration();
+                    decorator.activateDecoration();
                 }
             }
         }
+
         handleMouseMoved(event);
         event.consume();
     }
-
-    @Override
-    public void handleMouseMoved(MouseEvent event) {
-        if (isMoving) {
-            drawingPane.setCursor(Cursor.MOVE);
-            return;
-        }
-        if (isRotating) {
-            drawingPane.setCursor(Cursor.CROSSHAIR);
-            return;
-        }
-        if (activeHandleType != ResizeHandleType.NONE) return;
-
-        Point2D localPoint = getTransformedCoordinates(event, drawingPane);
-        double x = localPoint.getX();
-        double y = localPoint.getY();
-
-        Circle handleAtPosition = findHandleAt(x, y);
-        if (handleAtPosition != null) {
-            String handleType = (String) handleAtPosition.getUserData();
-            switch (handleType) {
-                case "ROTATION":
-                    drawingPane.setCursor(Cursor.CROSSHAIR);
-                    break;
-                case "NORTH_WEST":
-                case "SOUTH_EAST":
-                    drawingPane.setCursor(Cursor.NW_RESIZE);
-                    break;
-                case "NORTH_EAST":
-                case "SOUTH_WEST":
-                    drawingPane.setCursor(Cursor.NE_RESIZE);
-                    break;
-                case "NORTH":
-                case "SOUTH":
-                    drawingPane.setCursor(Cursor.V_RESIZE);
-                    break;
-                case "EAST":
-                case "WEST":
-                    drawingPane.setCursor(Cursor.H_RESIZE);
-                    break;
-                default:
-                    drawingPane.setCursor(Cursor.HAND);
-                    break;
-            }
-        } else {
-            Shape shapeAtPos = findShapeAt(x, y);
-            drawingPane.setCursor(shapeAtPos != null ? Cursor.MOVE : Cursor.DEFAULT);
-        }
-    }
-
-    @Override
     public void handleCopy(Event event) {
-        if (selectedJavaFxShape != null) {
-            if (currentDecorator != null) {
-                currentDecorator.removeDecoration();
-                currentDecorator = null;
-            }
-            callback.onCopyShape(selectedJavaFxShape);
+        // Itera su tutte le forme selezionate e chiama il callback per ognuna
+        for (Shape shape : selectedJavaFxShapes) {
+            callback.onCopyShape(shape); // Passa la forma JavaFX da copiare
         }
     }
 
     @Override
     public void handleCut(Event event) {
-        if (selectedJavaFxShape != null) {
-            if (currentDecorator != null) {
-                currentDecorator.removeDecoration();
-                currentDecorator = null;
-            }
-            callback.onCutShape(selectedJavaFxShape);
+        // Itera su tutte le forme selezionate e chiama il callback per ognuna
+        // Il taglio implica anche la rimozione dalla selezione corrente
+        // Copio la lista per evitare ConcurrentModificationException mentre rimuovo
+        List<Shape> shapesToCut = new ArrayList<>(selectedJavaFxShapes);
+        for (Shape shape : shapesToCut) {
+            callback.onCutShape(shape); // Passa la forma JavaFX da tagliare
         }
+        clearSelection(); // Dopo aver tagliato, deseleziona tutto
     }
 
     @Override
     public void handleDelete(Event event) {
-        if (selectedJavaFxShape != null) callback.onDeleteShape(selectedJavaFxShape);
+        // Itera su tutte le forme selezionate e chiama il callback per ognuna
+        // La cancellazione implica anche la rimozione dalla selezione corrente
+        // Copio la lista per evitare ConcurrentModificationException mentre rimuovo
+        List<Shape> shapesToDelete = new ArrayList<>(selectedJavaFxShapes);
+        for (Shape shape : shapesToDelete) {
+            callback.onDeleteShape(shape); // Passa la forma JavaFX da cancellare
+        }
+        clearSelection(); // Dopo aver cancellato, deseleziona tutto
     }
-
 
     @Override
     public void handleBringToFront(ActionEvent actionEvent) {
-        if (selectedJavaFxShape != null) callback.onBringToFront(selectedJavaFxShape);
+        // Itera su tutte le forme selezionate e chiama il callback per ognuna
+        // Ordina la lista per assicurarsi che l'ordine sia consistente, se necessario.
+        // Ad esempio, puoi ordinarle per la loro posizione attuale nel pannello o per un ID
+        // per un comportamento prevedibile. Qui, iteriamo semplicemente.
+        for (Shape shape : selectedJavaFxShapes) {
+            callback.onBringToFront(shape);
+        }
     }
-
     @Override
     public void handleBringToTop(ActionEvent actionEvent) {
-        if (selectedJavaFxShape != null) callback.onBringToTop(selectedJavaFxShape);
+        // Itera su tutte le forme selezionate
+        for (Shape shape : selectedJavaFxShapes) {
+            callback.onBringToTop(shape);
+        }
     }
 
     @Override
     public void handleSendToBack(ActionEvent actionEvent) {
-        if (selectedJavaFxShape != null) callback.onSendToBack(selectedJavaFxShape);
+        // Itera su tutte le forme selezionate
+        // Per un comportamento prevedibile di "send to back", potrebbe essere utile
+        // processare le forme in ordine inverso (dal fondo alla cima) per evitare
+        // che una forma inviata indietro si scontri con una già "indietro" e non si muova
+        // abbastanza. Tuttavia, dipende dall'implementazione specifica del callback.
+        for (Shape shape : selectedJavaFxShapes) {
+            callback.onSendToBack(shape);
+        }
     }
 
     @Override
     public void handleSendToBottom(ActionEvent actionEvent) {
-        if (selectedJavaFxShape != null) callback.onSendToBottom(selectedJavaFxShape);
-    }
-*/
-    @Override
-    public void reset() {
-        clearSelection(); // Usa il nuovo metodo clearSelection()
-        drawingPane.setCursor(Cursor.DEFAULT);
-        callback.onShapeDeselected(); // Notifica al controller che non c'è selezione
-        currentShapeBeingTransformed = null; // Resetta la forma attualmente in trasformazione
+        // Itera su tutte le forme selezionate
+        for (Shape shape : selectedJavaFxShapes) {
+            callback.onSendToBottom(shape);
+        }
     }
 
+    @Override
+
+    public void reset() {
+        clearSelection(); // Usa il nuovo metodo clearSelection per una pulizia completa
+        isMoving = false;
+        isRotating = false;
+        isResizing = false;
+        activeHandleType = ResizeHandleType.NONE;
+        drawingPane.setCursor(Cursor.DEFAULT);
+        // callback.onShapeDeselected(); // Questa chiamata è ora gestita dentro clearSelection
+    }
     private void bakeTranslation(Shape shape) {
         if (shape == null) return;
         double tx = shape.getTranslateX();
@@ -575,21 +469,16 @@ public class SelectionToolStrategy implements ToolStrategy {
         if (tx == 0 && ty == 0) return;
 
         if (shape instanceof Rectangle r) {
-            r.setX(r.getX() + tx);
-            r.setY(r.getY() + ty);
+            r.setX(r.getX() + tx); r.setY(r.getY() + ty);
         } else if (shape instanceof Ellipse e) {
-            e.setCenterX(e.getCenterX() + tx);
-            e.setCenterY(e.getCenterY() + ty);
+            e.setCenterX(e.getCenterX() + tx); e.setCenterY(e.getCenterY() + ty);
         } else if (shape instanceof Line l) {
-            l.setStartX(l.getStartX() + tx);
-            l.setStartY(l.getStartY() + ty);
-            l.setEndX(l.getEndX() + tx);
-            l.setEndY(l.getEndY() + ty);
+            l.setStartX(l.getStartX() + tx); l.setStartY(l.getStartY() + ty);
+            l.setEndX(l.getEndX() + tx); l.setEndY(l.getEndY() + ty);
         }
-        shape.setTranslateX(0);
-        shape.setTranslateY(0);
+        shape.setTranslateX(0); shape.setTranslateY(0);
     }
-/*
+
     private void selectShape(Shape shapeToSelect) {
         if (currentDecorator != null) currentDecorator.removeDecoration();
 
@@ -611,764 +500,211 @@ public class SelectionToolStrategy implements ToolStrategy {
             reset();
         }
     }
-
     private Shape findShapeAt(double x, double y) {
         List<javafx.scene.Node> children = drawingPane.getChildren();
+
+        // Iteriamo al contrario per dare priorità alle forme più in alto (disegnate per ultime)
         for (int i = children.size() - 1; i >= 0; i--) {
             javafx.scene.Node node = children.get(i);
-            if (currentDecorator != null && node instanceof Circle && currentDecorator.getResizeHandles().contains(node)) {
-                continue;
+
+            // Controlliamo se il nodo fa parte di QUALSIASI decoratore esistente
+            boolean isDecoratorElement = false;
+            for (SelectionDecorator decorator : decorators.values()) { // Itera su TUTTI i decoratori attivi
+                if (decorator != null) {
+                    // 1. Controlla se è una maniglia (Circle)
+                    if (node instanceof Circle && decorator.getResizeHandles().contains(node)) {
+                        isDecoratorElement = true;
+                        break; // Trovato, non serve controllare gli altri decoratori per questo nodo
+                    }
+                    // 2. Controlla se è un bordo di selezione (Shape, come il Rectangle del bounding box)
+                    // Anche se hai commentato la creazione del Rectangle di selezione, è buona norma
+                    // mantenere questo controllo per robustezza e future modifiche.
+                    if (node instanceof Shape && decorator.getSelectionBorders().contains(node)) {
+                        isDecoratorElement = true;
+                        break; // Trovato, non serve controllare gli altri decoratori per questo nodo
+                    }
+                    // Aggiungi qui altri tipi di elementi decorativi se ne dovessi aggiungere in futuro.
+                }
             }
+
+            if (isDecoratorElement) {
+                continue; // Se è un elemento del decoratore, salta questo nodo e passa al prossimo
+            }
+
+            // Se non è un elemento del decoratore, controlla se è una forma selezionabile
             if (node instanceof Shape shape) {
+                // Filtro aggiuntivo: assicurati che sia uno dei tipi di forma che l'utente può disegnare
+                // (Rectangle, Ellipse, Line). Questo evita di selezionare altri Shape che potrebbero
+                // essere stati aggiunti al pane ma non sono forme utente.
+                if (!(shape instanceof Rectangle || shape instanceof Ellipse || shape instanceof Line)) {
+                    continue; // Salta se non è un tipo di forma utente supportato
+                }
+
+                // Se la forma è visibile e contiene il punto del mouse
                 if (shape.isVisible() && shape.contains(x, y)) {
-                    return shape;
+                    return shape; // Restituisce la forma utente trovata
                 }
             }
         }
-        return null;
+        return null; // Nessuna forma utente selezionabile trovata
     }
 
     private Circle findHandleAt(double x, double y) {
-        if (currentDecorator == null) return null;
-        for (Circle handle : currentDecorator.getResizeHandles()) {
-            if (handle.isVisible() && handle.getBoundsInParent().contains(x, y)) {
-                return handle;
+        // Controllo gli handle di tutte le forme selezionate
+        for (SelectionDecorator decorator : decorators.values()) {
+            if (decorator != null) { // Aggiunto controllo null safety
+                for (Circle handle : decorator.getResizeHandles()) {
+                    if (handle.isVisible() && handle.getBoundsInParent().contains(x, y)) {
+                        return handle;
+                    }
+                }
             }
         }
         return null;
     }
-
-
-
-
-
-
-    @Override
-    public List<MyShape> getSelectedShapes() {
-        return this.selectedModelShapes;
+    public void selectShapeByModel(MyShape shape) {
+        Shape javafxShape = shapeMapping.getViewShape(shape);
+        if (javafxShape != null) {
+            clearSelection(); // Deseleziona tutto il resto
+            addShapeToSelection(javafxShape); // Aggiungi solo questa forma alla selezione
+        }
     }
 
-
-
-    public void setModel(DrawingModel model) {
-        this.model = model;
-    }
-
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- //METODI HELPER
-// Rimuove tutte le decorazioni e resetta lo stato di selezione
     public void clearSelection() {
-        for (SelectionDecorator decorator : activeDecorators.values()) {
+        // Rimuovo tutti i decoratori
+        for (SelectionDecorator decorator : decorators.values()) {
             decorator.removeDecoration();
         }
-        activeDecorators.clear();
-        selectedJavaFxShapes.clear();
-        selectedModelShapes.clear();
-        // Rimuovi eventuali handle di gruppo se sono stati disegnati
-        removeGroupDecorations();
+        decorators.clear(); // Svuota la mappa dei decoratori
+
+        selectedJavaFxShapes.clear(); // Svuota la lista delle forme JavaFX selezionate
+        selectedModelShapes.clear();  // Svuota la lista delle forme Model selezionate
+        primarySelectedShape = null;  // Resetta la forma primaria
+
         drawingPane.setCursor(Cursor.DEFAULT);
-        callback.onShapesSelected(selectedJavaFxShapes); // Notifica che la selezione è vuota
+        callback.onShapeDeselected(); // Notifica che nessuna forma è più selezionata
     }
-
-    // Aggiunge una singola forma alla selezione
-    private void addShapeToSelection(Shape shapeToAdd) {
-        if (!selectedJavaFxShapes.contains(shapeToAdd)) {
-            // Applica trasformazioni pendenti PRIMA di aggiungere
-            bakeTransformations(shapeToAdd);
-            selectedJavaFxShapes.add(shapeToAdd);
-            MyShape modelShape = shapeMapping.getModelShape(shapeToAdd);
-            if (modelShape != null) {
-                selectedModelShapes.add(modelShape);
-            }
-
-            // Applica decorazione individuale
-            SelectionDecorator decorator = new SelectionDecorator(shapeToAdd);
-            decorator.applyDecoration();
-            activeDecorators.put(shapeToAdd, decorator);
+    private void addShapeToSelection(Shape shape) {
+        if (shape == null || selectedJavaFxShapes.contains(shape)) {
+            return; // Non aggiungiamo forme nulle o già selezionate
         }
-        // Dopo aver modificato la selezione, aggiorna le decorazioni del gruppo (handles)
-        updateGroupDecorations();
-    }
 
-    // Rimuove una singola forma dalla selezione
-    private void deselectShape(Shape shapeToRemove) {
-        if (selectedJavaFxShapes.remove(shapeToRemove)) {
-            selectedModelShapes.remove(shapeMapping.getModelShape(shapeToRemove));
-            SelectionDecorator decorator = activeDecorators.remove(shapeToRemove);
-            if (decorator != null) {
-                decorator.removeDecoration();
-            }
+
+        bakeTranslation(shape); // "Bake" le trasformazioni correnti prima di selezionare
+        selectedJavaFxShapes.add(shape); // Aggiungi la forma JavaFX alla lista
+
+        MyShape modelShape = shapeMapping.getModelShape(shape);
+        if (modelShape != null) {
+            selectedModelShapes.add(modelShape); // Aggiungi la forma del modello alla lista
         }
-        // Dopo aver modificato la selezione, aggiorna le decorazioni del gruppo (handles)
-        updateGroupDecorations();
+
+        // Creo e applico il decoratore per questa forma
+        SelectionDecorator decorator = new SelectionDecorator(shape);
+        decorators.put(shape, decorator); // Aggiungi il decoratore alla mappa
+        decorator.applyDecoration(); // Applica il decoratore (mostra handle)
+
+        // Se è la prima forma selezionata, diventa quella primaria
+        if (primarySelectedShape == null) {
+            setPrimarySelectedShape(shape);
+        }
+        debugSelectionState();
+        callback.onShapeSelected(shape); // Notifica che la forma è stata selezionata
     }
+    @Override
+    public void handleMouseMoved(MouseEvent event) {
+        // Se un'operazione di drag è in corso (movimento o rotazione), mantieni il cursore appropriato
+        // Queste condizioni prevengono lo sfarfallio del cursore durante un drag attivo.
+        if (isMoving) {
+            drawingPane.setCursor(Cursor.MOVE);
+            return;
+        }
+        if (isRotating) {
+            drawingPane.setCursor(Cursor.CROSSHAIR);
+            return;
+        }
+        // Se un handle di resize è attivo, non cambiare il cursore qui (lo fa handleMousePressed e viene mantenuto)
+        if (activeHandleType != ResizeHandleType.NONE) {
+            // Potresti voler settare il cursore specifico per il resize handle qui se vuoi che persista anche se il mouse si sposta un po' fuori dall'handle.
+            // Per ora, lo lasciamo in modo che il cursore sia impostato solo in handleMousePressed e rimanga tale finché isResizing è true.
+            // Oppure, se vuoi che cambi al default appena esce dall'handle, puoi rimuovere questo 'return'.
+            // La versione più semplice è che il cursore è impostato solo se non sei già in un drag, altrimenti prevale il cursore del drag.
+            return;
+        }
 
-    // Gestisce la logica di selezione (singolo click vs Shift-click)
-    private void manageSelection(Shape shapeToSelect, MouseEvent event) {
-        boolean isShiftDown = event.isShiftDown();
-        boolean isShapeAlreadySelected = selectedJavaFxShapes.contains(shapeToSelect);
+        Point2D localPoint = getTransformedCoordinates(event, drawingPane);
+        double x = localPoint.getX();
+        double y = localPoint.getY();
 
-        if (isShiftDown) {
-            if (isShapeAlreadySelected) {
-                deselectShape(shapeToSelect); // Shift-click su forma già selezionata: deseleziona
-            } else {
-                addShapeToSelection(shapeToSelect); // Shift-click su forma non selezionata: aggiungi
+        // 1. Controlla se il mouse è sopra un HANDLE (di qualsiasi forma selezionata)
+        // Questo metodo deve iterare su TUTTI i decoratori delle forme selezionate.
+        Circle handleAtPosition = findHandleAt(x, y);
+        if (handleAtPosition != null) {
+            String handleType = (String) handleAtPosition.getUserData();
+            switch (handleType) {
+                case "ROTATION": drawingPane.setCursor(Cursor.CROSSHAIR); break;
+                case "NORTH_WEST": case "SOUTH_EAST": drawingPane.setCursor(Cursor.NW_RESIZE); break;
+                case "NORTH_EAST": case "SOUTH_WEST": drawingPane.setCursor(Cursor.NE_RESIZE); break;
+                case "NORTH": case "SOUTH": drawingPane.setCursor(Cursor.V_RESIZE); break;
+                case "EAST": case "WEST": drawingPane.setCursor(Cursor.H_RESIZE); break;
+                default: drawingPane.setCursor(Cursor.HAND); break; // Cursore di default per handle generici
             }
         } else {
-            // Click senza Shift:
-            // Se la forma cliccata non è già selezionata, o se è selezionata ma ci sono altre forme nel gruppo,
-            // deseleziona tutto e seleziona solo questa.
-            if (!isShapeAlreadySelected || selectedJavaFxShapes.size() > 1) {
-                clearSelection(); // Deseleziona tutte le forme attuali
-                addShapeToSelection(shapeToSelect); // Aggiungi solo questa forma
-            }
-            // Se la forma è già l'unica selezionata, non fare nulla sulla selezione (prepara per drag)
-        }
-        // Notifica il callback con l'intera lista di forme selezionate
-        callback.onShapesSelected(selectedJavaFxShapes);
-    }
-
-    // Calcola il bounding box complessivo di tutte le forme selezionate
-    private Bounds calculateGroupBoundsInParent() {
-        if (selectedJavaFxShapes.isEmpty()) {
-            return null;
-        }
-        Bounds bounds = null;
-        for (Shape shape : selectedJavaFxShapes) {
-            // Ottieni i bounds in parent, che include traslazioni e rotazioni locali
-            Bounds shapeBounds = shape.getBoundsInParent();
-            if (bounds == null) {
-                bounds = shapeBounds;
-            } else {
-                // Unisci i bounds (custom method or use Bounds.union, but be careful with rotation)
-                bounds = unionBounds(bounds, shapeBounds);
-            }
-        }
-        return bounds;
-    }
-
-    // Funzione helper per unire due Bounds
-    private Bounds unionBounds(Bounds b1, Bounds b2) {
-        double minX = Math.min(b1.getMinX(), b2.getMinX());
-        double minY = Math.min(b1.getMinY(), b2.getMinY());
-        double maxX = Math.max(b1.getMaxX(), b2.getMaxX());
-        double maxY = Math.max(b1.getMaxY(), b2.getMaxY());
-        return new Bounds(minX, minY, maxX - minX, maxY - minY,) {
-            @Override
-            public boolean isEmpty() {
-                return false;
-            }
-
-            @Override
-            public boolean contains(Point2D p) {
-                return false;
-            }
-
-            @Override
-            public boolean contains(Point3D p) {
-                return false;
-            }
-
-            @Override
-            public boolean contains(double x, double y) {
-                return false;
-            }
-
-            @Override
-            public boolean contains(double x, double y, double z) {
-                return false;
-            }
-
-            @Override
-            public boolean contains(Bounds b) {
-                return false;
-            }
-
-            @Override
-            public boolean contains(double x, double y, double w, double h) {
-                return false;
-            }
-
-            @Override
-            public boolean contains(double x, double y, double z, double w, double h, double d) {
-                return false;
-            }
-
-            @Override
-            public boolean intersects(Bounds b) {
-                return false;
-            }
-
-            @Override
-            public boolean intersects(double x, double y, double w, double h) {
-                return false;
-            }
-
-            @Override
-            public boolean intersects(double x, double y, double z, double w, double h, double d) {
-                return false;
-            }
-        };
-    }
-
-    // Memorizza le proprietà iniziali di tutte le forme selezionate per il ridimensionamento e lo spostamento
-    private void storeInitialShapeProperties() {
-        initialShapeX.clear();
-        initialShapeY.clear();
-        initialShapeWidth.clear();
-        initialShapeHeight.clear();
-        initialShapeRotate.clear();
-        initialLineStart.clear();
-        initialLineEnd.clear();
-
-        for (Shape shape : selectedJavaFxShapes) {
-            // Assicurati che le traslazioni siano "cotte" nella posizione base prima di memorizzare
-            bakeTransformations(shape);
-            initialShapeRotate.put(shape, shape.getRotate());
-
-            if (shape instanceof Rectangle rect) {
-                initialShapeX.put(shape, rect.getX());
-                initialShapeY.put(shape, rect.getY());
-                initialShapeWidth.put(shape, rect.getWidth());
-                initialShapeHeight.put(shape, rect.getHeight());
-            } else if (shape instanceof Ellipse ellipse) {
-                // Memorizza i bounds della forma per coerenza con Rect
-                Bounds b = ellipse.getLayoutBounds(); // LayoutBounds non include rotation/translate
-                // Ottieni bounds in parent per la posizione reale se non hai bakeTranslation
-                // Oppure gestisci centerX/Y e radiusX/Y in modo specifico
-                initialShapeX.put(shape, ellipse.getCenterX());
-                initialShapeY.put(shape, ellipse.getCenterY());
-                initialShapeWidth.put(shape, ellipse.getRadiusX() * 2);
-                initialShapeHeight.put(shape, ellipse.getRadiusY() * 2);
-            } else if (shape instanceof Line line) {
-                initialLineStart.put(line, new Point2D(line.getStartX(), line.getStartY()));
-                initialLineEnd.put(line, new Point2D(line.getEndX(), line.getEndY()));
-            }
+            // 2. Se non è sopra un handle, controlla se è sopra una FORMA selezionabile
+            // Questo metodo deve trovare la forma (non-handle) più in alto che contiene il punto.
+            Shape shapeAtPos = findShapeAt(x, y);
+            // Imposta il cursore a MOVE se è sopra una forma, altrimenti DEFAULT
+            drawingPane.setCursor(shapeAtPos != null ? Cursor.MOVE : Cursor.DEFAULT);
         }
     }
 
-    // Trova l'handle di ridimensionamento/rotazione del gruppo sotto il mouse
-    private Circle findGroupHandleAt(double x, double y) {
-        // Controlla gli handle di ridimensionamento
-        for (Circle handle : groupResizeHandles) {
-            if (handle.isVisible() && handle.getBoundsInParent().contains(x, y)) {
-                return handle;
-            }
-        }
-        // Controlla l'handle di rotazione
-        if (groupRotationHandle != null && groupRotationHandle.isVisible() && groupRotationHandle.getBoundsInParent().contains(x, y)) {
-            return groupRotationHandle;
-        }
-        return null;
-    }
-
-    // Trova l'handle di ridimensionamento/rotazione di una SINGOLA forma sotto il mouse
-    private Circle findIndividualHandleAt(double x, double y) {
-        if (selectedJavaFxShapes.size() != 1) return null; // Solo se c'è una singola selezione
-        SelectionDecorator decorator = activeDecorators.get(selectedJavaFxShapes.get(0));
-        if (decorator == null) return null;
-
-        for (Circle handle : decorator.getResizeHandles()) {
-            if (handle.isVisible() && handle.getBoundsInParent().contains(x, y)) {
-                return handle;
-            }
-        }
-        return null;
-    }
-
-
-    // Calcola l'angolo per la rotazione del gruppo o della singola forma
-    private double calculateAngle(double x, double y, Shape shape) {
-        Bounds bounds = shape.getBoundsInParent(); // Usa bounds in parent per la posizione con rotazione
-        double centerX = bounds.getMinX() + bounds.getWidth() / 2;
-        double centerY = bounds.getMinY() + bounds.getHeight() / 2;
-        return Math.toDegrees(Math.atan2(y - centerY, x - centerX));
-    }
-
-    // Calcola l'angolo per la rotazione del gruppo
-    private double calculateAngleForGroup(double x, double y) {
-        Bounds groupBounds = calculateGroupBoundsInParent();
-        if (groupBounds == null) return 0;
-        double centerX = groupBounds.getMinX() + groupBounds.getWidth() / 2;
-        double centerY = groupBounds.getMinY() + groupBounds.getHeight() / 2;
-        return Math.toDegrees(Math.atan2(y - centerY, x - centerX));
-    }
-
-    // Questo metodo "cuoce" le traslazioni e rotazioni nella posizione base della forma
-    // È fondamentale prima di convertire in MyShape o di salvare le proprietà iniziali
-    private void bakeTransformations(Shape shape) {
-        if (shape == null) return;
-
-        // "Bake" la traslazione
-        double tx = shape.getTranslateX();
-        double ty = shape.getTranslateY();
-        if (tx != 0 || ty != 0) {
-            if (shape instanceof Rectangle r) {
-                r.setX(r.getX() + tx); r.setY(r.getY() + ty);
-            } else if (shape instanceof Ellipse e) {
-                e.setCenterX(e.getCenterX() + tx); e.setCenterY(e.getCenterY() + ty);
-            } else if (shape instanceof Line l) {
-                l.setStartX(l.getStartX() + tx); l.setStartY(l.getStartY() + ty);
-                l.setEndX(l.getEndX() + tx); l.setEndY(l.getEndY() + ty);
-            }
-            shape.setTranslateX(0);
-            shape.setTranslateY(0);
+    private void removeShapeFromSelection(Shape shape) {
+        if (shape == null || !selectedJavaFxShapes.contains(shape)) {
+            return; // Non rimuoviamo forme nulle o non selezionate
         }
 
-        // Se la forma ha una rotazione, anche questa deve essere "cotta"
-        // Questo è più complesso e di solito richiede di creare un nuovo nodo senza rotazione e riposizionarlo
-        // O di modificare i punti della forma. Per ora, supponiamo che la rotazione sia sempre gestita
-        // sulla proprietà `rotate` e convertita/riconvertita dagli adapter.
-        // Se la rotazione deve influenzare X/Y/W/H della forma stessa, è un'altra complessità.
-        // Per il momento, manteniamo la rotazione sulla proprietà `rotate` per le forme JavaFX.
-    }
+        selectedJavaFxShapes.remove(shape); // Rimuovi la forma JavaFX dalla lista
 
-    // Aggiorna i decoratori (individuali o di gruppo)
-    private void updateGroupDecorations() {
-        // Rimuovi eventuali handle di gruppo precedenti
-        removeGroupDecorations();
-
-        // Rimuovi i decoratori individuali prima di decidere cosa mostrare
-        for (SelectionDecorator decorator : activeDecorators.values()) {
-            decorator.removeDecoration();
+        MyShape modelShape = shapeMapping.getModelShape(shape);
+        if (modelShape != null) {
+            selectedModelShapes.remove(modelShape); // Rimuovi la forma del modello dalla lista
         }
-        activeDecorators.clear(); // Clear the map as we'll re-populate or use group handles
+
+        SelectionDecorator decorator = decorators.get(shape);
+        if (decorator != null) {
+            decorators.clear();
+            decorator.removeDecoration(); // Rimuovi il decoratore dalla vista
+            decorators.remove(shape); // Rimuovi il decoratore dalla mappa
+        }
+
+        // Se la forma rimossa era quella primaria, ne scegliamo una nuova
+        if (primarySelectedShape == shape) {
+            primarySelectedShape = selectedJavaFxShapes.isEmpty() ? null : selectedJavaFxShapes.get(0);
+        }
 
         if (selectedJavaFxShapes.isEmpty()) {
-            // Nessuna selezione, niente decorazioni
-            return;
+            callback.onShapeDeselected(); // Se la selezione è vuota, notifica la deselezione
         }
+        debugSelectionState();
+    }
 
-        if (selectedJavaFxShapes.size() == 1) {
-            // Selezione singola: usa il decoratore individuale
-            Shape s = selectedJavaFxShapes.get(0);
-            SelectionDecorator decorator = new SelectionDecorator(s);
-            decorator.applyDecoration();
-            activeDecorators.put(s, decorator); // Aggiungi al map per gestione futura
-            currentShapeBeingTransformed = s; // Imposta per le operazioni individuali
-            return;
-        }
-
-        // Selezione multipla (gruppo logico): Disegna gli handle di gruppo
-        Bounds groupBounds = calculateGroupBoundsInParent();
-        if (groupBounds == null) return;
-
-        // Handle di rotazione per il gruppo
-        double rotationHandleOffsetX = groupBounds.getMinX() + groupBounds.getWidth() / 2;
-        double rotationHandleOffsetY = groupBounds.getMinY() - 15; // Offset sopra il centro superiore
-
-        groupRotationHandle = new Circle(rotationHandleOffsetX, rotationHandleOffsetY, 4, Color.DARKORANGE); // Raggio 4
-        groupRotationHandle.setStroke(Color.WHITE);
-        groupRotationHandle.setStrokeWidth(1);
-        groupRotationHandle.setUserData("ROTATION");
-        drawingPane.getChildren().add(groupRotationHandle);
-        groupRotationHandle.toFront();
-
-        // Handle di ridimensionamento del gruppo
-        groupResizeHandles.clear(); // Assicurati che sia vuoto prima di aggiungere
-        String[] handleTypes = {
-                "NORTH_WEST", "NORTH", "NORTH_EAST",
-                "WEST", "EAST",
-                "SOUTH_WEST", "SOUTH", "SOUTH_EAST"
-        };
-
-        Point2D[] localHandlePositions = {
-                new Point2D(groupBounds.getMinX(), groupBounds.getMinY()),
-                new Point2D(groupBounds.getMinX() + groupBounds.getWidth() / 2, groupBounds.getMinY()),
-                new Point2D(groupBounds.getMinX() + groupBounds.getWidth(), groupBounds.getMinY()),
-
-                new Point2D(groupBounds.getMinX(), groupBounds.getMinY() + groupBounds.getHeight() / 2),
-                new Point2D(groupBounds.getMinX() + groupBounds.getWidth(), groupBounds.getMinY() + groupBounds.getHeight() / 2),
-
-                new Point2D(groupBounds.getMinX(), groupBounds.getMinY() + groupBounds.getHeight()),
-                new Point2D(groupBounds.getMinX() + groupBounds.getWidth() / 2, groupBounds.getMinY() + groupBounds.getHeight()),
-                new Point2D(groupBounds.getMinX() + groupBounds.getWidth(), groupBounds.getMinY() + groupBounds.getHeight())
-        };
-
-        for (int i = 0; i < handleTypes.length; i++) {
-            Point2D localPos = localHandlePositions[i];
-            Circle handle = new Circle(localPos.getX(), localPos.getY(), 4, Color.BLUE); // Raggio 4
-            handle.setStroke(Color.WHITE);
-            handle.setStrokeWidth(1);
-            handle.setUserData(handleTypes[i]);
-            groupResizeHandles.add(handle);
-            drawingPane.getChildren().add(handle);
-            handle.toFront();
+    private void setPrimarySelectedShape(Shape shape) {
+        if (selectedJavaFxShapes.contains(shape)) {
+            primarySelectedShape = shape;
         }
     }
 
-    // Rimuove gli handle di gruppo dalla pane
-    private void removeGroupDecorations() {
-        if (groupRotationHandle != null) {
-            drawingPane.getChildren().remove(groupRotationHandle);
-            groupRotationHandle = null;
-        }
-        if (!groupResizeHandles.isEmpty()) {
-            drawingPane.getChildren().removeAll(groupResizeHandles);
-            groupResizeHandles.clear();
-        }
-    }
+    private void performResize(Shape shape, double deltaX, double deltaY) {
+        double minSize = 5; // Dimensione minima per le forme, evita che diventino troppo piccole
 
+        // Gestione del ridimensionamento per i Rettangoli
+        if (shape instanceof Rectangle rect) {
+            double currentX = rect.getX();
+            double currentY = rect.getY();
+            double currentWidth = rect.getWidth();
+            double currentHeight = rect.getHeight();
+            double newX = currentX, newY = currentY, newWidth = currentWidth, newHeight = currentHeight;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //NUOVA LOGICA
-    @Override
-    public void handleMousePressed(MouseEvent event) {
-        Point2D localPoint = getTransformedCoordinates(event, drawingPane);
-        double x = localPoint.getX();
-        double y = localPoint.getY();
-
-        // Reset dei flag di stato
-        isGroupMoving = false;
-        isGroupResizing = false;
-        isGroupRotating = false;
-        isIndividualResizing = false;
-        activeHandleType = ResizeHandleType.NONE; // Reset handle type
-
-        // --- Gestione click destro (menu contestuale) ---
-        if (event.getButton() == MouseButton.SECONDARY) {
-            Shape shapeAtPosition = findShapeAt(x, y);
-            if (shapeAtPosition != null) {
-                // Se clicco con il destro su una forma NON selezionata, la seleziono SOLO quella
-                if (!selectedJavaFxShapes.contains(shapeAtPosition)) {
-                    manageSelection(shapeAtPosition, event); // Seleziona solo questa
-                }
-                // Se la forma è già selezionata (anche se parte di una selezione multipla),
-                // mantieni la selezione esistente e apri il menu contestuale.
-            } else {
-                // Click destro sullo sfondo: deseleziona tutto
-                clearSelection();
-            }
-            callback.onSelectionMenuOpened(event.getScreenX(), event.getScreenY());
-            event.consume();
-            return;
-        }
-
-        // --- Gestione click sinistro (selezione e trasformazioni) ---
-        if (event.getButton() == MouseButton.PRIMARY) {
-
-            // 1. Cerca handle di ridimensionamento/rotazione del GRUPPO
-            Circle handleAtPosition = findGroupHandleAt(x, y);
-            if (handleAtPosition != null) {
-                String handleTypeStr = (String) handleAtPosition.getUserData();
-                try {
-                    activeHandleType = ResizeHandleType.valueOf(handleTypeStr);
-                } catch (IllegalArgumentException e) {
-                    activeHandleType = ResizeHandleType.NONE;
-                }
-
-                if (activeHandleType == ResizeHandleType.ROTATION) {
-                    isGroupRotating = true;
-                    lastAngle = calculateAngleForGroup(x, y);
-                } else { // Ridimensionamento del gruppo
-                    isGroupResizing = true;
-                    initialGroupBounds = calculateGroupBoundsInParent(); // Calcola bounds del gruppo
-                }
-                initialMousePressForGroup = new Point2D(x, y); // Punto iniziale per operazioni di gruppo
-                storeInitialShapeProperties(); // Memorizza le proprietà iniziali di tutte le forme selezionate
-                drawingPane.setCursor(getCursorForHandle(activeHandleType)); // Metodo per ottenere il cursore corretto
-                event.consume();
-                return;
-            }
-
-            // 2. Cerca handle di ridimensionamento/rotazione INDIVIDUALE (solo se c'è UNA sola forma selezionata)
-            handleAtPosition = findIndividualHandleAt(x, y);
-            if (handleAtPosition != null) {
-                String handleTypeStr = (String) handleAtPosition.getUserData();
-                try {
-                    activeHandleType = ResizeHandleType.valueOf(handleTypeStr);
-                } catch (IllegalArgumentException e) {
-                    activeHandleType = ResizeHandleType.NONE;
-                }
-
-                if (activeHandleType == ResizeHandleType.ROTATION) {
-                    isRotating = true; // flag per rotazione individuale
-                    lastAngle = calculateAngle(x, y, currentShapeBeingTransformed);
-                } else { // Ridimensionamento individuale
-                    isIndividualResizing = true;
-                }
-                lastXForIndividualResize = x; // Per delta X/Y nel resize individuale
-                lastYForIndividualResize = y; // Per delta X/Y nel resize individuale
-                drawingPane.setCursor(getCursorForHandle(activeHandleType));
-                event.consume();
-                return;
-            }
-
-            // 3. Cerca forma sotto il mouse (per selezione o spostamento)
-            Shape shapeAtPosition = findShapeAt(x, y);
-            if (shapeAtPosition != null) {
-                manageSelection(shapeAtPosition, event); // Gestisce la selezione singola/multipla
-
-                // Se ci sono forme selezionate dopo la gestione della selezione, prepara lo spostamento
-                if (!selectedJavaFxShapes.isEmpty()) {
-                    isGroupMoving = true; // Ora lo spostamento è sempre di gruppo (anche per selezione singola)
-                    initialMousePressForGroup = new Point2D(x, y); // Punto iniziale del click
-                    storeInitialShapeProperties(); // Memorizza le posizioni iniziali di tutte le forme selezionate
-                    drawingPane.setCursor(Cursor.MOVE);
-                }
-                event.consume();
-                return;
-            }
-
-            // 4. Click sullo sfondo: deseleziona tutto
-            clearSelection();
-            event.consume();
-        }
-    }
-
-    @Override
-    public void handleMouseDragged(MouseEvent event) {
-        Point2D localPoint = getTransformedCoordinates(event, drawingPane);
-        double x = localPoint.getX();
-        double y = localPoint.getY();
-
-        if (selectedJavaFxShapes.isEmpty()) return; // Niente da fare se non c'è selezione
-
-        // 1. Rotazione INDIVIDUALE (se una singola forma è selezionata e si ruota l'handle)
-        if (isRotating && currentShapeBeingTransformed != null) { // isRotating è per la singola forma
-            double currentAngle = calculateAngle(x, y, currentShapeBeingTransformed);
-            double deltaAngle = currentAngle - lastAngle;
-            currentShapeBeingTransformed.setRotate(currentShapeBeingTransformed.getRotate() + deltaAngle);
-            lastAngle = currentAngle;
-            // Aggiorna la decorazione della singola forma (o ricrea l'handle se necessario)
-            updateGroupDecorations(); // Questo aggiornerà anche gli handle individuali
-            event.consume();
-            return;
-        }
-
-        // 2. Ridimensionamento INDIVIDUALE (se una singola forma è selezionata e si ridimensiona l'handle)
-        if (isIndividualResizing && currentShapeBeingTransformed != null && activeHandleType != ResizeHandleType.NONE && activeHandleType != ResizeHandleType.ROTATION) {
-            double deltaX = x - lastXForIndividualResize;
-            double deltaY = y - lastYForIndividualResize;
-
-            double minSize = 5;
-
-            if (currentShapeBeingTransformed instanceof Rectangle rect) {
-                double currentX = rect.getX(); double currentY = rect.getY();
-                double currentWidth = rect.getWidth(); double currentHeight = rect.getHeight();
-                double newX = currentX, newY = currentY, newWidth = currentWidth, newHeight = currentHeight;
-
-                switch (activeHandleType) {
-                    case NORTH_WEST: newX += deltaX; newY += deltaY; newWidth -= deltaX; newHeight -= deltaY; break;
-                    case NORTH_EAST: newY += deltaY; newWidth += deltaX; newHeight -= deltaY; break;
-                    case SOUTH_WEST: newX += deltaX; newWidth -= deltaX; newHeight += deltaY; break;
-                    case SOUTH_EAST: newWidth += deltaX; newHeight += deltaY; break;
-                    case NORTH: newY += deltaY; newHeight -= deltaY; break;
-                    case SOUTH: newHeight += deltaY; break;
-                    case EAST: newWidth += deltaX; break;
-                    case WEST: newX += deltaX; newWidth -= deltaX; break;
-                    default: break;
-                }
-
-                if (newWidth < minSize) { if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.SOUTH_WEST || activeHandleType == ResizeHandleType.WEST) newX += (newWidth - minSize); newWidth = minSize; }
-                if (newHeight < minSize) { if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.NORTH_EAST || activeHandleType == ResizeHandleType.NORTH) newY += (newHeight - minSize); newHeight = minSize; }
-                rect.setX(newX); rect.setY(newY); rect.setWidth(newWidth); rect.setHeight(newHeight);
-
-            } else if (currentShapeBeingTransformed instanceof Ellipse ellipse) {
-                double currentCenterX = ellipse.getCenterX(); double currentCenterY = ellipse.getCenterY();
-                double currentRadiusX = ellipse.getRadiusX(); double currentRadiusY = ellipse.getRadiusY();
-                double newX = currentCenterX - currentRadiusX; double newY = currentCenterY - currentRadiusY;
-                double newWidth = currentRadiusX * 2; double newHeight = currentRadiusY * 2;
-
-                switch (activeHandleType) {
-                    case NORTH_WEST: newX += deltaX; newY += deltaY; newWidth -= deltaX; newHeight -= deltaY; break;
-                    case NORTH_EAST: newY += deltaY; newWidth += deltaX; newHeight -= deltaY; break;
-                    case SOUTH_WEST: newX += deltaX; newWidth -= deltaX; newHeight += deltaY; break;
-                    case SOUTH_EAST: newWidth += deltaX; newHeight += deltaY; break;
-                    case NORTH: newY += deltaY; newHeight -= deltaY; break;
-                    case SOUTH: newHeight += deltaY; break;
-                    case EAST: newWidth += deltaX; break;
-                    case WEST: newX += deltaX; newWidth -= deltaX; break;
-                    default: break;
-                }
-
-                if (newWidth < minSize) { if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.SOUTH_WEST || activeHandleType == ResizeHandleType.WEST) newX += (newWidth - minSize); newWidth = minSize; }
-                if (newHeight < minSize) { if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.NORTH_EAST || activeHandleType == ResizeHandleType.NORTH) newY += (newHeight - minSize); newHeight = minSize; }
-                ellipse.setCenterX(newX + newWidth / 2); ellipse.setCenterY(newY + newHeight / 2);
-                ellipse.setRadiusX(newWidth / 2); ellipse.setRadiusY(newHeight / 2);
-
-            } else if (currentShapeBeingTransformed instanceof Line line) {
-                switch (activeHandleType) {
-                    case NORTH_WEST: line.setStartX(line.getStartX() + deltaX); line.setStartY(line.getStartY() + deltaY); break;
-                    case NORTH_EAST: line.setEndX(line.getEndX() + deltaX); line.setStartY(line.getStartY() + deltaY); break;
-                    case SOUTH_WEST: line.setStartX(line.getStartX() + deltaX); line.setEndY(line.getEndY() + deltaY); break;
-                    case SOUTH_EAST: line.setEndX(line.getEndX() + deltaX); line.setEndY(line.getEndY() + deltaY); break;
-                    case NORTH: line.setStartY(line.getStartY() + deltaY); break;
-                    case SOUTH: line.setEndY(line.getEndY() + deltaY); break;
-                    case EAST: line.setEndX(line.getEndX() + deltaX); break;
-                    case WEST: line.setStartX(line.getStartX() + deltaX); break;
-                    default: break;
-                }
-            }
-            lastXForIndividualResize = x; lastYForIndividualResize = y;
-            updateGroupDecorations(); // Questo aggiornerà anche gli handle individuali
-            event.consume();
-            return;
-        }
-
-        // 3. Rotazione di GRUPPO
-        if (isGroupRotating && !selectedJavaFxShapes.isEmpty()) {
-            double currentAngle = calculateAngleForGroup(x, y);
-            double deltaAngle = currentAngle - lastAngle;
-
-            // Il centro di rotazione è il centro del bounding box del gruppo
-            Bounds groupBounds = calculateGroupBoundsInParent(); // Ricalcola per sicurezza
-            double centerX = groupBounds.getMinX() + groupBounds.getWidth() / 2;
-            double centerY = groupBounds.getMinY() + groupBounds.getHeight() / 2;
-
-            for (Shape shape : selectedJavaFxShapes) {
-                // Applica la rotazione rispetto al centro del gruppo
-                double currentShapeRotate = initialShapeRotate.getOrDefault(shape, 0.0);
-                shape.setRotate(currentShapeRotate + deltaAngle);
-            }
-            lastAngle = currentAngle;
-            updateGroupDecorations(); // Aggiorna handle e bordo del gruppo
-            event.consume();
-            return;
-        }
-
-        // 4. Ridimensionamento di GRUPPO
-        if (isGroupResizing && activeHandleType != ResizeHandleType.NONE && !selectedJavaFxShapes.isEmpty()) {
-            double originalX = initialGroupBounds.getMinX();
-            double originalY = initialGroupBounds.getMinY();
-            double originalWidth = initialGroupBounds.getWidth();
-            double originalHeight = initialGroupBounds.getHeight();
-
-            double newX = originalX, newY = originalY, newWidth = originalWidth, newHeight = originalHeight;
-            double minGroupSize = 5; // Dimensione minima per il gruppo
-
-            double deltaX = x - initialMousePressForGroup.getX();
-            double deltaY = y - initialMousePressForGroup.getY();
-
+            // Logica per calcolare le nuove dimensioni e posizioni in base all'handle attivo
             switch (activeHandleType) {
                 case NORTH_WEST: newX += deltaX; newY += deltaY; newWidth -= deltaX; newHeight -= deltaY; break;
                 case NORTH_EAST: newY += deltaY; newWidth += deltaX; newHeight -= deltaY; break;
@@ -1381,294 +717,126 @@ public class SelectionToolStrategy implements ToolStrategy {
                 default: break;
             }
 
-            // Limita la dimensione minima del gruppo
-            if (newWidth < minGroupSize) {
-                if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.SOUTH_WEST || activeHandleType == ResizeHandleType.WEST) newX += (newWidth - minGroupSize);
-                newWidth = minGroupSize;
-            }
-            if (newHeight < minGroupSize) {
-                if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.NORTH_EAST || activeHandleType == ResizeHandleType.NORTH) newY += (newHeight - minGroupSize);
-                newHeight = minGroupSize;
-            }
-
-            // Calcola i fattori di scala per il gruppo
-            double scaleX = (originalWidth > 0) ? newWidth / originalWidth : 1;
-            double scaleY = (originalHeight > 0) ? newHeight / originalHeight : 1;
-
-            for (Shape shape : selectedJavaFxShapes) {
-                double initialShapeLocalX, initialShapeLocalY, initialShapeLocalWidth, initialShapeLocalHeight;
-
-                if (shape instanceof Rectangle rect) {
-                    initialShapeLocalX = initialShapeX.get(rect);
-                    initialShapeLocalY = initialShapeY.get(rect);
-                    initialShapeLocalWidth = initialShapeWidth.get(rect);
-                    initialShapeLocalHeight = initialShapeHeight.get(rect);
-
-                    rect.setX(newX + (initialShapeLocalX - originalX) * scaleX);
-                    rect.setY(newY + (initialShapeLocalY - originalY) * scaleY);
-                    rect.setWidth(initialShapeLocalWidth * scaleX);
-                    rect.setHeight(initialShapeLocalHeight * scaleY);
-                } else if (shape instanceof Ellipse ellipse) {
-                    // Per le ellissi, le coordinate iniziali memorizzate erano centerX/Y e 2*RadiusX/Y
-                    double initialEllipseCenterX = initialShapeX.get(ellipse);
-                    double initialEllipseCenterY = initialShapeY.get(ellipse);
-                    double initialEllipseRadiusX = initialShapeWidth.get(ellipse) / 2;
-                    double initialEllipseRadiusY = initialShapeHeight.get(ellipse) / 2;
-
-                    // Calcola la posizione del centro rispetto all'origine del bounding box del gruppo
-                    double relativeCenterX = initialEllipseCenterX - originalX;
-                    double relativeCenterY = initialEllipseCenterY - originalY;
-
-                    // Applica la scala relativa e la nuova posizione del gruppo
-                    ellipse.setCenterX(newX + relativeCenterX * scaleX);
-                    ellipse.setCenterY(newY + relativeCenterY * scaleY);
-                    ellipse.setRadiusX(initialEllipseRadiusX * scaleX);
-                    ellipse.setRadiusY(initialEllipseRadiusY * scaleY);
-                } else if (shape instanceof Line line) {
-                    Point2D initialStart = initialLineStart.get(line);
-                    Point2D initialEnd = initialLineEnd.get(line);
-
-                    if (initialStart != null && initialEnd != null) {
-                        double relStartX = initialStart.getX() - originalX;
-                        double relStartY = initialStart.getY() - originalY;
-                        double relEndX = initialEnd.getX() - originalX;
-                        double relEndY = initialEnd.getY() - originalY;
-
-                        line.setStartX(newX + relStartX * scaleX);
-                        line.setStartY(newY + relStartY * scaleY);
-                        line.setEndX(newX + relEndX * scaleX);
-                        line.setEndY(newY + relEndY * scaleY);
-                    }
+            // Applica limiti minimi di dimensione
+            if (newWidth < minSize) {
+                // Se la larghezza diventa troppo piccola, riposiziona la X per mantenere la forma
+                if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.SOUTH_WEST || activeHandleType == ResizeHandleType.WEST) {
+                    newX += (newWidth - minSize);
                 }
+                newWidth = minSize;
             }
-            updateGroupDecorations(); // Aggiorna handle del gruppo
-            event.consume();
-            return;
-        }
-
-        // 5. Spostamento di GRUPPO (anche se selezione singola)
-        if (isGroupMoving && !selectedJavaFxShapes.isEmpty()) {
-            double deltaX = x - initialMousePressForGroup.getX();
-            double deltaY = y - initialMousePressForGroup.getY();
-
-            for (Shape shape : selectedJavaFxShapes) {
-                // Recupera le posizioni iniziali per ogni forma
-                if (shape instanceof Line line) {
-                    line.setStartX(initialLineStart.get(line).getX() + deltaX);
-                    line.setStartY(initialLineStart.get(line).getY() + deltaY);
-                    line.setEndX(initialLineEnd.get(line).getX() + deltaX);
-                    line.setEndY(initialLineEnd.get(line).getY() + deltaY);
-                } else if (shape instanceof Rectangle rect) {
-                    rect.setX(initialShapeX.get(rect) + deltaX);
-                    rect.setY(initialShapeY.get(rect) + deltaY);
-                } else if (shape instanceof Ellipse ellipse) {
-                    ellipse.setCenterX(initialShapeX.get(ellipse) + deltaX);
-                    ellipse.setCenterY(initialShapeY.get(ellipse) + deltaY);
+            if (newHeight < minSize) {
+                // Se l'altezza diventa troppo piccola, riposiziona la Y per mantenere la forma
+                if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.NORTH_EAST || activeHandleType == ResizeHandleType.NORTH) {
+                    newY += (newHeight - minSize);
                 }
+                newHeight = minSize;
             }
-            updateGroupDecorations(); // Aggiorna i decoratori dopo lo spostamento
-            event.consume();
+
+            // Applica le nuove proprietà al rettangolo
+            rect.setX(newX);
+            rect.setY(newY);
+            rect.setWidth(newWidth);
+            rect.setHeight(newHeight);
+
         }
+        // Gestione del ridimensionamento per le Ellissi
+        else if (shape instanceof Ellipse ellipse) {
+            // Un'ellisse è definita dal centro e dai raggi. Per il resize è più facile trattarla come un rettangolo
+            // circoscritto e poi convertirne i valori.
+            double currentCenterX = ellipse.getCenterX();
+            double currentCenterY = ellipse.getCenterY();
+            double currentRadiusX = ellipse.getRadiusX();
+            double currentRadiusY = ellipse.getRadiusY();
+
+            // Calcola il rettangolo circoscritto (x, y, width, height)
+            double newX = currentCenterX - currentRadiusX;
+            double newY = currentCenterY - currentRadiusY;
+            double newWidth = currentRadiusX * 2;
+            double newHeight = currentRadiusY * 2;
+
+            // Applica la logica di ridimensionamento come per un rettangolo
+            switch (activeHandleType) {
+                case NORTH_WEST: newX += deltaX; newY += deltaY; newWidth -= deltaX; newHeight -= deltaY; break;
+                case NORTH_EAST: newY += deltaY; newWidth += deltaX; newHeight -= deltaY; break;
+                case SOUTH_WEST: newX += deltaX; newWidth -= deltaX; newHeight += deltaY; break;
+                case SOUTH_EAST: newWidth += deltaX; newHeight += deltaY; break;
+                case NORTH: newY += deltaY; newHeight -= deltaY; break;
+                case SOUTH: newHeight += deltaY; break;
+                case EAST: newWidth += deltaX; break;
+                case WEST: newX += deltaX; newWidth -= deltaX; break;
+                default: break;
+            }
+
+            // Applica limiti minimi di dimensione
+            if (newWidth < minSize) {
+                if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.SOUTH_WEST || activeHandleType == ResizeHandleType.WEST) newX += (newWidth - minSize);
+                newWidth = minSize;
+            }
+            if (newHeight < minSize) {
+                if (activeHandleType == ResizeHandleType.NORTH_WEST || activeHandleType == ResizeHandleType.NORTH_EAST || activeHandleType == ResizeHandleType.NORTH) newY += (newHeight - minSize);
+                newHeight = minSize;
+            }
+
+            // Converti le nuove dimensioni e posizioni del rettangolo in centro e raggi dell'ellisse
+            ellipse.setCenterX(newX + newWidth / 2);
+            ellipse.setCenterY(newY + newHeight / 2);
+            ellipse.setRadiusX(newWidth / 2);
+            ellipse.setRadiusY(newHeight / 2);
+
+        }
+        // Gestione del ridimensionamento per le Linee
+        else if (shape instanceof Line line) {
+            // Per le linee, ogni handle corrisponde a uno dei punti di inizio/fine
+            switch (activeHandleType) {
+                case NORTH_WEST: line.setStartX(line.getStartX() + deltaX); line.setStartY(line.getStartY() + deltaY); break;
+                case NORTH_EAST: line.setEndX(line.getEndX() + deltaX); line.setStartY(line.getStartY() + deltaY); break;
+                case SOUTH_WEST: line.setStartX(line.getStartX() + deltaX); line.setEndY(line.getEndY() + deltaY); break;
+                case SOUTH_EAST: line.setEndX(line.getEndX() + deltaX); line.setEndY(line.getEndY() + deltaY); break;
+                // I casi NORTH, SOUTH, EAST, WEST per le linee devono gestire i punti in modo logico
+                // Se l'handle è NORTH, significa che stiamo trascinando il punto più in alto della linea.
+                // Questo è un'interpretazione più complessa per le linee, potresti voler semplificare.
+                // Per ora, replico la logica degli handle di angoli per i punti estremi.
+                // Se la tua linea non ha handle intermedi, questi casi potrebbero non essere raggiunti o avere un comportamento inatteso.
+                case NORTH: line.setStartY(line.getStartY() + deltaY); break; // Modifica Y del punto iniziale (o punto più alto)
+                case SOUTH: line.setEndY(line.getEndY() + deltaY); break;   // Modifica Y del punto finale (o punto più basso)
+                case EAST: line.setEndX(line.getEndX() + deltaX); break;    // Modifica X del punto finale (o punto più a destra)
+                case WEST: line.setStartX(line.getStartX() + deltaX); break; // Modifica X del punto iniziale (o punto più a sinistra)
+                default: break;
+            }
+        }
+        // Puoi aggiungere altri tipi di forme qui (es. Polyline, Polygon, etc.)
     }
+
 
 
     @Override
-    public void handleMouseMoved(MouseEvent event) {
-        // Se c'è un'operazione attiva, mantiene il cursore specifico
-        if (isGroupMoving) { drawingPane.setCursor(Cursor.MOVE); return; }
-        if (isGroupRotating) { drawingPane.setCursor(Cursor.CROSSHAIR); return; }
-        if (isGroupResizing) { drawingPane.setCursor(getCursorForHandle(activeHandleType)); return; }
-
-        if (isIndividualResizing) { drawingPane.setCursor(getCursorForHandle(activeHandleType)); return; }
-        if (isRotating) { drawingPane.setCursor(Cursor.CROSSHAIR); return; }
-
-
-        Point2D localPoint = getTransformedCoordinates(event, drawingPane);
-        double x = localPoint.getX();
-        double y = localPoint.getY();
-
-        // 1. Cerca handle di gruppo
-        Circle handleAtPosition = findGroupHandleAt(x, y);
-        if (handleAtPosition != null) {
-            String handleType = (String) handleAtPosition.getUserData();
-            drawingPane.setCursor(getCursorForHandle(ResizeHandleType.valueOf(handleType)));
-            return;
-        }
-
-        // 2. Cerca handle individuali (solo se c'è una singola forma selezionata)
-        handleAtPosition = findIndividualHandleAt(x, y);
-        if (handleAtPosition != null) {
-            String handleType = (String) handleAtPosition.getUserData();
-            drawingPane.setCursor(getCursorForHandle(ResizeHandleType.valueOf(handleType)));
-            return;
-        }
-
-        // 3. Cerca forma sotto il mouse (per spostamento)
-        Shape shapeAtPos = findShapeAt(x, y);
-        drawingPane.setCursor(shapeAtPos != null ? Cursor.MOVE : Cursor.DEFAULT);
+    public List<MyShape> getSelectedShapes() {
+        return new ArrayList<>(this.selectedModelShapes); // Restituisce una copia per sicurezza
     }
 
-    @Override
-    public void handleBorderColorChange(Color color) {
-        if (!selectedJavaFxShapes.isEmpty()) {
-            List<Shape> oldStates = new ArrayList<>();
-            List<Shape> newStates = new ArrayList<>();
-
-            for (Shape shape : selectedJavaFxShapes) {
-                    oldStates.add(shape);
-
-
-                shape.setStroke(color);
-                // "Cuocere" le trasformazioni prima della conversione nel modello
-                bakeTransformations(shape);
-            }
-
-            callback.onModifyGroup(oldStates, newStates);
-        }
+    private double calculateAngle(double x, double y, Shape shape) {
+        Bounds bounds = shape.getBoundsInParent();
+        double centerX = bounds.getMinX() + bounds.getWidth() / 2;
+        double centerY = bounds.getMinY() + bounds.getHeight() / 2;
+        return Math.toDegrees(Math.atan2(y - centerY, x - centerX));
     }
 
-    @Override
-    public void handleFillColorChange(Color color) {
-        if (!selectedJavaFxShapes.isEmpty()) {
-            List<Shape> oldStates = new ArrayList<>();
-            List<Shape> newStates = new ArrayList<>();
-
-            for (Shape shape : selectedJavaFxShapes) {
-                oldStates.add(shape);
-
-
-                if (!(shape instanceof Line)) { // Le linee non hanno riempimento
-                    shape.setFill(color);
-                }
-                // "Cuocere" le trasformazioni prima della conversione nel modello
-                bakeTransformations(shape);
-                newStates.add(shape);
-            }
-            callback.onModifyGroup(oldStates, newStates);
-
+    private void debugSelectionState() {
+        System.out.println("=== DEBUG SELEZIONE ===");
+        System.out.println("selectedJavaFxShapes: " + selectedJavaFxShapes.size());
+        for (Shape s : selectedJavaFxShapes) {
+            System.out.println(" -> " + s + " | modello: " + shapeMapping.getModelShape(s));
         }
+        System.out.println("decorators: " + decorators.size());
+        System.out.println("shapeMapping size: " + shapeMapping.size());
+        debugDrawingPaneChildren();
     }
 
-
-    public void handleCopy(Event event) {
-        if (!selectedJavaFxShapes.isEmpty()) {
-            List<Shape> shapesToCopy = new ArrayList<>();
-            for (Shape fxShape : selectedJavaFxShapes) {
-                bakeTransformations(fxShape); // Cuocere le trasformazioni prima della copia
-            }
-            callback.onCopyShapes(shapesToCopy); // Nuovo callback
+    private void debugDrawingPaneChildren() {
+        System.out.println("== CHILDREN DEL PANE ==");
+        for (Node node : drawingPane.getChildren()) {
+            System.out.println(" - " + node + " | " + node.getClass());
         }
     }
-
-    @Override
-    public void handleCut(Event event) {
-        if (!selectedJavaFxShapes.isEmpty()) {
-
-            callback.onCutShapes(selectedJavaFxShapes); // Nuovo callback
-        }
-    }
-
-    @Override
-    public void handleDelete(Event event) {
-            callback.onDeleteShapes(selectedJavaFxShapes); // Nuovo callback
-        }
-
-
-    // Le operazioni Z-order (BringToFront, ecc.) devono agire su TUTTE le forme selezionate.
-    // L'ordine in cui le si applica è importante per l'undo/redo.
-    // Suggerimento: un comando per ogni forma, o un comando di gruppo che le ordina in base alla posizione originale
-    // Forse il tuo MainController già gestisce questo tramite onBringToFront etc. per singola forma.
-    // Se è così, puoi iterare. Se ha bisogno di un comando di gruppo Z-order, allora modifichiamo il callback.
-    // Per ora, iteriamo e chiamiamo il callback individuale.
-    @Override
-    public void handleBringToFront(ActionEvent actionEvent) {
-        if (!selectedJavaFxShapes.isEmpty()) {
-            for (Shape shape : selectedJavaFxShapes) {
-                callback.onBringToFront(shape);
-            }
-        }
-    }
-
-    @Override
-    public void handleBringToTop(ActionEvent actionEvent) {
-        if (!selectedJavaFxShapes.isEmpty()) {
-            for (Shape shape : selectedJavaFxShapes) {
-                callback.onBringToTop(shape);
-            }
-        }
-    }
-
-    @Override
-    public void handleSendToBack(ActionEvent actionEvent) {
-        if (!selectedJavaFxShapes.isEmpty()) {
-            for (Shape shape : selectedJavaFxShapes) {
-                callback.onSendToBack(shape);
-            }
-        }
-    }
-
-    @Override
-    public void handleSendToBottom(ActionEvent actionEvent) {
-        if (!selectedJavaFxShapes.isEmpty()) {
-            for (Shape shape : selectedJavaFxShapes) {
-                callback.onSendToBottom(shape);
-            }
-        }
-    }
-
-
-
-
-
-    // Metodo helper per ottenere il cursore corretto per l'handle
-    private Cursor getCursorForHandle(SelectionToolStrategy.ResizeHandleType type) {
-        return switch (type) {
-            case ROTATION -> Cursor.CROSSHAIR;
-            case NORTH_WEST, SOUTH_EAST -> Cursor.NW_RESIZE;
-            case NORTH_EAST, SOUTH_WEST -> Cursor.NE_RESIZE;
-            case NORTH, SOUTH -> Cursor.V_RESIZE;
-            case EAST, WEST -> Cursor.H_RESIZE;
-            default -> Cursor.HAND;
-        };
-    }
-
-
-    private Shape findShapeAt(double x, double y) {
-        List<javafx.scene.Node> children = drawingPane.getChildren();
-        for (int i = children.size() - 1; i >= 0; i--) {
-            javafx.scene.Node node = children.get(i);
-            // Ignora gli handle individuali
-            if (activeDecorators.values().stream().anyMatch(d -> d.getResizeHandles().contains(node))) {
-                continue;
-            }
-            // Ignora gli handle di gruppo
-            if (groupResizeHandles.contains(node) || node == groupRotationHandle) {
-                continue;
-            }
-            if (node instanceof Shape shape) {
-                // Non considerare le forme che sono già selezionate se stiamo cercando una nuova forma
-                // Questa è una logica per la selezione MARQUEE, non per il click.
-                // Per il click: se è una forma selezionata, il clic su di essa dovrebbe preparare al drag o deselezionare.
-                // Quindi, non ignorare le forme selezionate qui.
-                if (shape.isVisible() && shape.contains(x, y)) {
-                    return shape;
-                }
-            }
-        }
-        return null;
-    }
-
-
-    public void selectShapeByModel(MyShape shape) {
-        Shape javafxShape = shapeMapping.getViewShape(shape);
-        if (javafxShape != null) {
-            clearSelection(); // Deseleziona tutto prima
-            addShapeToSelection(javafxShape); // Aggiungi la singola forma
-            callback.onShapesSelected(selectedJavaFxShapes); // Notifica la selezione
-        }
-    }
-
 }
-
-
-
