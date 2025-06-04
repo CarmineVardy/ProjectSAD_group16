@@ -95,15 +95,24 @@ public class SelectionToolStrategy implements ToolStrategy {
             for (Shape shape : selectedJavaFxShapes) {
                 shape.setFill(color);
             }
+            if (selectedJavaFxShapes != null && !selectedJavaFxShapes.isEmpty()) {
+                for (Shape shape : selectedJavaFxShapes) {
+                    SelectionShapeDecorator decorator = decorators.get(shape);
+                    if (decorator != null) {
+                        decorator.removeDecoration();
+                    }
+                }
 
-            this.callback.onModifyShapes(selectedJavaFxShapes);
+                this.callback.onModifyShapes(selectedJavaFxShapes);
 
-            for (Shape shape : selectedJavaFxShapes) {
-                SelectionShapeDecorator decorator = decorators.get(shape);
-                if (decorator != null) {
-                    decorator.applyDecoration();
+                for (Shape shape : selectedJavaFxShapes) {
+                    SelectionShapeDecorator decorator = decorators.get(shape);
+                    if (decorator != null) {
+                        decorator.applyDecoration();
+                    }
                 }
             }
+
         }
     }
     
@@ -285,9 +294,18 @@ public class SelectionToolStrategy implements ToolStrategy {
         if (!selectedJavaFxShapes.isEmpty()) {
             if (wasRotating || wasResizing) {
 
+                if (selectedJavaFxShapes != null && !selectedJavaFxShapes.isEmpty()) {
+                    for (Shape shape : selectedJavaFxShapes) {
+                        SelectionShapeDecorator decorator = decorators.get(shape);
+                        if (decorator != null) {
+                            decorator.removeDecoration();
+                        }
+                    }
+                    callback.onModifyShapes(selectedJavaFxShapes);
+                    clearSelection();
+                }
 
-                callback.onModifyShapes(selectedJavaFxShapes);
-                clearSelection();
+
 
 
 
@@ -301,8 +319,17 @@ public class SelectionToolStrategy implements ToolStrategy {
                     for (Shape shape : selectedJavaFxShapes) {
                         bakeTranslation(shape);
                     }
-                    callback.onModifyShapes(selectedJavaFxShapes);
-                    clearSelection();
+
+                    if (selectedJavaFxShapes != null && !selectedJavaFxShapes.isEmpty()) {
+                        for (Shape shape : selectedJavaFxShapes) {
+                            SelectionShapeDecorator decorator = decorators.get(shape);
+                            if (decorator != null) {
+                                decorator.removeDecoration();
+                            }
+                        }
+                        callback.onModifyShapes(selectedJavaFxShapes);
+                        clearSelection();
+                    }
                 }
             }
         }

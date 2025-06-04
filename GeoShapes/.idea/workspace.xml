@@ -5,90 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="25bafa7f-a50b-4cd0-b328-2cb8f1e70b6e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradlew.bat" beforeDir="false" afterPath="$PROJECT_DIR$/gradlew.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/CodeConv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/DoD" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/MainApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/MainApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/AdapterFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/AdapterFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/forward/EllipseAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/forward/EllipseAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReverseEllipseAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReverseEllipseAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReversePolygonAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReversePolygonAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReverseRectangleAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReverseRectangleAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/InteractionCallback.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/InteractionCallback.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/MainController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/ShapeMapping.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/ShapeMapping.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/BringToFrontCommand.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/BringToTopCommand.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/Command.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/CommandInvoker.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/CreateShapeCommand.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/DeleteShapeCommand.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/FlipHShapeCommand.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/FlipVShapeCommand.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/ModifyShapeCommand.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/RotateShapeCommand.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/SendToBackCommand.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/SendToBottomCommand.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/EllipseToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/EllipseToolStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/LineToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/LineToolStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/PolygonToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/PolygonToolStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/RectangleToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/RectangleToolStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/TextShapeWrapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/forward/TextAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/forward/TextAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReverseTextAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReverseTextAdapter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/SelectionToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/SelectionToolStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/ToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/ToolStrategy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/util/GridRenderer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/util/GridSettings.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/util/UIUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/util/UIUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/decorator/PreviewDecorator.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/decorator/SelectionDecorator.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/decorator/ShapeDecorator.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/DrawingModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/DrawingModel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/MyColor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/MyColor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyEllipse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyEllipse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyLine.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyLine.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyPolygon.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyPolygon.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyRectangle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyRectangle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyShape.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyShape.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/it/unisa/diem/sad/geoshapes/view/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/it/unisa/diem/sad/geoshapes/view/MainView.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/styles/icons/border_color.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/styles/icons/bordercolor.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/styles/icons/bucket.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/styles/icons/logo.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/styles/style.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/MainApplicationTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/adapter/EllipseAdapterTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/adapter/LineAdapterTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/adapter/RectangleAdapterTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/MainControllerTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/ShapeMappingTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/BringToFrontCommandTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/ChangeBorderColorCommandTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/ChangeFillColorCommandTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/CommandInvokerTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/CreateShapeCommandTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/DeleteShapeCommandTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/SendToBackCommandTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/strategy/EllipseToolStrategyTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/strategy/LineToolStrategyTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/strategy/RectangleToolStrategyTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/strategy/SelectionToolStrategyTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/util/UIUtilsTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/decorator/PreviewDecoratorTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/decorator/SelectionDecoratorTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/DrawingModelTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/factory/EllipseFactoryTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/factory/LineFactoryTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/factory/RectangleFactoryTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/shapes/MyEllipseTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/shapes/MyLineTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/shapes/MyRectangleTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/util/GridSettingsTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/util/MyColorTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/persistence/PersistenceServiceTest.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -156,29 +77,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Gradle.GeoShapes [buildDependents].executor": "Run",
-    "Gradle.GeoShapes [buildNeeded].executor": "Run",
-    "Gradle.GeoShapes [build].executor": "Run",
-    "Gradle.GeoShapes [clean].executor": "Run",
-    "Gradle.GeoShapes [run].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "C:/Users/utente/Documents/GitHub/ProjectSAD_group16/GeoShapes/src/test/java/it/unisa/diem/sad/geoshapes/observer",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "ml.llm.LLMConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.GeoShapes [buildDependents].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GeoShapes [buildNeeded].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GeoShapes [build].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GeoShapes [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GeoShapes [run].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/utente/Documents/GitHub/ProjectSAD_group16/GeoShapes/src/test/java/it/unisa/diem/sad/geoshapes/observer&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;ml.llm.LLMConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\utente\Documents\GitHub\ProjectSAD_group16\GeoShapes\src\test\java\it\unisa\diem\sad\geoshapes\observer" />
