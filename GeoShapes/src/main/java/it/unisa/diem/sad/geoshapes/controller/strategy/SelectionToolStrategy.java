@@ -62,25 +62,22 @@ public class SelectionToolStrategy implements ToolStrategy {
     @Override
     public void handleBorderColorChange(Color color) {
         if (selectedJavaFxShapes != null && !selectedJavaFxShapes.isEmpty()) {
-            for (Shape shape : selectedJavaFxShapes) {
-                SelectionShapeDecorator decorator = decorators.get(shape);
-                if (decorator != null) {
-                    decorator.removeDecoration();
-                }
-            }
+            // Cambia direttamente il colore senza rimuovere le decorazioni
             for (Shape shape : selectedJavaFxShapes) {
                 shape.setStroke(color);
             }
             this.callback.onModifyShapes(selectedJavaFxShapes);
 
+            // Aggiorna il colore originale memorizzato nei decoratori
             for (Shape shape : selectedJavaFxShapes) {
                 SelectionShapeDecorator decorator = decorators.get(shape);
                 if (decorator != null) {
-                    decorator.applyDecoration();
+                    decorator.updateOriginalStrokeColor(color);
                 }
             }
         }
     }
+
 
     @Override
     public void handleFillColorChange(Color color) {

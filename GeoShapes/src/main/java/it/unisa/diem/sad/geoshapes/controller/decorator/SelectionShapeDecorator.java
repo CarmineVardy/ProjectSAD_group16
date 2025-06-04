@@ -293,4 +293,10 @@ public class SelectionShapeDecorator implements ShapeDecorator {
         decoratedShape.setOpacity(originalOpacity);
     }
 
+
+    public void updateOriginalStrokeColor(Color newColor) {
+        this.originalStrokeColor = newColor;
+    }
+
+
 }

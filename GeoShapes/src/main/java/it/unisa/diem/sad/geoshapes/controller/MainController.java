@@ -790,29 +790,48 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
 
     public void handleKeyPressed(KeyEvent event) {
+        // Gestisci prima i comandi globali
+        if (event.getCode() == KeyCode.DELETE) {
+            handleDelete(event);
+            event.consume();
+            return;
+        } else if (event.isControlDown()) {
+            switch (event.getCode()) {
+                case C:
+                    handleCopy(event);
+                    event.consume();
+                    return;
+                case V:
+                    handlePaste(event);
+                    event.consume();
+                    return;
+                case X:
+                    handleCut(event);
+                    event.consume();
+                    return;
+                case Z:
+                    handleUndo(event);
+                    event.consume();
+                    return;
+                default:
+                    break;
+            }
+        }
+
+        // Gestisci altri tasti globali
+        switch (event.getCode()) {
+            case ESCAPE:
+                // Deseleziona tutto o cancella operazione corrente
+                if (currentStrategy != null) {
+                    currentStrategy.reset();
+                }
+                event.consume();
+                return;
+        }
+
+        // Se non è un comando globale, passa alla strategia corrente
         if (currentStrategy != null) {
             currentStrategy.handleKeyPressed(event);
-        } else {
-            if (event.getCode() == KeyCode.DELETE) {
-                handleDelete(event);
-            } else if (event.isControlDown()) {
-                switch (event.getCode()) {
-                    case C:
-                        handleCopy(event);
-                        break;
-                    case V:
-                        handlePaste(event);
-                        break;
-                    case X:
-                        handleCut(event);
-                        break;
-                    case Z:
-                        handleUndo(event);
-                        break;
-                    default:
-                        break;
-                }
-            }
         }
     }
 
@@ -1083,6 +1102,7 @@ public class MainController implements ShapeObserver, InteractionCallback {
     }
 
     private void updateListViewSelection(List<Shape> currentSelection) {
+        // Cancella sempre la selezione prima
         shapesListView.getSelectionModel().clearSelection();
 
         if (currentSelection == null || currentSelection.isEmpty()) {
@@ -1092,11 +1112,11 @@ public class MainController implements ShapeObserver, InteractionCallback {
         try {
             for (Shape viewShape : currentSelection) {
                 MyShape modelShape = shapeMapping.getModelShape(viewShape);
-
                 if (modelShape != null) {
                     int index = model.getShapesReversed().indexOf(modelShape);
                     if (index >= 0) {
-                        shapesListView.getSelectionModel().select(index);
+                        // Usa selectRange per selezionare singoli elementi senza aggiungere alla selezione precedente
+                        shapesListView.getSelectionModel().selectRange(index, index + 1);
                     }
                 }
             }
@@ -1104,4 +1124,5 @@ public class MainController implements ShapeObserver, InteractionCallback {
             shapesListView.getSelectionModel().clearSelection();
         }
     }
+
 }

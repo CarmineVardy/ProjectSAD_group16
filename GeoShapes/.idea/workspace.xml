@@ -6,9 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="25bafa7f-a50b-4cd0-b328-2cb8f1e70b6e" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/TextShapeWrapper.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/forward/TextAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/forward/TextAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReverseTextAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReverseTextAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/MainController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/decorator/SelectionShapeDecorator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/decorator/SelectionShapeDecorator.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/SelectionToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/SelectionToolStrategy.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
