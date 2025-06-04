@@ -112,6 +112,7 @@ public class SelectionShapeDecorator implements ShapeDecorator {
         allHandles.clear();
         selectionBorders.clear();
         rotationHandle = null;
+        restoreOriginalProperties();
     }
 
     private void createAndAddDecorations() {
@@ -167,7 +168,7 @@ public class SelectionShapeDecorator implements ShapeDecorator {
 
             // Per la Linea, NON si crea né il rettangolo di selezione né l'handle di rotazione.
 
-        } else if (decoratedShape instanceof Rectangle || decoratedShape instanceof Ellipse) {
+        } else if (decoratedShape instanceof Rectangle || decoratedShape instanceof Ellipse || decoratedShape instanceof Polygon) {
             // Rettangolo di selezione per Rectangle e Ellipse
             Rectangle selectionRect = new Rectangle(shapeLocalX, shapeLocalY, shapeLocalWidth, shapeLocalHeight);
             selectionRect.setStroke(Color.DODGERBLUE);
@@ -283,5 +284,13 @@ public class SelectionShapeDecorator implements ShapeDecorator {
         isActive = true;
     }
 
+
+    private void restoreOriginalProperties() {
+        decoratedShape.setStroke(originalStrokeColor);
+        decoratedShape.setStrokeWidth(originalStrokeWidth);
+        decoratedShape.setStrokeType(originalStrokeType);
+        decoratedShape.setFill(originalFill);
+        decoratedShape.setOpacity(originalOpacity);
+    }
 
 }

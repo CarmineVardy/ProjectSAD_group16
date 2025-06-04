@@ -170,6 +170,7 @@ public class SelectionToolStrategy implements ToolStrategy {
                 } else {
                     if (!selectedJavaFxShapes.contains(shapeAtPosition)) {
                         clearSelection();
+                        decorators.remove(shapeAtPosition);
                         addShapeToSelection(shapeAtPosition);
                     }
                     setPrimarySelectedShape(shapeAtPosition);
@@ -281,10 +282,14 @@ public class SelectionToolStrategy implements ToolStrategy {
         isRotating = false;
         isResizing = false;
         activeHandleType = ResizeHandleType.NONE;
-
         if (!selectedJavaFxShapes.isEmpty()) {
             if (wasRotating || wasResizing) {
+
+
                 callback.onModifyShapes(selectedJavaFxShapes);
+                clearSelection();
+
+
 
             } else if (wasMoving) {
                 Point2D localPoint = drawingArea.sceneToLocal(event.getSceneX(), event.getSceneY());
@@ -297,11 +302,14 @@ public class SelectionToolStrategy implements ToolStrategy {
                         bakeTranslation(shape);
                     }
                     callback.onModifyShapes(selectedJavaFxShapes);
+                    clearSelection();
                 }
             }
         }
 
+
         handleMouseMoved(event);
+
         event.consume();
     }
 
