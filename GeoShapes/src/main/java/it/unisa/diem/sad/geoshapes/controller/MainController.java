@@ -251,7 +251,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
 
     private final BooleanProperty hasSelectedShapes = new SimpleBooleanProperty(false);
     private final BooleanProperty onlyLinesSelected = new SimpleBooleanProperty(false);
+    private final BooleanProperty onlyTextsSelected = new SimpleBooleanProperty(false);
     private final BooleanProperty canGroup = new SimpleBooleanProperty(false); // almeno 2 forme
+
 
     private double currentZoomLevel = 1.0;
     private double previousScale = 1.0;
@@ -617,18 +619,16 @@ public class MainController implements ShapeObserver, InteractionCallback {
                 hasSelectedShapes.not().or(onlyLinesSelected)
         );
         //ABILITATI SOLO SE HO SELEZIOANTO UN TESTO
-        //textColorModifyMenuItem
-        //fontSizeModifyMenuItem
+        textColorModifyMenuItem.disableProperty().bind(onlyTextsSelected.not());
+        fontSizeModifyMenuItem.disableProperty().bind(onlyTextsSelected.not());
         cutMenuItem.disableProperty().bind(hasSelectedShapes.not());
         copyMenuItem.disableProperty().bind(hasSelectedShapes.not());
         deleteMenuItem.disableProperty().bind(hasSelectedShapes.not());
         pasteMenuItem.disableProperty().bind(clipboard.emptyProperty());
         bringToFrontMenu.disableProperty().bind(hasSelectedShapes.not());
         sendToBackMenu.disableProperty().bind(hasSelectedShapes.not());
-        groupMenuItem.disableProperty().bind(canGroup.not());
-        //ABILITATO SOLO SE HO SELEZIONATO UN GROUP
-        ungroupMenuItem.disableProperty().bind(canGroup.not());
-        //ungroupMenuItem
+        //groupMenuItem.disableProperty().bind(canGroup.not());
+        //ungroupMenuItem.disableProperty().bind(canGroup.not());
         flipHMenuItem.disableProperty().bind(hasSelectedShapes.not());
         flipVButton.disableProperty().bind(hasSelectedShapes.not());
     }
@@ -1117,6 +1117,12 @@ public class MainController implements ShapeObserver, InteractionCallback {
         boolean onlyLines = size > 0 && selectedShapes.stream()
                 .allMatch(shape -> shape instanceof Line);
         onlyLinesSelected.set(onlyLines);
+
+        //boolean onlyTexts = size > 0 && selectedShapes.stream()
+        //        .allMatch(shape -> shape instanceof Text);
+        boolean onlyTexts = false;
+        onlyLinesSelected.set(onlyTexts);
+
 
         updateListViewSelection(selectedShapes);
     }
