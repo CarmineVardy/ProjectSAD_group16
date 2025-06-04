@@ -42,14 +42,13 @@ public class MyRectangle extends MyShape {
         setStartY(Math.min(newStartY, newEndY));
         setEndY(Math.max(newStartY, newEndY));
 
-        this.rotation = 180 - this.rotation;
+        this.rotation = -this.rotation;
+        this.rotation = this.rotation % 360;
+
         if (this.rotation > 180.0) {
             this.rotation -= 360.0;
         } else if (this.rotation <= -180.0) {
             this.rotation += 360.0;
         }
     }
-
-
-
 }

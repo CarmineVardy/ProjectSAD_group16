@@ -9,7 +9,7 @@ public class LineAdapter implements ShapeAdapter {
 
     private static final LineAdapter INSTANCE = new LineAdapter();
 
-    private LineAdapter() {
+    public LineAdapter() {
     }
 
     public static LineAdapter getInstance() {

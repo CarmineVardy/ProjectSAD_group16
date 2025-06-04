@@ -9,7 +9,7 @@ public class RectangleAdapter implements ShapeAdapter {
 
     private static final RectangleAdapter INSTANCE = new RectangleAdapter();
 
-    private RectangleAdapter() {}
+    public RectangleAdapter() {}
 
     public static RectangleAdapter getInstance() {
         return INSTANCE;

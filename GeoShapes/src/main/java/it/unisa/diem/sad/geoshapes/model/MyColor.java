@@ -46,4 +46,20 @@ public class MyColor implements Serializable {
         return opacity;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        MyColor other = (MyColor) obj;
+        return Double.compare(red, other.red) == 0 &&
+                Double.compare(green, other.green) == 0 &&
+                Double.compare(blue, other.blue) == 0 &&
+                Double.compare(opacity, other.opacity) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(red, green, blue, opacity);
+    }
+
 }

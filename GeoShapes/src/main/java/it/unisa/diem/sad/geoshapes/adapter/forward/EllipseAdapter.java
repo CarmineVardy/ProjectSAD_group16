@@ -9,7 +9,7 @@ public class EllipseAdapter implements ShapeAdapter {
 
     private static final EllipseAdapter INSTANCE = new EllipseAdapter();
 
-    private EllipseAdapter() {}
+    public EllipseAdapter() {}
 
     public static EllipseAdapter getInstance() {
         return INSTANCE;
