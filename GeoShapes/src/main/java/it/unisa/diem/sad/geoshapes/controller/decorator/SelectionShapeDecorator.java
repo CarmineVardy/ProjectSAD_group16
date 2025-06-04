@@ -45,16 +45,21 @@ public class SelectionShapeDecorator implements ShapeDecorator {
         if (decoratedShape.getParent() instanceof Pane) {
             this.drawingArea = (Pane) decoratedShape.getParent();
         } else {
+            // Se la shape non è attaccata a un Pane, non possiamo decorarla
             return;
         }
 
-        storeOriginalProperties();
+        // --- PUNTO CRITICO: Memorizza le proprietà originali solo la prima volta ---
+        if (originalStrokeColor == null) { // Controlla se originalStrokeColor è già stato impostato
+            storeOriginalProperties();
+        }
 
         decoratedShape.setStroke(Color.GREEN);
         decoratedShape.setStrokeWidth(originalStrokeWidth + 0.5);
         decoratedShape.setStrokeType(StrokeType.OUTSIDE);
 
         if (originalFill instanceof Color originalColor) {
+            // Rende il riempimento leggermente trasparente se non lo era già e non era trasparente
             if (originalColor.getOpacity() > 0.0) {
                 Color newColor = new Color(originalColor.getRed(), originalColor.getGreen(), originalColor.getBlue(), 0.7);
                 decoratedShape.setFill(newColor);
@@ -65,13 +70,36 @@ public class SelectionShapeDecorator implements ShapeDecorator {
         isActive = true;
     }
 
+
+
+
+
+
+
+
+
+
+
     private void storeOriginalProperties() {
-        originalStrokeColor = (Color) decoratedShape.getStroke();
-        System.out.println("\nCOLOR ORIGINAL" + originalStrokeColor.toString());
-        originalStrokeWidth = decoratedShape.getStrokeWidth();
-        originalStrokeType = decoratedShape.getStrokeType();
-        originalOpacity = decoratedShape.getOpacity();
-        originalFill = decoratedShape.getFill();
+        // Questo metodo cattura le proprietà attuali della shape.
+        // Verrà chiamato solo la prima volta che applyDecoration() è eseguito per una data istanza di SelectionShapeDecorator.
+
+        // Assicurati che lo stroke sia un Color prima del cast, altrimenti usa un default.
+        Paint currentStrokePaint = decoratedShape.getStroke();
+        if (currentStrokePaint instanceof Color) {
+            this.originalStrokeColor = (Color) currentStrokePaint;
+        } else {
+            // Se non è un Color (es. null o LinearGradient), usa un colore di default.
+            // Questo è importante per evitare NullPointerExceptions o comportamenti inattesi.
+            this.originalStrokeColor = Color.BLACK; // O un altro colore di default per la tua applicazione
+        }
+
+        this.originalStrokeWidth = decoratedShape.getStrokeWidth();
+        this.originalStrokeType = decoratedShape.getStrokeType();
+        this.originalOpacity = decoratedShape.getOpacity();
+        this.originalFill = decoratedShape.getFill();
+
+        System.out.println("DEBUG: Stored original properties for " + decoratedShape.hashCode() + ": Stroke=" + this.originalStrokeColor + ", Fill=" + this.originalFill);
     }
 
     @Override
@@ -80,6 +108,7 @@ public class SelectionShapeDecorator implements ShapeDecorator {
             return;
         }
 
+        // Ripristina le proprietà dal valore originale memorizzato
         decoratedShape.setStroke(originalStrokeColor);
         decoratedShape.setStrokeWidth(originalStrokeWidth);
         decoratedShape.setStrokeType(originalStrokeType);
@@ -88,8 +117,8 @@ public class SelectionShapeDecorator implements ShapeDecorator {
 
         removeDecorationsFromPane();
         isActive = false;
+        System.out.println("DEBUG: Removed decoration for " + decoratedShape.hashCode() + ". Restored stroke to: " + originalStrokeColor);
     }
-
     @Override
     public Shape getDecoratedShape() {
         return decoratedShape;
@@ -109,10 +138,11 @@ public class SelectionShapeDecorator implements ShapeDecorator {
             drawingArea.getChildren().removeAll(allHandles);
             drawingArea.getChildren().removeAll(selectionBorders);
         }
+        restoreOriginalProperties();
         allHandles.clear();
         selectionBorders.clear();
         rotationHandle = null;
-        restoreOriginalProperties();
+
     }
 
     private void createAndAddDecorations() {
@@ -257,35 +287,11 @@ public class SelectionShapeDecorator implements ShapeDecorator {
     }
 
 
-    public void activateDecoration() {
-        if (isActive) {
-            return;
-        }
-
-        if (decoratedShape.getParent() instanceof Pane) {
-            this.drawingArea = (Pane) decoratedShape.getParent();
-        } else {
-            System.err.println("Cannot activate decoration: The decorated shape is not currently part of a Pane.");
-            return;
-        }
-
-        decoratedShape.setStroke(Color.GREEN);
-        decoratedShape.setStrokeWidth(originalStrokeWidth + 0.5);
-        decoratedShape.setStrokeType(StrokeType.OUTSIDE);
-
-        if (originalFill instanceof Color originalColor) {
-            if (originalColor.getOpacity() > 0.0) {
-                Color newColor = new Color(originalColor.getRed(), originalColor.getGreen(), originalColor.getBlue(), 0.7);
-                decoratedShape.setFill(newColor);
-            }
-        }
-
-        createAndAddDecorations();
-        isActive = true;
-    }
-
 
     private void restoreOriginalProperties() {
+        if (originalStrokeColor == null) {
+            originalStrokeColor = Color.BLACK; // Or whatever your default unselected stroke color should be
+        }
         decoratedShape.setStroke(originalStrokeColor);
         decoratedShape.setStrokeWidth(originalStrokeWidth);
         decoratedShape.setStrokeType(originalStrokeType);

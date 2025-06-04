@@ -268,7 +268,7 @@ public class SelectionToolStrategy implements ToolStrategy {
                 }
             }
 
-            for (SelectionShapeDecorator decorator : decorators.values()) {
+           for (SelectionShapeDecorator decorator : decorators.values()) {
                 if (decorator != null) {
                     decorator.removeDecoration();
                     decorator.applyDecoration();
@@ -527,6 +527,7 @@ public class SelectionToolStrategy implements ToolStrategy {
         for (SelectionShapeDecorator decorator : decorators.values()) {
             if (decorator != null) decorator.removeDecoration();
         }
+
         decorators.clear();
         selectedJavaFxShapes.clear();
         selectedModelShapes.clear();

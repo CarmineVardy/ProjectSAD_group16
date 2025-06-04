@@ -19,6 +19,8 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.control.*;
 import javafx.scene.input.ContextMenuEvent;
@@ -333,7 +335,15 @@ public class MainController implements ShapeObserver, InteractionCallback {
         setupChangesListeners();
         setupZoomListerners();
         setupGridListeners();
+        drawingArea.widthProperty().addListener((obs, oldVal, newVal) -> updatePaneDimensions());
+        drawingArea.heightProperty().addListener((obs, oldVal, newVal) -> updatePaneDimensions());
         scrollPane.addEventFilter(ContextMenuEvent.CONTEXT_MENU_REQUESTED, Event::consume);
+    }
+
+    private void updatePaneDimensions() {
+        // Get the bounds of the drawingArea within the zoomed group
+        Bounds zoomedBounds = drawingArea.getBoundsInParent();
+        paneDimension.setText(String.format("%.0f x %.0f", zoomedBounds.getWidth(), zoomedBounds.getHeight()));
     }
 
     private void setupToolToggleListener() {
@@ -542,13 +552,16 @@ public class MainController implements ShapeObserver, InteractionCallback {
         });
     }
 
+    // Modify the existing applyZoom method to also update pane dimensions
     private void applyZoom(double scale) {
         BigDecimal bd = new BigDecimal(Double.toString(scale));
         bd = bd.setScale(2, RoundingMode.HALF_UP);
         final double newScale = bd.doubleValue();
-        drawingArea.setScaleX(newScale);
-        drawingArea.setScaleY(newScale);
-        zoomPercentageLabel.setText(String.format("%.0f%%", newScale * 100));
+        drawingArea.setScaleX(newScale); //
+        drawingArea.setScaleY(newScale); //
+        zoomPercentageLabel.setText(String.format("%.0f%%", newScale * 100)); //
+        currentZoomLevel = newScale; // Store the current zoom level
+        updatePaneDimensions(); // Update the displayed pane dimensions after zoom
     }
 
     private void setupGridListeners() {
@@ -786,6 +799,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
         if (currentStrategy != null) {
             currentStrategy.handleMouseMoved(event);
         }
+        Point2D mousePoint = drawingArea.sceneToLocal(event.getSceneX(), event.getSceneY());
+        cursorPosition.setText(String.format("%.0f, %.0f", mousePoint.getX(), mousePoint.getY()));
+
     }
 
 
@@ -1030,6 +1046,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
         ObservableList<String> shapeNames = FXCollections.observableArrayList();
         model.getShapesReversed().forEach(shape -> shapeNames.add(shape.getName()));
         shapesListView.setItems(shapeNames);
+
+        numberOfShapes.setText(String.valueOf(modelShapes.size()));
+
 
         System.out.println("Forme nel modello: " + modelShapes.size());
         System.out.println("Forme nel mapping: " + shapeMapping.size());
