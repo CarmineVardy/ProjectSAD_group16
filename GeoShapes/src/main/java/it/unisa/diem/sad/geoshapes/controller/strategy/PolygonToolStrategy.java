@@ -1,36 +1,34 @@
 package it.unisa.diem.sad.geoshapes.controller.strategy;
 
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
-import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
-import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
-import javafx.event.ActionEvent;
+import it.unisa.diem.sad.geoshapes.controller.decorator.PreviewShapeDecorator;
+import it.unisa.diem.sad.geoshapes.controller.decorator.ShapeDecorator;
 import javafx.event.Event;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
-import javafx.scene.Group;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class PolygonToolStrategy implements ToolStrategy {
+public class PolygonToolStrategy implements ToolStrategy{
 
-    private final Pane drawingPane;
+    private final Pane drawingArea;
     private final InteractionCallback callback;
-    private Group zoomGroup;
+
     private Color borderColor;
     private Color fillColor;
     private int polygonVertices;
     private boolean regularPolygon;
 
-    // Per poligoni regolari
     private Point2D firstPoint;
     private Point2D secondPoint;
     private Circle firstPointPreview;
@@ -45,10 +43,10 @@ public class PolygonToolStrategy implements ToolStrategy {
     private static final double POINT_RADIUS = 3.0;
     private static final double MIN_SIDE_LENGTH = 10.0;
 
-    public PolygonToolStrategy(Pane drawingPane, InteractionCallback callback, Group zoomGroup) {
-        this.drawingPane = drawingPane;
+
+    public PolygonToolStrategy(Pane drawingArea, InteractionCallback callback) {
+        this.drawingArea = drawingArea;
         this.callback = callback;
-        this.zoomGroup = zoomGroup;
         this.vertices = new ArrayList<>();
         this.vertexPreviews = new ArrayList<>();
         this.edgePreviews = new ArrayList<>();
@@ -56,46 +54,24 @@ public class PolygonToolStrategy implements ToolStrategy {
     }
 
     @Override
-    public void activate(Color borderColor, Color fillColor, int polygonVertices, boolean regularPolygon) {
-        this.borderColor = borderColor;
-        this.fillColor = fillColor;
+    public void activate(Color lineBorderColor, Color rectangleBorderColor, Color rectangleFillColor, Color ellipseBorderColor, Color ellipseFillColor, Color polygonBorderColor, Color polygonFillColor, Color textBorderColor, Color textFillColor, Color textColor, int polygonVertices, boolean regularPolygon, int fontSize) {
+        this.borderColor = polygonBorderColor;
+        this.fillColor = polygonFillColor;
         this.polygonVertices = polygonVertices;
         this.regularPolygon = regularPolygon;
-        callback.onLineSelected(false);
-    }
-
-    @Override
-    public void handleBorderColorChange(Color color) {
-        this.borderColor = color;
-    }
-
-    @Override
-    public void handleFillColorChange(Color color) {
-        this.fillColor = color;
-    }
-
-    @Override
-    public void handleChangePolygonVertices(int polygonVertices) {
-        this.polygonVertices = polygonVertices;
-        reset(); // Reset quando cambiano i vertici
-    }
-
-    @Override
-    public void handleRegularPolygon(boolean regularPolygon) {
-        this.regularPolygon = regularPolygon;
-        reset(); // Reset quando cambia il tipo di poligono
     }
 
     @Override
     public void handleMousePressed(MouseEvent event) {
-        drawingPane.setCursor(Cursor.CROSSHAIR);
-        Point2D localPoint = getTransformedCoordinates(event, drawingPane);
+        drawingArea.setCursor(Cursor.CROSSHAIR);
+        Point2D localPoint = drawingArea.sceneToLocal(event.getSceneX(), event.getSceneY());
 
         if (regularPolygon) {
             handleRegularPolygonClick(localPoint);
         } else {
             handleIrregularPolygonClick(localPoint);
         }
+
     }
 
     private void handleRegularPolygonClick(Point2D point) {
@@ -156,10 +132,10 @@ public class PolygonToolStrategy implements ToolStrategy {
         circle.setStrokeWidth(1.0);
 
         firstPointPreview = circle;
-        firstPointDecorator = new PreviewDecorator(circle);
+        firstPointDecorator = new PreviewShapeDecorator(circle);
         firstPointDecorator.applyDecoration();
 
-        drawingPane.getChildren().add(circle);
+        drawingArea.getChildren().add(circle);
     }
 
     private void createVertexPreview(Point2D point) {
@@ -168,12 +144,12 @@ public class PolygonToolStrategy implements ToolStrategy {
         circle.setFill(borderColor);
         circle.setStrokeWidth(1.0);
 
-        ShapeDecorator decorator = new PreviewDecorator(circle);
+        ShapeDecorator decorator = new PreviewShapeDecorator(circle);
         decorator.applyDecoration();
 
         vertexPreviews.add(circle);
         previewDecorators.add(decorator);
-        drawingPane.getChildren().add(circle);
+        drawingArea.getChildren().add(circle);
     }
 
     private void createEdgePreview(Point2D start, Point2D end) {
@@ -181,12 +157,12 @@ public class PolygonToolStrategy implements ToolStrategy {
         line.setStroke(borderColor);
         line.setStrokeWidth(1.0);
 
-        ShapeDecorator decorator = new PreviewDecorator(line);
+        ShapeDecorator decorator = new PreviewShapeDecorator(line);
         decorator.applyDecoration();
 
         edgePreviews.add(line);
         previewDecorators.add(decorator);
-        drawingPane.getChildren().add(line);
+        drawingArea.getChildren().add(line);
     }
 
     private boolean isNearFirstVertex(Point2D point) {
@@ -249,12 +225,120 @@ public class PolygonToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseDragged(MouseEvent event) {
-        // Non necessario per i poligoni
+
     }
 
     @Override
     public void handleMouseReleased(MouseEvent event) {
-        drawingPane.setCursor(Cursor.DEFAULT);
+        drawingArea.setCursor(Cursor.DEFAULT);
+
+    }
+
+    @Override
+    public void handleMouseMoved(MouseEvent event) {
+
+    }
+
+    @Override
+    public void handleLineBorderColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleRectangleBorderColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleRectangleFillColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleEllipseBorderColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleEllipseFillColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handlePolygonBorderColorChange(Color color) {
+        this.borderColor = color;
+    }
+
+    @Override
+    public void handlePolygonFillColorChange(Color color) {
+        this.fillColor = color;
+    }
+
+    @Override
+    public void handleTextBorderColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleTextFillColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleTextColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handlePolygonVerticesChange(int polygonVertices) {
+        this.polygonVertices = polygonVertices;
+        reset();
+    }
+
+    @Override
+    public void handleRegularPolygon(boolean regularPolygon) {
+        this.regularPolygon = regularPolygon;
+        reset();
+    }
+
+    @Override
+    public void handleFontSizeChange(int fontSize) {
+
+    }
+
+    @Override
+    public void handleKeyPressed(KeyEvent event) {
+
+    }
+
+    @Override
+    public void handleKeyTyped(KeyEvent event) {
+
+    }
+
+    @Override
+    public void handleBorderColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleFillColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleTextColorMenuChange(Color color) {
+
+    }
+
+    @Override
+    public void handleFontSizeMenuChange(int fontSize) {
+
+    }
+
+    @Override
+    public List<Shape> getSelectedShapes() {
+        return Collections.emptyList();
     }
 
     @Override
@@ -265,7 +349,7 @@ public class PolygonToolStrategy implements ToolStrategy {
             firstPointDecorator = null;
         }
         if (firstPointPreview != null) {
-            drawingPane.getChildren().remove(firstPointPreview);
+            drawingArea.getChildren().remove(firstPointPreview);
             firstPointPreview = null;
         }
         firstPoint = null;
@@ -278,60 +362,16 @@ public class PolygonToolStrategy implements ToolStrategy {
         previewDecorators.clear();
 
         for (Circle circle : vertexPreviews) {
-            drawingPane.getChildren().remove(circle);
+            drawingArea.getChildren().remove(circle);
         }
         vertexPreviews.clear();
 
         for (Line line : edgePreviews) {
-            drawingPane.getChildren().remove(line);
+            drawingArea.getChildren().remove(line);
         }
         edgePreviews.clear();
 
         vertices.clear();
-    }
 
-    @Override
-    public void handleMouseMoved(MouseEvent event) {
-        // NO IMPLEMENTATION HERE
-    }
-
-    @Override
-    public List<MyShape> getSelectedShapes() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public void handleBringToFront(ActionEvent actionEvent) {
-        // NO IMPLEMENTATION HERE
-    }
-
-    @Override
-    public void handleBringToTop(ActionEvent actionEvent) {
-        // NO IMPLEMENTATION HERE
-    }
-
-    @Override
-    public void handleSendToBack(ActionEvent actionEvent) {
-        // NO IMPLEMENTATION HERE
-    }
-
-    @Override
-    public void handleSendToBottom(ActionEvent actionEvent) {
-        // NO IMPLEMENTATION HERE
-    }
-
-    @Override
-    public void handleCopy(Event event) {
-        // NO IMPLEMENTATION HERE
-    }
-
-    @Override
-    public void handleCut(Event event) {
-        // NO IMPLEMENTATION HERE
-    }
-
-    @Override
-    public void handleDelete(Event event) {
-        // NO IMPLEMENTATION HERE
     }
 }

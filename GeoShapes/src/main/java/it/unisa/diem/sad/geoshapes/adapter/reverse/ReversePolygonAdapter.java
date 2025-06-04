@@ -33,7 +33,6 @@ public class ReversePolygonAdapter implements ReverseShapeAdapter {
         List<Double> xPoints = new ArrayList<>();
         List<Double> yPoints = new ArrayList<>();
 
-        // Converti da coordinate assolute a coordinate normalizzate
         for (int i = 0; i < points.size(); i += 2) {
             xPoints.add(points.get(i) / width);
             yPoints.add(points.get(i + 1) / height);

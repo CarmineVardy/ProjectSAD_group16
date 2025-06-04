@@ -8,13 +8,20 @@ import java.util.List;
 
 public class ShapeMapping {
 
-    // Manteniamo due liste parallele per efficienza nelle ricerche bidirezionali
     private List<MyShape> modelShapes;
     private List<Shape> viewShapes;
 
     public ShapeMapping() {
         this.modelShapes = new ArrayList<>();
         this.viewShapes = new ArrayList<>();
+    }
+
+    public List<MyShape> getModelShapes() {
+        return new ArrayList<>(modelShapes);
+    }
+
+    public List<Shape> getViewShapes() {
+        return new ArrayList<>(viewShapes);
     }
 
     public Shape getViewShape(MyShape modelShape) {
@@ -27,30 +34,20 @@ public class ShapeMapping {
         return index != -1 ? modelShapes.get(index) : null;
     }
 
-    public List<MyShape> getModelShapes() {
-        return new ArrayList<>(modelShapes);
-    }
-
-    public List<Shape> getViewShapes() {
-        return new ArrayList<>(viewShapes);
+    public void rebuildMapping(List<MyShape> orderedModelShapes, List<Shape> orderedViewShapes) {
+        if (orderedModelShapes.size() != orderedViewShapes.size()) {
+            throw new IllegalArgumentException("The lists of model and view must have same size");
+        }
+        clear();
+        for (int i = 0; i < orderedModelShapes.size(); i++) {
+            modelShapes.add(orderedModelShapes.get(i));
+            viewShapes.add(orderedViewShapes.get(i));
+        }
     }
 
     public void clear() {
         modelShapes.clear();
         viewShapes.clear();
-    }
-
-    public void rebuildMapping(List<MyShape> orderedModelShapes, List<Shape> orderedViewShapes) {
-        if (orderedModelShapes.size() != orderedViewShapes.size()) {
-            throw new IllegalArgumentException("The lists of model and view must have same size");
-        }
-
-        clear();
-
-        for (int i = 0; i < orderedModelShapes.size(); i++) {
-            modelShapes.add(orderedModelShapes.get(i));
-            viewShapes.add(orderedViewShapes.get(i));
-        }
     }
 
     public int size() {

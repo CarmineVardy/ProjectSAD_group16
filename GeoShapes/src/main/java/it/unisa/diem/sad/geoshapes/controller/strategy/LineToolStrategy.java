@@ -1,54 +1,41 @@
 package it.unisa.diem.sad.geoshapes.controller.strategy;
 
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
-import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
-import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
+import it.unisa.diem.sad.geoshapes.controller.decorator.PreviewShapeDecorator;
+import it.unisa.diem.sad.geoshapes.controller.decorator.ShapeDecorator;
 import javafx.geometry.Point2D;
-import javafx.scene.Group;
+import javafx.scene.Cursor;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
-import javafx.scene.Cursor;
 
 import java.util.Collections;
 import java.util.List;
 
-public class LineToolStrategy implements ToolStrategy {
+public class LineToolStrategy implements ToolStrategy{
 
     private final Pane drawingArea;
     private final InteractionCallback callback;
 
-    private Shape previewFxShape;
+    private Line previewFxShape;
     private ShapeDecorator previewDecorator;
 
-    private Color borderColor;
     private double startX, startY, endX, endY;
-
     private static final double MIN_LENGTH = 2.0;
 
-    public LineToolStrategy(Pane drawingArea, InteractionCallback callback, Group zoomGroup) {
+    private Color borderColor;
+
+    public LineToolStrategy(Pane drawingArea, InteractionCallback callback) {
         this.drawingArea = drawingArea;
         this.callback = callback;
     }
 
     @Override
-    public void activate(Color borderColor, Color fillColor, int polygonVertices, boolean regularPolygon) {
-        this.borderColor = borderColor;
-        callback.onLineSelected(true);
-    }
-
-    @Override
-    public void handleBorderColorChange(Color color) {
-        this.borderColor = color;
-    }
-
-    @Override
-    public void handleFillColorChange(Color color) {
+    public void activate(Color lineBorderColor, Color rectangleBorderColor, Color rectangleFillColor, Color ellipseBorderColor, Color ellipseFillColor, Color polygonBorderColor, Color polygonFillColor, Color textBorderColor, Color textFillColor, Color textColor, int polygonVertices, boolean regularPolygon, int fontSize) {
+        this.borderColor = lineBorderColor;
     }
 
     @Override
@@ -56,48 +43,41 @@ public class LineToolStrategy implements ToolStrategy {
         if (previewFxShape != null) {
             reset();
         }
-
         drawingArea.setCursor(Cursor.CROSSHAIR);
-
-        Point2D localPoint = getTransformedCoordinates(event,drawingArea);
+        Point2D localPoint = drawingArea.sceneToLocal(event.getSceneX(), event.getSceneY());
         startX = localPoint.getX();
         startY = localPoint.getY();
         endX = startX;
         endY = startY;
 
-        Line line = new Line(startX, startY, endX, endY);
-        line.setStroke(borderColor);
-        line.setStrokeWidth(2.0);
+        previewFxShape = new Line(startX, startY, endX, endY);
+        previewFxShape.setStroke(borderColor);
+        previewFxShape.setStrokeWidth(2.0);
 
-        previewFxShape = line;
-        previewDecorator = new PreviewDecorator(previewFxShape);
+        previewDecorator = new PreviewShapeDecorator(previewFxShape);
         previewDecorator.applyDecoration();
 
         drawingArea.getChildren().add(previewFxShape);
+
     }
 
     @Override
     public void handleMouseDragged(MouseEvent event) {
         if (previewFxShape == null) return;
 
-        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = getTransformedCoordinates(event,drawingArea);
+        Point2D localPoint = drawingArea.sceneToLocal(event.getSceneX(), event.getSceneY());
         endX = localPoint.getX();
         endY = localPoint.getY();
 
-        if (previewFxShape instanceof Line) {
-            Line line = (Line) previewFxShape;
-            line.setEndX(endX);
-            line.setEndY(endY);
-        }
+        previewFxShape.setEndX(endX);
+        previewFxShape.setEndY(endY);
+
     }
 
     @Override
     public void handleMouseReleased(MouseEvent event) {
         drawingArea.setCursor(Cursor.DEFAULT);
-
-        //Questo mi aiuta a convertire le coordinate del content zoommato a quelle della finestra
-        Point2D localPoint = getTransformedCoordinates(event,drawingArea);
+        Point2D localPoint = drawingArea.sceneToLocal(event.getSceneX(), event.getSceneY());
         endX = localPoint.getX();
         endY = localPoint.getY();
 
@@ -114,22 +94,61 @@ public class LineToolStrategy implements ToolStrategy {
 
     @Override
     public void handleMouseMoved(MouseEvent event) {
+
     }
 
     @Override
-    public void handleCopy(Event event) {
+    public void handleLineBorderColorChange(Color color) {
+        this.borderColor = color;
     }
 
     @Override
-    public void handleCut(Event event) {
+    public void handleRectangleBorderColorChange(Color color) {
+
     }
 
     @Override
-    public void handleDelete(Event event) {
+    public void handleRectangleFillColorChange(Color color) {
+
     }
 
     @Override
-    public void handleChangePolygonVertices(int polygonVertices) {
+    public void handleEllipseBorderColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleEllipseFillColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handlePolygonBorderColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handlePolygonFillColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleTextBorderColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleTextFillColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleTextColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handlePolygonVerticesChange(int polygonVertices) {
 
     }
 
@@ -139,23 +158,43 @@ public class LineToolStrategy implements ToolStrategy {
     }
 
     @Override
-    public void handleBringToFront(ActionEvent actionEvent) {
+    public void handleFontSizeChange(int fontSize) {
 
     }
 
     @Override
-    public void handleBringToTop(ActionEvent actionEvent) {
+    public void handleKeyPressed(KeyEvent event) {
 
     }
 
     @Override
-    public void handleSendToBack(ActionEvent actionEvent) {
+    public void handleKeyTyped(KeyEvent event) {
 
     }
 
     @Override
-    public void handleSendToBottom(ActionEvent actionEvent) {
+    public void handleBorderColorChange(Color newColor) {
 
+    }
+
+    @Override
+    public void handleFillColorChange(Color newColor) {
+
+    }
+
+    @Override
+    public void handleTextColorMenuChange(Color color) {
+
+    }
+
+    @Override
+    public void handleFontSizeMenuChange(int fontSize) {
+
+    }
+
+    @Override
+    public List<Shape> getSelectedShapes() {
+        return Collections.emptyList();
     }
 
     @Override
@@ -169,11 +208,4 @@ public class LineToolStrategy implements ToolStrategy {
             previewFxShape = null;
         }
     }
-
-    @Override
-    public List<MyShape> getSelectedShapes() {
-        // Se LineToolStrategy non seleziona nulla, puoi restituire una lista vuota
-        return Collections.emptyList();
-    }
-
 }

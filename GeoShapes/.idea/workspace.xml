@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="25bafa7f-a50b-4cd0-b328-2cb8f1e70b6e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradlew.bat" beforeDir="false" afterPath="$PROJECT_DIR$/gradlew.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/CodeConv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/DoD" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/MainApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/MainApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/AdapterFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/AdapterFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/forward/EllipseAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/forward/EllipseAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReverseEllipseAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReverseEllipseAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReversePolygonAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReversePolygonAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReverseRectangleAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/adapter/reverse/ReverseRectangleAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/InteractionCallback.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/InteractionCallback.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/MainController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/ShapeMapping.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/ShapeMapping.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/BringToFrontCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/BringToTopCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/Command.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/CommandInvoker.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/CreateShapeCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/DeleteShapeCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/FlipHShapeCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/FlipVShapeCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/ModifyShapeCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/RotateShapeCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/SendToBackCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/command/SendToBottomCommand.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/EllipseToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/EllipseToolStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/LineToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/LineToolStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/PolygonToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/PolygonToolStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/RectangleToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/RectangleToolStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/SelectionToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/SelectionToolStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/ToolStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/strategy/ToolStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/util/GridRenderer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/util/GridSettings.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/util/UIUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/util/UIUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/decorator/PreviewDecorator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/decorator/SelectionDecorator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/decorator/ShapeDecorator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/DrawingModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/DrawingModel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/MyColor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/MyColor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyEllipse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyEllipse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyLine.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyLine.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyPolygon.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyPolygon.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyRectangle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyRectangle.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyShape.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/model/shapes/MyShape.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/it/unisa/diem/sad/geoshapes/view/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/it/unisa/diem/sad/geoshapes/view/MainView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/styles/icons/border_color.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/styles/icons/bordercolor.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/styles/icons/bucket.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/styles/icons/logo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/styles/style.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/MainApplicationTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/adapter/EllipseAdapterTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/adapter/LineAdapterTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/adapter/RectangleAdapterTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/MainControllerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/ShapeMappingTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/BringToFrontCommandTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/ChangeBorderColorCommandTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/ChangeFillColorCommandTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/CommandInvokerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/CreateShapeCommandTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/DeleteShapeCommandTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/command/SendToBackCommandTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/strategy/EllipseToolStrategyTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/strategy/LineToolStrategyTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/strategy/RectangleToolStrategyTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/strategy/SelectionToolStrategyTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/controller/util/UIUtilsTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/decorator/PreviewDecoratorTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/decorator/SelectionDecoratorTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/DrawingModelTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/factory/EllipseFactoryTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/factory/LineFactoryTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/factory/RectangleFactoryTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/shapes/MyEllipseTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/shapes/MyLineTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/shapes/MyRectangleTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/util/GridSettingsTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/model/util/MyColorTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/it/unisa/diem/sad/geoshapes/persistence/PersistenceServiceTest.java" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="GeoShapes" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="GeoShapes" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="GeoShapes" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="application" type="c8890929:TasksNode$1" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="GeoShapes" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build" type="c8890929:TasksNode$1" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Enum" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="2xzEgIGwYB6WCJuOYUEXHQAyM2A" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.GeoShapes [buildDependents].executor": "Run",
+    "Gradle.GeoShapes [buildNeeded].executor": "Run",
+    "Gradle.GeoShapes [build].executor": "Run",
+    "Gradle.GeoShapes [clean].executor": "Run",
+    "Gradle.GeoShapes [run].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "C:/Users/utente/Documents/GitHub/ProjectSAD_group16/GeoShapes/src/test/java/it/unisa/diem/sad/geoshapes/observer",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "ml.llm.LLMConfigurable",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\utente\Documents\GitHub\ProjectSAD_group16\GeoShapes\src\test\java\it\unisa\diem\sad\geoshapes\observer" />
+      <recent name="C:\Users\utente\Documents\GitHub\ProjectSAD_group16\GeoShapes\src\test\java\it\unisa\diem\sad\geoshapes\model" />
+      <recent name="C:\Users\utente\Documents\GitHub\ProjectSAD_group16\GeoShapes\src\test\java\it\unisa\diem\sad\geoshapes\controller" />
+      <recent name="C:\Users\utente\Documents\GitHub\ProjectSAD_group16\GeoShapes\src\test\java\it\unisa\diem\sad\geoshapes\command" />
+      <recent name="C:\Users\utente\Documents\GitHub\ProjectSAD_group16\GeoShapes\src\test\java\it\unisa\diem\sad\geoshapes\adapter" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\utente\Documents\GitHub\ProjectSAD_group16\GeoShapes\src\main\resources\it\unisa\diem\sad\geoshapes\view" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="it.unisa.diem.sad.geoshapes" />
+      <recent name="it.unisa.diem.sad.geoshapes.persistence" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Gradle.GeoShapes [run]">
+    <configuration name="GeoShapes [buildDependents]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="buildDependents" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="GeoShapes [buildNeeded]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="buildNeeded" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="GeoShapes [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="build" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="GeoShapes [clean]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="clean" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="GeoShapes [run]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="run" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Gradle.GeoShapes [run]" />
+        <item itemvalue="Gradle.GeoShapes [build]" />
+        <item itemvalue="Gradle.GeoShapes [clean]" />
+        <item itemvalue="Gradle.GeoShapes [buildNeeded]" />
+        <item itemvalue="Gradle.GeoShapes [buildDependents]" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.25410.129" />
+        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-IU-251.25410.129" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="25bafa7f-a50b-4cd0-b328-2cb8f1e70b6e" name="Changes" comment="" />
+      <created>1748932611781</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1748932611781</updated>
+      <workItem from="1748932612747" duration="56580000" />
+      <workItem from="1749017641618" duration="14798000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-field">
+          <url>file://$PROJECT_DIR$/src/main/java/it/unisa/diem/sad/geoshapes/controller/util/Grid.java</url>
+          <line>13</line>
+          <properties field="cellSize" class="it.unisa.diem.sad.geoshapes.controller.util.Grid" />
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

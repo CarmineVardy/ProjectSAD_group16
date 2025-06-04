@@ -22,7 +22,6 @@ public class EllipseAdapter implements ShapeAdapter {
         }
         MyEllipse modelEllipse = (MyEllipse) modelShape;
 
-        // Calcola centro e raggi da startX, startY, endX, endY
         double centerX = (modelEllipse.getStartX() + modelEllipse.getEndX()) / 2.0 * width;
         double centerY = (modelEllipse.getStartY() + modelEllipse.getEndY()) / 2.0 * height;
         double radiusX = Math.abs(modelEllipse.getEndX() - modelEllipse.getStartX()) / 2.0 * width;
@@ -33,7 +32,6 @@ public class EllipseAdapter implements ShapeAdapter {
         fxEllipse.setFill(convertToJavaFxColor(modelEllipse.getFillColor()));
         fxEllipse.setStrokeWidth(2.0);
         fxEllipse.setRotate(modelEllipse.getRotation());
-
         return fxEllipse;
     }
 

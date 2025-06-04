@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.Integer?>
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.Group?>
 <?import javafx.scene.control.Button?>
@@ -16,11 +19,11 @@
 <?import javafx.scene.control.RadioMenuItem?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.Slider?>
-<?import javafx.scene.control.SplitMenuButton?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
-<?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
@@ -29,333 +32,800 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.paint.Color?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.shape.Polygon?>
+<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<?import java.lang.Integer?>
-<?import javafx.collections.FXCollections?>
-<BorderPane prefHeight="610.0" prefWidth="880.0" stylesheets="@../../../../../../styles/style.css"
-            xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="it.unisa.diem.sad.geoshapes.controller.MainController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="790.0" prefWidth="1200.0" styleClass="main-border-pane" stylesheets="@style/style.css" xmlns="http://javafx.com/javafx/21.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.diem.sad.geoshapes.controller.MainController">
     <top>
-        <VBox fillWidth="true">
+        <VBox styleClass="top-vbox" BorderPane.alignment="CENTER_LEFT">
             <children>
-                <HBox alignment="CENTER" spacing="5.0">
+                <HBox spacing="10.0" styleClass="header-hbox">
+                    <padding>
+                        <Insets left="20.0" right="20.0" />
+                    </padding>
                     <children>
-                        <MenuBar fx:id="menubar">
-                            <menus>
-                                <Menu mnemonicParsing="false" text="File">
+                        <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true" styleClass="logo-image">
+                            <image>
+                                <Image url="@style/icons/logo.png" />
+                            </image>
+                        </ImageView>
+                        <Region prefWidth="25.0" styleClass="header-spacer" />
+                        <Button fx:id="undoButton" mnemonicParsing="false" onAction="#handleUndo" styleClass="undo-button">
+                            <graphic>
+                                <FontIcon iconLiteral="mdi2u-undo" styleClass="undo-icon" />
+                            </graphic>
+                        </Button>
+                        <Region styleClass="header-expand-region" HBox.hgrow="ALWAYS" />
+                        <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="35.0" prefWidth="161.0" styleClass="app-title" text="GeoShapes" textAlignment="CENTER" />
+                        <Region layoutX="25.0" layoutY="10.0" styleClass="header-expand-region-2" HBox.hgrow="ALWAYS" />
+                        <HBox spacing="8.0" styleClass="window-controls-hbox">
+                            <children>
+                                <Button fx:id="hideButton" mnemonicParsing="false" onAction="#handleHide" styleClass="minimize-button">
+                                    <graphic>
+                                        <FontIcon iconLiteral="mdi2m-minus" styleClass="minimize-icon" />
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="maximizeButton" mnemonicParsing="false" onAction="#handleMaximize" styleClass="maximize-button">
+                                    <graphic>
+                                        <FontIcon iconLiteral="mdi2c-crop-square" styleClass="maximize-icon" />
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="closeButton" mnemonicParsing="false" onAction="#handleClose" styleClass="close-button">
+                                    <graphic>
+                                        <FontIcon iconLiteral="mdi2c-close" styleClass="close-icon" />
+                                    </graphic>
+                                </Button>
+                            </children>
+                        </HBox>
+                    </children>
+                </HBox>
+                <MenuBar prefHeight="10.0" prefWidth="1200.0" styleClass="main-menu-bar">
+                    <menus>
+                        <Menu mnemonicParsing="false" styleClass="file-menu" text="File">
+                            <items>
+                                <MenuItem fx:id="menuItemLoad" mnemonicParsing="false" onAction="#handleLoad" styleClass="load-menu-item" text="Load">
+                                    <graphic>
+                                        <FontIcon iconLiteral="mdi2u-upload" styleClass="load-icon" />
+                                    </graphic>
+                                </MenuItem>
+                                <MenuItem fx:id="menuItemSave" mnemonicParsing="false" onAction="#handleSave" styleClass="save-menu-item" text="Save">
+                                    <graphic>
+                                        <FontIcon iconLiteral="mdi2c-content-save" styleClass="save-icon" />
+                                    </graphic>
+                                </MenuItem>
+                                <MenuItem fx:id="menuItemSaveAs" mnemonicParsing="false" onAction="#handleSaveAs" styleClass="save-as-menu-item" text="Save As">
+                                    <graphic>
+                                        <FontIcon iconLiteral="mdi2c-content-save-move-outline" styleClass="save-as-icon" />
+                                    </graphic>
+                                </MenuItem>
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" styleClass="view-menu" text="View">
+                            <items>
+                                <CheckMenuItem fx:id="shapesManagerMenuItem" mnemonicParsing="false" onAction="#handleShowShapesManager" styleClass="shapes-manager-check-item" text="Shapes Manager">
+                                    <graphic>
+                                        <FontIcon iconLiteral="mdi2s-shape-outline" styleClass="shapes-manager-icon" />
+                                    </graphic>
+                                </CheckMenuItem>
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" styleClass="layout-menu" text="Layout">
+                            <items>
+                                <Menu mnemonicParsing="false" styleClass="grid-menu" text="Grid">
+                                    <graphic>
+                                        <FontIcon iconLiteral="mdi2g-grid-large" styleClass="grid-icon" />
+                                    </graphic>
                                     <items>
-                                        <MenuItem fx:id="menuItemLoad" mnemonicParsing="false" onAction="#handleLoad"
-                                                  text="Load"/>
-                                        <MenuItem fx:id="menuItemSave" mnemonicParsing="false" onAction="#handleSave"
-                                                  text="Save"/>
-                                        <MenuItem fx:id="menuItemSaveAs" mnemonicParsing="false"
-                                                  onAction="#handleSaveAs" text="Save As"/>
-                                    </items>
-                                </Menu>
-                                <Menu mnemonicParsing="false" text="Grid">
-                                    <items>
-                                        <CheckMenuItem fx:id="menuItemToggleGrid" mnemonicParsing="false"
-                                                       onAction="#toggleGrid" text="Show Grid"/>
-                                        <Menu text="Cell Size">
+                                        <CheckMenuItem fx:id="menuItemToggleGrid" mnemonicParsing="false" onAction="#toggleGrid" styleClass="show-grid-check-item" text="Show Grid" />
+                                        <Menu mnemonicParsing="false" styleClass="cell-size-menu" text="Cell Size">
                                             <items>
-                                                <RadioMenuItem fx:id="cellSize10" onAction="#handleCellSizeSelection"
-                                                               text="10 px">
+                                                <RadioMenuItem fx:id="cellSize10" mnemonicParsing="false" onAction="#handleCellSizeSelection" styleClass="cell-size-10-radio" text="10 px">
                                                     <toggleGroup>
-                                                        <ToggleGroup fx:id="cellSizeToggleGroup"/>
+                                                        <ToggleGroup />
                                                     </toggleGroup>
                                                 </RadioMenuItem>
-                                                <RadioMenuItem fx:id="cellSize20" onAction="#handleCellSizeSelection"
-                                                               text="20 px" toggleGroup="$cellSizeToggleGroup"/>
-                                                <RadioMenuItem fx:id="cellSize50" onAction="#handleCellSizeSelection"
-                                                               text="50 px" toggleGroup="$cellSizeToggleGroup"/>
+                                                <RadioMenuItem fx:id="cellSize20" mnemonicParsing="false" onAction="#handleCellSizeSelection" selected="true" styleClass="cell-size-20-radio" text="20 px" />
+                                                <RadioMenuItem fx:id="cellSize50" mnemonicParsing="false" onAction="#handleCellSizeSelection" styleClass="cell-size-50-radio" text="50 px" />
                                             </items>
                                         </Menu>
                                     </items>
                                 </Menu>
-                            </menus>
-                        </MenuBar>
-                        <ToolBar>
-                            <Button fx:id="flipHButton" onAction="#onFlipHorizontal" text="Flip H"/>
-                            <Button fx:id="flipVButton" onAction="#onFlipVertical" text="Flip V"/>
-                        </ToolBar>
-                        <Button fx:id="undoButton" mnemonicParsing="false" onAction="#handleUndo"
-                                styleClass="tool-button">
-                            <graphic>
-                                <FontIcon iconLiteral="fas-undo-alt" iconSize="10"/>
-                            </graphic>
-                        </Button>
-                        <Region HBox.hgrow="ALWAYS"/>
-                    </children>
-                </HBox>
-                <ToolBar styleClass="tool-bar">
-                    <items>
-                        <HBox alignment="CENTER_LEFT" spacing="5.5" HBox.hgrow="ALWAYS">
-                            <children>
-                                <VBox alignment="CENTER">
-                                    <children>
-                                        <Label text="Selection"/>
-                                        <ToggleButton fx:id="selectionButton" mnemonicParsing="false"
-                                                      styleClass="tool-button">
-                                            <VBox.margin>
-                                                <Insets bottom="5.0"/>
-                                            </VBox.margin>
+                                <Menu mnemonicParsing="false" styleClass="zoom-menu" text="Zoom">
+                                    <graphic>
+                                        <FontIcon iconLiteral="mdi2m-magnify" styleClass="zoom-icon" />
+                                    </graphic>
+                                    <items>
+                                        <RadioMenuItem fx:id="zoom75Button" mnemonicParsing="false" onAction="#handleZoom75" styleClass="zoom-75-radio" text="75%">
                                             <toggleGroup>
-                                                <ToggleGroup fx:id="toolToggleGroup"/>
+                                                <ToggleGroup />
                                             </toggleGroup>
-                                            <graphic>
-                                                <FontIcon iconLiteral="fas-mouse-pointer" iconSize="16"/>
-                                            </graphic>
-                                            <minWidth>50</minWidth>
-                                        </ToggleButton>
-                                    </children>
-                                    <HBox.margin>
-                                        <Insets right="5.0"/>
-                                    </HBox.margin>
-                                </VBox>
-                                <Separator orientation="VERTICAL"/>
-                                <ToggleButton fx:id="lineButton" mnemonicParsing="false" styleClass="tool-button"
-                                              toggleGroup="$toolToggleGroup">
+                                        </RadioMenuItem>
+                                        <RadioMenuItem fx:id="zoom100Button" mnemonicParsing="false" onAction="#handleZoom100" selected="true" styleClass="zoom-100-radio" text="100%" />
+                                        <RadioMenuItem fx:id="zoom200Button" mnemonicParsing="false" onAction="#handleZoom200" styleClass="zoom-200-radio" text="200%" />
+                                    </items>
+                                </Menu>
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" styleClass="help-menu" text="Help">
+                            <items>
+                                <MenuItem fx:id="menuItemAbout" mnemonicParsing="false" onAction="#handleAbout" styleClass="about-menu-item" text="About">
                                     <graphic>
-                                        <FontIcon iconLiteral="fas-slash" iconSize="16"/>
+                                        <FontIcon iconLiteral="mdi2i-information-outline" styleClass="about-icon" />
                                     </graphic>
-                                    <minWidth>50</minWidth>
-                                </ToggleButton>
-                                <Separator orientation="VERTICAL"/>
-                                <ToggleButton fx:id="rectangleButton" mnemonicParsing="false" styleClass="tool-button"
-                                              toggleGroup="$toolToggleGroup">
+                                </MenuItem>
+                            </items>
+                        </Menu>
+                    </menus>
+                </MenuBar>
+            </children>
+        </VBox>
+    </top>
+    <left>
+        <HBox fx:id="leftControlsContainer" styleClass="left-hbox" BorderPane.alignment="TOP_CENTER">
+            <children>
+                <VBox fx:id="toolsVBox" spacing="18.0" styleClass="tools-vbox">
+                    <padding>
+                        <Insets bottom="20.0" left="15.0" right="15.0" top="20.0" />
+                    </padding>
+                    <children>
+                        <VBox spacing="5.0" styleClass="cursor-tool-vbox">
+                            <children>
+                                <ToggleButton fx:id="selectionButton" maxWidth="50.0" mnemonicParsing="false" styleClass="cursor-tool-button">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-square" iconSize="16"/>
+                                        <FontIcon iconLiteral="mdi2c-cursor-default" iconSize="15" styleClass="cursor-tool-icon" />
                                     </graphic>
-                                    <minWidth>50</minWidth>
+                           <toggleGroup>
+                              <ToggleGroup fx:id="toolToggleGroup" />
+                           </toggleGroup>
                                 </ToggleButton>
-                                <Separator orientation="VERTICAL"/>
-                                <ToggleButton fx:id="ellipseButton" mnemonicParsing="false" styleClass="tool-button"
-                                              toggleGroup="$toolToggleGroup">
+                                <Label text="Selection">
+                                    <styleClass>
+                                        <String fx:value="edit-label" />
+                                        <String fx:value="selection-label" />
+                                    </styleClass>
+                                </Label>
+                            </children>
+                        </VBox>
+                        <VBox spacing="5.0" styleClass="line-tool-vbox">
+                            <children>
+                                <ToggleButton fx:id="lineButton" maxWidth="50.0" mnemonicParsing="false" styleClass="line-tool-button" toggleGroup="$toolToggleGroup">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-circle" iconSize="16"/>
+                                        <Line fx:id="lineShapePreview" endX="10.0" startX="-20.0" stroke="BLACK" strokeWidth="2.0" styleClass="line-tool-shape" />
                                     </graphic>
-                                    <minWidth>50</minWidth>
                                 </ToggleButton>
-                                <Separator orientation="VERTICAL"/>
-                                <VBox alignment="CENTER" spacing="10.0">
+                                <ToggleButton fx:id="lineEditButton" mnemonicParsing="false" styleClass="line-edit-button">
+                                    <graphic>
+                                        <HBox alignment="center" spacing="5.0" styleClass="edit-button-hbox">
+                                            <children>
+                                                <Label prefHeight="14.0" prefWidth="82.0" styleClass="edit-label" text="Edit">
+                                                    <font>
+                                                        <Font size="14.0" />
+                                                    </font>
+                                                </Label>
+                                                <FontIcon iconLiteral="mdi2c-chevron-right" styleClass="chevron-icon" />
+                                            </children>
+                                        </HBox>
+                                    </graphic>
+                           <toggleGroup>
+                              <ToggleGroup fx:id="editToggleGroup" />
+                           </toggleGroup>
+                                </ToggleButton>
+                            </children>
+                        </VBox>
+                        <VBox spacing="5.0" styleClass="rectangle-tool-vbox">
+                            <children>
+                                <ToggleButton fx:id="rectangleButton" maxWidth="50.0" mnemonicParsing="false" styleClass="rectangle-tool-button" toggleGroup="$toolToggleGroup">
+                                    <graphic>
+                                        <Rectangle fx:id="rectangleShapePreview" fill="TRANSPARENT" height="25.0" stroke="BLACK" strokeWidth="2.0" styleClass="rectangle-tool-shape" width="30.0" />
+                                    </graphic>
+                                </ToggleButton>
+                                <ToggleButton fx:id="rectangleEditButton" mnemonicParsing="false" styleClass="rectangle-edit-button" toggleGroup="$editToggleGroup">
+                                    <graphic>
+                                        <HBox alignment="center" spacing="5.0" styleClass="edit-button-hbox">
+                                            <children>
+                                                <Label styleClass="edit-label" text="Edit" />
+                                                <FontIcon iconLiteral="mdi2c-chevron-right" styleClass="chevron-icon" />
+                                            </children>
+                                        </HBox>
+                                    </graphic>
+                                </ToggleButton>
+                            </children>
+                        </VBox>
+                        <VBox spacing="5.0" styleClass="circle-tool-vbox">
+                            <children>
+                                <ToggleButton fx:id="ellipseButton" maxWidth="50.0" mnemonicParsing="false" styleClass="circle-tool-button" toggleGroup="$toolToggleGroup">
+                                    <graphic>
+                                        <Circle fx:id="ellipseShapePreview" fill="TRANSPARENT" radius="15.0" stroke="BLACK" strokeWidth="2.0" styleClass="circle-tool-shape" />
+                                    </graphic>
+                                </ToggleButton>
+                                <ToggleButton fx:id="ellipseEditButton" mnemonicParsing="false" styleClass="circle-edit-button" toggleGroup="$editToggleGroup">
+                                    <graphic>
+                                        <HBox alignment="center" spacing="5.0" styleClass="edit-button-hbox">
+                                            <children>
+                                                <Label styleClass="edit-label" text="Edit" />
+                                                <FontIcon iconLiteral="mdi2c-chevron-right" styleClass="chevron-icon" />
+                                            </children>
+                                        </HBox>
+                                    </graphic>
+                                </ToggleButton>
+                            </children>
+                        </VBox>
+                        <VBox spacing="5.0" styleClass="polygon-tool-vbox">
+                            <children>
+                                <ToggleButton fx:id="polygonButton" maxWidth="50.0" mnemonicParsing="false" styleClass="polygon-tool-button" toggleGroup="$toolToggleGroup">
+                                    <graphic>
+                                        <Polygon fx:id="polygonShapePreview" fill="TRANSPARENT" points="15.0,0.0,7.5,12.99,-7.5,12.99,-15.0,0.0,-7.5,-12.99,7.5,-12.99" stroke="BLACK" strokeWidth="2.0" styleClass="polygon-tool-shape" />
+                                    </graphic>
+                                </ToggleButton>
+                                <ToggleButton fx:id="polygonEditButton" mnemonicParsing="false" styleClass="polygon-edit-button" toggleGroup="$editToggleGroup">
+                                    <graphic>
+                                        <HBox alignment="center" spacing="5.0" styleClass="edit-button-hbox">
+                                            <children>
+                                                <Label styleClass="edit-label" text="Edit" />
+                                                <FontIcon iconLiteral="mdi2c-chevron-right" styleClass="chevron-icon" />
+                                            </children>
+                                        </HBox>
+                                    </graphic>
+                                </ToggleButton>
+                            </children>
+                        </VBox>
+                        <VBox spacing="5.0" styleClass="text-tool-vbox">
+                            <children>
+                                <ToggleButton fx:id="textButton" maxWidth="50.0" mnemonicParsing="false" styleClass="text-tool-button" toggleGroup="$toolToggleGroup">
+                                    <graphic>
+                                        <TextField fx:id="textPreview" styleClass="text-tool-shape" text="TxT">
+                                            <font>
+                                                <Font name="System Bold" size="15.0" />
+                                            </font>
+                                            <padding>
+                                                <Insets bottom="6.0" left="2.0" top="6.0" />
+                                            </padding>
+                                        </TextField>
+                                    </graphic>
+                                    <VBox.margin>
+                                        <Insets />
+                                    </VBox.margin>
+                                </ToggleButton>
+                                <ToggleButton fx:id="textEditButton" mnemonicParsing="false" styleClass="text-edit-button" toggleGroup="$editToggleGroup">
+                                    <graphic>
+                                        <HBox alignment="center" spacing="5.0" styleClass="edit-button-hbox">
+                                            <children>
+                                                <Label styleClass="edit-label" text="Edit" />
+                                                <FontIcon iconLiteral="mdi2c-chevron-right" styleClass="chevron-icon" />
+                                            </children>
+                                        </HBox>
+                                    </graphic>
+                                </ToggleButton>
+                            </children>
+                        </VBox>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+    </left>
+    <center>
+        <ScrollPane fx:id="scrollPane" styleClass="center-scroll-pane" BorderPane.alignment="CENTER">
+            <content>
+                <Group fx:id="zoomGroup" styleClass="main-group">
+                    <children>
+                        <Pane fx:id="drawingArea" onMouseDragged="#handleMouseDragged" onMouseMoved="#handleMouseMoved" onMousePressed="#handleMousePressed" onMouseReleased="#handleMouseReleased" prefHeight="1500.0" prefWidth="1500.0" styleClass="canvas-pane" />
+                        <HBox fx:id="linePropertiesHBox" managed="false" style="-fx-background-color: #f5f5f5;" styleClass="line-properties-hbox" visible="false">
+                            <children>
+                                <ImageView fitHeight="20.0" fitWidth="20.0" styleClass="border-color-image">
+                                    <image>
+                                        <Image url="@style/icons/border_color.png" />
+                                    </image>
+                                </ImageView>
+                                <ColorPicker fx:id="lineBorderColorPicker" styleClass="line-color-picker">
+                                    <value>
+                                        <Color />
+                                    </value>
+                                </ColorPicker>
+                            </children>
+                        </HBox>
+                        <HBox fx:id="rectanglePropertiesHBox" managed="false" style="-fx-background-color: #f5f5f5;" styleClass="rectangle-properties-hbox" visible="false">
+                            <children>
+                                <ImageView fitHeight="20.0" fitWidth="20.0" styleClass="border-color-image">
+                                    <image>
+                                        <Image url="@style/icons/border_color.png" />
+                                    </image>
+                                </ImageView>
+                                <ColorPicker fx:id="rectangleBorderColorPicker" styleClass="rectangle-border-color-picker">
+                                    <value>
+                                        <Color />
+                                    </value>
+                                </ColorPicker>
+                                <ImageView fitHeight="20.0" fitWidth="20.0" styleClass="fill-color-image">
+                                    <image>
+                                        <Image url="@style/icons/fill_color.png" />
+                                    </image>
+                                </ImageView>
+                                <ColorPicker fx:id="rectangleFillColorPicker" styleClass="rectangle-fill-color-picker">
+                                    <value>
+                                        <Color />
+                                    </value>
+                                </ColorPicker>
+                            </children>
+                        </HBox>
+                        <HBox fx:id="ellipsePropertiesHBox" managed="false" style="-fx-background-color: #f5f5f5;" styleClass="circle-properties-hbox" visible="false">
+                            <children>
+                                <ImageView fitHeight="20.0" fitWidth="20.0" styleClass="border-color-image">
+                                    <image>
+                                        <Image url="@style/icons/border_color.png" />
+                                    </image>
+                                </ImageView>
+                                <ColorPicker fx:id="ellipseBorderColorPicker" styleClass="circle-border-color-picker">
+                                    <value>
+                                        <Color />
+                                    </value>
+                                </ColorPicker>
+                                <ImageView fitHeight="20.0" fitWidth="20.0" styleClass="fill-color-image">
+                                    <image>
+                                        <Image url="@style/icons/fill_color.png" />
+                                    </image>
+                                </ImageView>
+                                <ColorPicker fx:id="ellipseFillColorPicker" styleClass="circle-fill-color-picker">
+                                    <value>
+                                        <Color />
+                                    </value>
+                                </ColorPicker>
+                            </children>
+                        </HBox>
+                        <HBox fx:id="polygonPropertiesHBox" managed="false" style="-fx-background-color: #f5f5f5;" styleClass="polygon-properties-hbox" visible="false">
+                            <children>
+                                <VBox alignment="CENTER" spacing="4.0" styleClass="vertices-vbox">
                                     <children>
-                                        <ToggleButton fx:id="polygonButton" minWidth="50" mnemonicParsing="false"
-                                                      styleClass="tool-button" toggleGroup="$toolToggleGroup">
-                                            <graphic>
-                                                <FontIcon iconLiteral="bi-hexagon" iconSize="16"/>
-                                            </graphic>
-                                        </ToggleButton>
-                                        <ComboBox fx:id="polygonVertices">
+                                        <Label styleClass="vertices-label" text="Vertices" />
+                                        <ComboBox fx:id="polygonVertices" prefWidth="50.0" styleClass="vertices-combo">
                                             <items>
                                                 <FXCollections fx:factory="observableArrayList">
-                                                    <Integer fx:value="3"/>
-                                                    <Integer fx:value="4"/>
-                                                    <Integer fx:value="5"/>
-                                                    <Integer fx:value="6"/>
-                                                    <Integer fx:value="7"/>
-                                                    <Integer fx:value="8"/>
+                                                    <Integer fx:value="3" />
+                                                    <Integer fx:value="4" />
+                                                    <Integer fx:value="5" />
+                                                    <Integer fx:value="6" />
+                                                    <Integer fx:value="7" />
+                                                    <Integer fx:value="8" />
                                                 </FXCollections>
                                             </items>
                                             <value>
-                                                <Integer fx:value="3"/>
+                                                <Integer fx:value="3" />
                                             </value>
                                         </ComboBox>
-                                        <Label text="Regular"/>
-                                        <CheckBox fx:id="regularPolygon" mnemonicParsing="false" selected="false"/>
                                     </children>
                                 </VBox>
-                                <Separator layoutX="260.0" layoutY="10.0" orientation="VERTICAL"/>
-                                <VBox alignment="CENTER" spacing="2">
-                                    <HBox.margin>
-                                        <Insets left="5.0" right="5.0"/>
-                                    </HBox.margin>
+                                <VBox spacing="8.0" styleClass="polygon-colors-vbox">
+                                    <padding>
+                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                    </padding>
                                     <children>
-                                        <ImageView fitHeight="20" fitWidth="20">
-                                            <image>
-                                                <Image url="@../../../../../../styles/icons/bucket.png"/>
-                                            </image>
-                                        </ImageView>
-                                        <Label styleClass="color-label" text="Fill color"/>
-                                        <ColorPicker fx:id="fillColorPicker" styleClass="color-picker">
-                                            <value>
-                                                <Color opacity="0.0"/>
-                                            </value>
-                                        </ColorPicker>
-                                    </children>
-                                </VBox>
-                                <Separator orientation="VERTICAL"/>
-                                <VBox alignment="CENTER" spacing="2">
-                                    <HBox.margin>
-                                        <Insets left="5.0" right="5.0"/>
-                                    </HBox.margin>
-                                    <children>
-                                        <ImageView fitHeight="20" fitWidth="20">
-                                            <image>
-                                                <Image url="@../../../../../../styles/icons/border_color.png"/>
-                                            </image>
-                                        </ImageView>
-                                        <Label styleClass="color-label" text="Border color"/>
-                                        <ColorPicker fx:id="borderColorPicker" styleClass="color-picker">
-                                            <value>
-                                                <Color/>
-                                            </value>
-                                        </ColorPicker>
-                                    </children>
-                                </VBox>
-                                <Separator orientation="VERTICAL">
-                                    <HBox.margin>
-                                        <Insets right="-7.0"/>
-                                    </HBox.margin>
-                                </Separator>
-                                <VBox alignment="CENTER">
-                                    <children>
-                                        <SplitMenuButton fx:id="bringToFrontSplitButton" maxWidth="130.0"
-                                                         minWidth="130.0" mnemonicParsing="false"
-                                                         onAction="#handleBringToFront" styleClass="tool-button"
-                                                         text="Bring to Front">
-                                            <items>
-                                                <MenuItem fx:id="bringToFrontMenuItem" mnemonicParsing="false"
-                                                          onAction="#handleBringToFront" text="Bring to Front"/>
-                                                <MenuItem fx:id="bringToTopMenuItem" mnemonicParsing="false"
-                                                          onAction="#handleBringToTop" text="Bring to Top"/>
-                                            </items>
-                                        </SplitMenuButton>
-                                        <Separator/>
-                                        <SplitMenuButton fx:id="sendToBackSplitButton" layoutX="10.0" layoutY="10.0"
-                                                         maxWidth="130.0" minWidth="130.0" mnemonicParsing="false"
-                                                         onAction="#handleSendToBack" styleClass="tool-button"
-                                                         text="Send to Back">
-                                            <items>
-                                                <MenuItem fx:id="sendToBackMenuItem" mnemonicParsing="false"
-                                                          onAction="#handleSendToBack" text="Send to Back"/>
-                                                <MenuItem fx:id="sendToBottomMenuItem" mnemonicParsing="false"
-                                                          onAction="#handleSendToBottom" text="Send to Bottom"/>
-                                            </items>
-                                        </SplitMenuButton>
-                                        <Separator/>
-                                        <Button fx:id="shapesManagerButton" maxWidth="110.0" minWidth="110.0"
-                                                mnemonicParsing="false" onAction="#handleShowShapesManager"
-                                                styleClass="tool-button" text="Shapes Manager"/>
-                                    </children>
-                                </VBox>
-                                <Separator orientation="VERTICAL">
-                                    <HBox.margin>
-                                        <Insets left="-7.0"/>
-                                    </HBox.margin>
-                                </Separator>
-                                <VBox spacing="20.0">
-                                    <children>
-                                        <HBox alignment="CENTER">
+                                        <VBox alignment="CENTER" spacing="4.0" styleClass="polygon-border-color-vbox">
                                             <children>
-                                                <Label text="Zoom">
-                                                    <font>
-                                                        <Font name="System Bold" size="12.0"/>
-                                                    </font>
-                                                </Label>
+                                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" styleClass="border-color-image">
+                                                    <image>
+                                                        <Image url="@style/icons/border_color.png" />
+                                                    </image>
+                                                </ImageView>
+                                                <ColorPicker fx:id="polygonBorderColorPicker" styleClass="polygon-border-color-picker">
+                                                    <value>
+                                                        <Color />
+                                                    </value>
+                                                </ColorPicker>
                                             </children>
-                                            <padding>
-                                                <Insets top="5.0"/>
-                                            </padding>
-                                        </HBox>
-                                        <HBox alignment="CENTER_LEFT" spacing="5">
-                                            <padding>
-                                                <Insets left="20.0"/>
-                                            </padding>
+                                        </VBox>
+                                        <VBox alignment="CENTER" spacing="4.0" styleClass="polygon-fill-color-vbox">
                                             <children>
-                                                <VBox alignment="CENTER" spacing="2">
-                                                    <children>
-                                                        <FontIcon iconLiteral="fas-search" iconSize="16"/>
-                                                        <Label styleClass="zoom-label" text="Zoom"/>
-                                                    </children>
-                                                </VBox>
-                                                <Slider fx:id="zoomSlider" majorTickUnit="0.25" max="2.5" min="0.25"
-                                                        showTickLabels="false" showTickMarks="false" value="1.0"/>
-                                                <Label fx:id="zoomPercentageLabel" minWidth="50.0" prefWidth="50.0"
-                                                       styleClass="zoom-percentage-label" text="100%">
-                                                </Label>
+                                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" styleClass="fill-color-image">
+                                                    <image>
+                                                        <Image url="@style/icons/fill_color.png" />
+                                                    </image>
+                                                </ImageView>
+                                                <ColorPicker fx:id="polygonFillColorPicker" styleClass="polygon-fill-color-picker">
+                                                    <value>
+                                                        <Color />
+                                                    </value>
+                                                </ColorPicker>
                                             </children>
-                                        </HBox>
-                                        <HBox alignment="CENTER" spacing="20.0">
-                                            <children>
-                                                <Button fx:id="zoom75Button" mnemonicParsing="false"
-                                                        onAction="#handleZoom75" text="75%"/>
-                                                <Button fx:id="zoom100Button" mnemonicParsing="false"
-                                                        onAction="#handleZoom100" text="100%"/>
-                                                <Button fx:id="zoom200Button" mnemonicParsing="false"
-                                                        onAction="#handleZoom200" text="200%"/>
-                                            </children>
-                                        </HBox>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+                                <VBox spacing="8.0" styleClass="regular-checkbox-vbox">
+                                    <children>
+                                        <Region styleClass="checkbox-spacer" />
+                                        <Label styleClass="vertices-label" text="Regular" />
+                                        <CheckBox fx:id="regularPolygon" styleClass="regular-checkbox" textAlignment="CENTER" />
+                                        <Region layoutX="10.0" layoutY="10.0" styleClass="checkbox-spacer" />
                                     </children>
                                 </VBox>
                             </children>
                         </HBox>
-                    </items>
-                </ToolBar>
-            </children>
-        </VBox>
-    </top>
-    <center>
-        <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="ALWAYS" pannable="true"
-                    vbarPolicy="ALWAYS" BorderPane.alignment="CENTER">
-            <content>
-                <Group fx:id="zoomGroup">
-                    <Pane fx:id="drawingArea" maxHeight="-Infinity" maxWidth="-Infinity"
-                          onMouseDragged="#handleMouseDragged" onMouseMoved="#handleMouseMoved"
-                          onMousePressed="#handleMousePressed" onMouseReleased="#handleMouseReleased"
-                          style="-fx-background-color: white;"/>
+                        <HBox fx:id="textPropertiesHBox" managed="false" style="-fx-background-color: #f5f5f5;" styleClass="text-properties-hbox" visible="false">
+                            <children>
+                                <VBox alignment="CENTER" spacing="4.0" styleClass="font-size-vbox">
+                                    <children>
+                                        <Label styleClass="font-size-label" text="Font Size" />
+                                        <ComboBox fx:id="fontSize" prefWidth="50.0" styleClass="font-size-combo">
+                                            <items>
+                                                <FXCollections fx:factory="observableArrayList">
+                                                    <Integer fx:value="12" />
+                                                    <Integer fx:value="14" />
+                                                    <Integer fx:value="16" />
+                                                    <Integer fx:value="18" />
+                                                    <Integer fx:value="20" />
+                                                    <Integer fx:value="22" />
+                                                    <Integer fx:value="24" />
+                                                </FXCollections>
+                                            </items>
+                                            <value>
+                                                <Integer fx:value="14" />
+                                            </value>
+                                        </ComboBox>
+                                    </children>
+                                </VBox>
+                                <VBox styleClass="polygon-colors-vbox">
+                                    <children>
+                                        <VBox alignment="CENTER" spacing="4.0" styleClass="polygon-border-color-vbox">
+                                            <children>
+                                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" styleClass="border-color-image">
+                                                    <image>
+                                                        <Image url="@style/icons/border_color.png" />
+                                                    </image>
+                                                </ImageView>
+                                                <ColorPicker fx:id="textBorderColorPicker" styleClass="polygon-border-color-picker">
+                                                    <value>
+                                                        <Color />
+                                                    </value>
+                                                </ColorPicker>
+                                            </children>
+                                        </VBox>
+                                        <VBox alignment="CENTER" spacing="4.0" styleClass="polygon-fill-color-vbox">
+                                            <children>
+                                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true" styleClass="fill-color-image">
+                                                    <image>
+                                                        <Image url="@style/icons/fill_color.png" />
+                                                    </image>
+                                                </ImageView>
+                                                <ColorPicker fx:id="textFillColorPicker" styleClass="polygon-fill-color-picker">
+                                                    <value>
+                                                        <Color />
+                                                    </value>
+                                                </ColorPicker>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+                                <VBox alignment="CENTER" spacing="4.0" styleClass="text-color-vbox">
+                                    <children>
+                                        <Label styleClass="text-color-label" text="Text Color" />
+                                        <ColorPicker fx:id="textColorPicker" styleClass="text-color-picker">
+                                            <value>
+                                                <Color />
+                                            </value>
+                                        </ColorPicker>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+                    </children>
                 </Group>
             </content>
+
             <contextMenu>
-                <ContextMenu fx:id="contextMenu">
+                <ContextMenu fx:id="contextMenu" styleClass="canvas-context-menu">
                     <items>
-                        <MenuItem fx:id="cutMenuItem" mnemonicParsing="false" onAction="#handleCut" text="Cut">
+                        <!-- Border Color -->
+                        <MenuItem fx:id="borderColorModifyMenuItem" mnemonicParsing="false" styleClass="border-color-menu-item" text="">
                             <graphic>
-                                <FontIcon iconLiteral="fas-cut" iconSize="16"/>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-color-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2b-border-color" iconSize="16" styleClass="context-border-icon" />
+                                        <ColorPicker fx:id="borderColorModifyPicker" styleClass="context-border-color-picker">
+                                            <value>
+                                                <Color />
+                                            </value>
+                                        </ColorPicker>
+                                    </children>
+                                </HBox>
                             </graphic>
                         </MenuItem>
-                        <MenuItem fx:id="copyMenuItem" mnemonicParsing="false" onAction="#handleCopy" text="Copy">
+
+                        <!-- Fill Color -->
+                        <MenuItem fx:id="fillColorModifyMenuItem" mnemonicParsing="false" styleClass="fill-color-menu-item" text="">
                             <graphic>
-                                <FontIcon iconLiteral="fas-copy" iconSize="16"/>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-color-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2f-format-color-fill" iconSize="16" styleClass="context-fill-icon" />
+                                        <ColorPicker fx:id="fillColorModifyPicker" styleClass="context-fill-color-picker">
+                                            <value>
+                                                <Color />
+                                            </value>
+                                        </ColorPicker>
+                                    </children>
+                                </HBox>
                             </graphic>
                         </MenuItem>
-                        <MenuItem fx:id="pasteMenuItem" mnemonicParsing="false" onAction="#handlePaste" text="Paste">
+
+                        <!-- Text Color -->
+                        <MenuItem fx:id="textColorModifyMenuItem" mnemonicParsing="false" styleClass="text-color-menu-item" text="">
                             <graphic>
-                                <FontIcon iconLiteral="fas-paste" iconSize="16"/>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-color-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2f-format-color-text" iconSize="16" styleClass="context-text-icon" />
+                                        <ColorPicker fx:id="textColorModifyPicker" styleClass="context-text-color-picker">
+                                            <value>
+                                                <Color />
+                                            </value>
+                                        </ColorPicker>
+                                    </children>
+                                </HBox>
                             </graphic>
                         </MenuItem>
-                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" onAction="#handleDelete" text="Delete">
+
+                        <!-- Font Size -->
+                        <MenuItem fx:id="fontSizeModifyMenuItem" mnemonicParsing="false" styleClass="font-size-menu-item" text="">
                             <graphic>
-                                <FontIcon iconLiteral="fas-trash" iconSize="16"/>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-size-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2f-format-size" iconSize="16" styleClass="context-size-icon" />
+                                        <ComboBox fx:id="fontSizeModifyComboBox" prefWidth="60.0" styleClass="context-font-size-combo">
+                                            <items>
+                                                <FXCollections fx:factory="observableArrayList">
+                                                    <Integer fx:value="12" />
+                                                    <Integer fx:value="14" />
+                                                    <Integer fx:value="16" />
+                                                    <Integer fx:value="18" />
+                                                    <Integer fx:value="20" />
+                                                    <Integer fx:value="22" />
+                                                    <Integer fx:value="24" />
+                                                </FXCollections>
+                                            </items>
+                                            <value>
+                                                <Integer fx:value="14" />
+                                            </value>
+                                        </ComboBox>
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </MenuItem>
+
+                        <!-- Separator -->
+                        <SeparatorMenuItem />
+
+                        <!-- Cut -->
+                        <MenuItem fx:id="cutMenuItem" mnemonicParsing="false" onAction="#handleCut" styleClass="cut-menu-item">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-text-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2c-content-cut" iconSize="16" styleClass="cut-icon" />
+                                        <Label styleClass="context-menu-label" text="Cut" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </MenuItem>
+
+                        <!-- Copy -->
+                        <MenuItem fx:id="copyMenuItem" mnemonicParsing="false" onAction="#handleCopy" styleClass="copy-menu-item">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-text-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2c-content-copy" iconSize="16" styleClass="copy-icon" />
+                                        <Label styleClass="context-menu-label" text="Copy" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </MenuItem>
+
+                        <!-- Paste -->
+                        <MenuItem fx:id="pasteMenuItem" mnemonicParsing="false" onAction="#handlePaste" styleClass="paste-menu-item">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-text-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2c-content-paste" iconSize="16" styleClass="paste-icon" />
+                                        <Label styleClass="context-menu-label" text="Paste" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </MenuItem>
+
+                        <!-- Delete -->
+                        <MenuItem fx:id="deleteMenuItem" mnemonicParsing="false" onAction="#handleDelete" styleClass="delete-menu-item">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-text-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2d-delete" iconSize="16" styleClass="delete-icon" />
+                                        <Label styleClass="context-menu-label" text="Delete" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </MenuItem>
+
+                        <!-- Separator -->
+                        <SeparatorMenuItem />
+
+                        <!-- Bring to Front Menu -->
+                        <Menu fx:id="bringToFrontMenu" mnemonicParsing="false" styleClass="bring-front-menu">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-text-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2a-arrange-bring-forward" iconSize="16" styleClass="bring-front-icon" />
+                                        <Label styleClass="context-menu-label" text="Bring to Front" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                            <items>
+                                <MenuItem fx:id="bringToFrontMenuItem" mnemonicParsing="false" onAction="#handleBringToFront" styleClass="bring-forward-item">
+                                    <graphic>
+                                        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-submenu-hbox">
+                                            <children>
+                                                <FontIcon iconLiteral="mdi2a-arrange-bring-forward" iconSize="14" styleClass="bring-forward-icon" />
+                                                <Label styleClass="context-submenu-label" text="Bring to Front" />
+                                            </children>
+                                        </HBox>
+                                    </graphic>
+                                </MenuItem>
+                                <MenuItem fx:id="bringToTopMenuItem" mnemonicParsing="false" onAction="#handleBringToTop" styleClass="bring-top-item">
+                                    <graphic>
+                                        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-submenu-hbox">
+                                            <children>
+                                                <FontIcon iconLiteral="mdi2a-arrange-bring-to-front" iconSize="14" styleClass="bring-top-icon" />
+                                                <Label styleClass="context-submenu-label" text="Bring to Top" />
+                                            </children>
+                                        </HBox>
+                                    </graphic>
+                                </MenuItem>
+                            </items>
+                        </Menu>
+
+                        <!-- Send to Back Menu -->
+                        <Menu fx:id="sendToBackMenu" mnemonicParsing="false" styleClass="send-back-menu">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-text-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2a-arrange-send-backward" iconSize="16" styleClass="send-back-icon" />
+                                        <Label styleClass="context-menu-label" text="Send to Back" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                            <items>
+                                <MenuItem fx:id="sendToBackMenuItem" mnemonicParsing="false" onAction="#handleSendToBack" styleClass="send-backward-item">
+                                    <graphic>
+                                        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-submenu-hbox">
+                                            <children>
+                                                <FontIcon iconLiteral="mdi2a-arrange-send-backward" iconSize="14" styleClass="send-backward-icon" />
+                                                <Label styleClass="context-submenu-label" text="Send to Back" />
+                                            </children>
+                                        </HBox>
+                                    </graphic>
+                                </MenuItem>
+                                <MenuItem fx:id="sendToBottomMenuItem" mnemonicParsing="false" onAction="#handleSendToBottom" styleClass="send-bottom-item">
+                                    <graphic>
+                                        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-submenu-hbox">
+                                            <children>
+                                                <FontIcon iconLiteral="mdi2a-arrange-send-to-back" iconSize="14" styleClass="send-bottom-icon" />
+                                                <Label styleClass="context-submenu-label" text="Send to Bottom" />
+                                            </children>
+                                        </HBox>
+                                    </graphic>
+                                </MenuItem>
+                            </items>
+                        </Menu>
+
+                        <!-- Separator -->
+                        <SeparatorMenuItem />
+
+                        <!-- Group -->
+                        <MenuItem fx:id="groupMenuItem" mnemonicParsing="false" onAction="#handleGroup" styleClass="group-menu-item">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-text-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2g-group" iconSize="16" styleClass="group-icon" />
+                                        <Label styleClass="context-menu-label" text="Group" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </MenuItem>
+
+                        <!-- Ungroup -->
+                        <MenuItem fx:id="ungroupMenuItem" mnemonicParsing="false" onAction="#handleUngroup" styleClass="ungroup-menu-item">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-text-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2u-ungroup" iconSize="16" styleClass="ungroup-icon" />
+                                        <Label styleClass="context-menu-label" text="Ungroup" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </MenuItem>
+
+                        <!-- Flip Horizontal -->
+                        <MenuItem fx:id="flipHMenuItem" mnemonicParsing="false" onAction="#onFlipHorizontal" styleClass="flip-h-menu-item">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-text-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2f-flip-horizontal" iconSize="16" styleClass="flip-h-icon" />
+                                        <Label styleClass="context-menu-label" text="Flip Horizontal" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </MenuItem>
+
+                        <!-- Flip Vertical -->
+                        <MenuItem fx:id="flipVButton" mnemonicParsing="false" onAction="#onFlipVertical" styleClass="flip-v-menu-item">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="context-text-hbox">
+                                    <children>
+                                        <FontIcon iconLiteral="mdi2f-flip-vertical" iconSize="16" styleClass="flip-v-icon" />
+                                        <Label styleClass="context-menu-label" text="Flip Vertical" />
+                                    </children>
+                                </HBox>
                             </graphic>
                         </MenuItem>
                     </items>
                 </ContextMenu>
             </contextMenu>
+
+
         </ScrollPane>
     </center>
     <right>
-        <VBox fx:id="shapeManagerPanel" managed="false" minWidth="250.0" prefHeight="200.0" prefWidth="250.0"
-              spacing="10.0" visible="false" BorderPane.alignment="CENTER">
-            <padding>
-                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-            </padding>
+        <VBox fx:id="shapeManagerPanel" managed="false" prefWidth="200.0" styleClass="right-vbox" visible="false">
             <children>
-                <HBox>
+                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="shapes-manager-header-hbox">
+                    <padding>
+                        <Insets bottom="8.0" left="15.0" right="15.0" top="15.0" />
+                    </padding>
                     <children>
-                        <Label fx:id="shapeManagerTitle" text="Shapes Manager">
-                            <HBox.margin>
-                                <Insets/>
-                            </HBox.margin>
-                        </Label>
+                        <FontIcon iconLiteral="mdi2s-shape-outline" styleClass="shapes-manager-header-icon" />
+                        <Label fx:id="shapeManagerTitle" styleClass="shapes-manager-header-label" text="Shapes Manager" />
                     </children>
-                    <VBox.margin>
-                        <Insets bottom="-5.0" top="-5.0"/>
-                    </VBox.margin>
                 </HBox>
-                <ListView fx:id="shapesListView" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS"/>
+                <ListView fx:id="shapesListView" styleClass="shapes-list-view" VBox.vgrow="ALWAYS">
+                    <VBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" />
+                    </VBox.margin>
+                </ListView>
             </children>
         </VBox>
     </right>
+    <bottom>
+        <HBox spacing="10.0" styleClass="bottom-hbox" BorderPane.alignment="CENTER_LEFT">
+            <padding>
+                <Insets bottom="8.0" left="20.0" right="20.0" top="8.0" />
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="coordinates-hbox">
+                    <children>
+                        <FontIcon iconLiteral="mdi2n-navigation-outline" rotate="-25.0" styleClass="coordinates-icon" />
+                        <Label fx:id="cursorPosition" styleClass="coordinates-label" text="0, 0" />
+                    </children>
+                </HBox>
+                <Separator orientation="VERTICAL" />
+                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="canvas-size-hbox">
+                    <children>
+                        <FontIcon iconLiteral="mdi2c-crop-free" styleClass="canvas-size-icon" />
+                        <Label fx:id="paneDimension" styleClass="canvas-size-label" text="1500 x 1500" />
+                    </children>
+                </HBox>
+                <Separator orientation="VERTICAL" />
+                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="shapes-count-hbox">
+                    <children>
+                        <FontIcon iconLiteral="mdi2s-shape-plus" styleClass="shapes-count-icon" />
+                        <Label fx:id="numberOfShapes" styleClass="shapes-count-label" text="0" />
+                    </children>
+                </HBox>
+                <Region styleClass="status-expand-region" HBox.hgrow="ALWAYS" />
+                <HBox alignment="center" spacing="8.0" styleClass="zoom-controls-hbox">
+                    <children>
+                        <FontIcon iconLiteral="mdi2m-magnify-minus" styleClass="zoom-out-icon" />
+                        <Slider fx:id="zoomSlider" majorTickUnit="0.25" max="2.5" min="0.25" showTickLabels="false" showTickMarks="false" styleClass="zoom-slider" value="1.0" />
+                        <FontIcon iconLiteral="mdi2m-magnify-plus" styleClass="zoom-in-icon" />
+                  <Label fx:id="zoomPercentageLabel" styleClass="zoom-percentage-label"/>
+                    </children>
+                </HBox>
+            </children>
+        </HBox>
+    </bottom>
 </BorderPane>

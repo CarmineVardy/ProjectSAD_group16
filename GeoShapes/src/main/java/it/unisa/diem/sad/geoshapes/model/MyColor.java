@@ -46,9 +46,4 @@ public class MyColor implements Serializable {
         return opacity;
     }
 
-    public javafx.scene.paint.Color toJavaFXColor() {
-        return new javafx.scene.paint.Color(red, green, blue, opacity);
-    }
-
-
 }

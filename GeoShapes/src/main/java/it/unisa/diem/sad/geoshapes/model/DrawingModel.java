@@ -13,11 +13,20 @@ public class DrawingModel implements ShapeSubject {
     private final List<MyShape> shapes;
     private final List<ShapeObserver> observers;
     private static int idCounter = 0;
-    private List<MyShape> selectedShapes = new ArrayList<>();
 
     public DrawingModel() {
         shapes = new ArrayList<>();
         observers = new ArrayList<>();
+    }
+
+    public List<MyShape> getShapes() {
+        return new ArrayList<>(shapes);
+    }
+
+    public List<MyShape> getShapesReversed() {
+        List<MyShape> reversedShapes = new ArrayList<>(shapes);
+        Collections.reverse(reversedShapes);
+        return reversedShapes;
     }
 
     public void addShape(MyShape myShape) {
@@ -29,12 +38,11 @@ public class DrawingModel implements ShapeSubject {
         notifyObservers();
     }
 
-    public void removeShape(MyShape myShape) {
-        shapes.remove(myShape);
-        notifyObservers();
-    }
-
     public void modifyShape(MyShape oldShape, MyShape newShape) {
+        if (!oldShape.getClass().equals(newShape.getClass())) {
+            throw new IllegalArgumentException("Cannot modify shape: different types");
+        }
+
         oldShape.setStartX(newShape.getStartX());
         oldShape.setStartY(newShape.getStartY());
         oldShape.setEndX(newShape.getEndX());
@@ -42,6 +50,8 @@ public class DrawingModel implements ShapeSubject {
         oldShape.setBorderColor(newShape.getBorderColor());
         oldShape.setFillColor(newShape.getFillColor());
         oldShape.setRotation(newShape.getRotation());
+        oldShape.setPoints(newShape.getXPoints(), newShape.getYPoints());
+
         notifyObservers();
     }
 
@@ -82,7 +92,7 @@ public class DrawingModel implements ShapeSubject {
     public void bringToTop(MyShape myShape) {
         if (shapes.contains(myShape)) {
             shapes.remove(myShape);
-            shapes.add(myShape); // Aggiunge alla fine
+            shapes.add(myShape);
             notifyObservers();
         } else {
             System.out.println("Shape not found in the model");
@@ -92,7 +102,7 @@ public class DrawingModel implements ShapeSubject {
     public void sendToBottom(MyShape myShape) {
         if (shapes.contains(myShape)) {
             shapes.remove(myShape);
-            shapes.add(0, myShape); // Inserisce all'inizio
+            shapes.add(0, myShape);
             notifyObservers();
         } else {
             System.out.println("Shape not found in the model");
@@ -109,6 +119,34 @@ public class DrawingModel implements ShapeSubject {
         }
     }
 
+    public void flipHorizontal(MyShape myShape) {
+        if (myShape == null) {
+            return;
+        }
+        if (shapes.contains(myShape)) {
+            myShape.flipHorizontal();
+        }
+
+        notifyObservers();
+    }
+
+    public void flipVertical(MyShape myShape) {
+        if (myShape == null) {
+            return;
+        }
+        if (shapes.contains(myShape)) {
+            myShape.flipVertical();
+        }
+
+        notifyObservers();
+    }
+
+
+    public void removeShape(MyShape myShape) {
+        shapes.remove(myShape);
+        notifyObservers();
+    }
+
     public void clearShapes() {
         shapes.clear();
         notifyObservers();
@@ -120,40 +158,6 @@ public class DrawingModel implements ShapeSubject {
             System.out.println(shapes.get(i));
         }
 
-    }
-
-    public void flipHorizontal(List<MyShape> selectedShapes) {
-        if (selectedShapes == null || selectedShapes.isEmpty()) {
-            return;
-        }
-        for (MyShape shape : selectedShapes) {
-            if (shapes.contains(shape)) {
-                shape.flipHorizontal();
-            }
-        }
-        notifyObservers();
-    }
-    public void flipVertical(List<MyShape> selectedShapes) {
-        if (selectedShapes == null || selectedShapes.isEmpty()) {
-            return;
-        }
-        for (MyShape shape : selectedShapes) {
-            if (shapes.contains(shape)) {
-                shape.flipVertical();
-            }
-        }
-        notifyObservers();
-    }
-
-
-    public List<MyShape> getShapes() {
-        return new ArrayList<>(shapes);
-    }
-
-    public List<MyShape> getShapesReversed() {
-        List<MyShape> reversedShapes = new ArrayList<>(shapes);
-        Collections.reverse(reversedShapes);
-        return reversedShapes;
     }
 
     @Override
@@ -173,7 +177,4 @@ public class DrawingModel implements ShapeSubject {
         }
     }
 
-    public List<MyShape> getSelectedShapes() {
-        return selectedShapes;
-    }
 }

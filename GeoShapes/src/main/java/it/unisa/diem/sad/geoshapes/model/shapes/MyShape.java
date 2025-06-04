@@ -4,6 +4,8 @@ import it.unisa.diem.sad.geoshapes.model.MyColor;
 import javafx.geometry.Point2D;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 public abstract class MyShape implements Serializable, Cloneable {
@@ -50,6 +52,10 @@ public abstract class MyShape implements Serializable, Cloneable {
         return endY;
     }
 
+    public double getRotation() {
+        return rotation;
+    }
+
     public MyColor getBorderColor() {
         return borderColor;
     }
@@ -78,6 +84,10 @@ public abstract class MyShape implements Serializable, Cloneable {
         this.endY = endY;
     }
 
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
+    }
+
     public void setBorderColor(MyColor color) {
         this.borderColor = color;
     }
@@ -86,7 +96,16 @@ public abstract class MyShape implements Serializable, Cloneable {
         this.fillColor = color;
     }
 
+    public void setPoints(List<Double> xPoints, List<Double> yPoints){
+    }
 
+    public List<Double> getXPoints(){
+        return Collections.emptyList();
+    }
+
+    public List<Double> getYPoints(){
+        return Collections.emptyList();
+    }
 
     @Override
     public MyShape clone() {
@@ -105,31 +124,8 @@ public abstract class MyShape implements Serializable, Cloneable {
 
     public abstract String getShapeType();
 
-    public abstract void moveBy(double dx, double dy);
-
-    //MIRRORING
     public abstract void flipHorizontal();
     public abstract void flipVertical();
 
-    public abstract double getRotation();
 
-
-    public abstract void setRotation(double rotation);
-
-    protected Point2D rotatePoint(Point2D point, Point2D center, double angleDegrees) {
-        double angleRadians = Math.toRadians(angleDegrees);
-        double cos = Math.cos(angleRadians);
-        double sin = Math.sin(angleRadians);
-
-        // Trasla il punto al centro
-        double translatedX = point.getX() - center.getX();
-        double translatedY = point.getY() - center.getY();
-
-        // Ruota
-        double rotatedX = translatedX * cos - translatedY * sin;
-        double rotatedY = translatedX * sin + translatedY * cos;
-
-        // Ritrasla
-        return new Point2D(rotatedX + center.getX(), rotatedY + center.getY());
-    }
 }

@@ -1,14 +1,11 @@
 package it.unisa.diem.sad.geoshapes.controller.strategy;
 
 import it.unisa.diem.sad.geoshapes.controller.InteractionCallback;
-import it.unisa.diem.sad.geoshapes.decorator.PreviewDecorator;
-import it.unisa.diem.sad.geoshapes.decorator.ShapeDecorator;
-import it.unisa.diem.sad.geoshapes.model.shapes.MyShape;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
+import it.unisa.diem.sad.geoshapes.controller.decorator.PreviewShapeDecorator;
+import it.unisa.diem.sad.geoshapes.controller.decorator.ShapeDecorator;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
-import javafx.scene.Group;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -18,41 +15,30 @@ import javafx.scene.shape.Shape;
 import java.util.Collections;
 import java.util.List;
 
-public class RectangleToolStrategy implements ToolStrategy {
+public class RectangleToolStrategy implements ToolStrategy{
 
-    private final Pane drawingPane;
+    private final Pane drawingArea;
     private final InteractionCallback callback;
 
-    private Shape previewFxShape;
+    private Rectangle previewFxShape;
     private ShapeDecorator previewDecorator;
-    private Group zoomGroup;
-    private Color borderColor;
-    private Color fillColor;
-    private double startX, startY, endX, endY;
 
+    private double startX, startY, endX, endY;
     private static final double MIN_DIMENSION = 2.0;
 
-    public RectangleToolStrategy(Pane drawingPane, InteractionCallback callback, Group zoomGroup) {
-        this.drawingPane = drawingPane;
+    private Color borderColor;
+    private Color fillColor;
+
+
+    public RectangleToolStrategy(Pane drawingArea, InteractionCallback callback) {
+        this.drawingArea = drawingArea;
         this.callback = callback;
-        this.zoomGroup = zoomGroup;
     }
 
     @Override
-    public void activate(Color borderColor, Color fillColor, int polygonVertices, boolean regularPolygon) {
-        this.borderColor = borderColor;
-        this.fillColor = fillColor;
-        callback.onLineSelected(false);
-    }
-
-    @Override
-    public void handleBorderColorChange(Color color) {
-        this.borderColor = color;
-    }
-
-    @Override
-    public void handleFillColorChange(Color color) {
-        this.fillColor = color;
+    public void activate(Color lineBorderColor, Color rectangleBorderColor, Color rectangleFillColor, Color ellipseBorderColor, Color ellipseFillColor, Color polygonBorderColor, Color polygonFillColor, Color textBorderColor, Color textFillColor, Color textColor, int polygonVertices, boolean regularPolygon, int fontSize) {
+        this.borderColor = rectangleBorderColor;
+        this.fillColor = rectangleFillColor;
     }
 
     @Override
@@ -61,30 +47,30 @@ public class RectangleToolStrategy implements ToolStrategy {
             reset();
         }
 
-        drawingPane.setCursor(Cursor.CROSSHAIR);
-        Point2D localPoint = getTransformedCoordinates(event,drawingPane);
+        drawingArea.setCursor(Cursor.CROSSHAIR);
+        Point2D localPoint = drawingArea.sceneToLocal(event.getSceneX(), event.getSceneY());
         startX = localPoint.getX();
         startY = localPoint.getY();
         endX = startX;
         endY = startY;
 
-        Rectangle rect = new Rectangle(startX, startY, 0, 0);
-        rect.setStroke(borderColor);
-        rect.setFill(fillColor);
-        rect.setStrokeWidth(2.0);
+        previewFxShape = new Rectangle(startX, startY, 0, 0);
+        previewFxShape.setStroke(borderColor);
+        previewFxShape.setFill(fillColor);
+        previewFxShape.setStrokeWidth(2.0);
 
-        previewFxShape = rect;
-        previewDecorator = new PreviewDecorator(previewFxShape);
+        previewDecorator = new PreviewShapeDecorator(previewFxShape);
         previewDecorator.applyDecoration();
 
-        drawingPane.getChildren().add(previewFxShape);
+        drawingArea.getChildren().add(previewFxShape);
+
     }
 
     @Override
     public void handleMouseDragged(MouseEvent event) {
         if (previewFxShape == null) return;
 
-        Point2D localPoint = getTransformedCoordinates(event,drawingPane);
+        Point2D localPoint = drawingArea.sceneToLocal(event.getSceneX(), event.getSceneY());
         endX = localPoint.getX();
         endY = localPoint.getY();
 
@@ -93,19 +79,18 @@ public class RectangleToolStrategy implements ToolStrategy {
         double width = Math.abs(endX - startX);
         double height = Math.abs(endY - startY);
 
-        if (previewFxShape instanceof Rectangle rect) {
-            rect.setX(x);
-            rect.setY(y);
-            rect.setWidth(width);
-            rect.setHeight(height);
-        }
+        previewFxShape.setX(x);
+        previewFxShape.setY(y);
+        previewFxShape.setWidth(width);
+        previewFxShape.setHeight(height);
+
     }
 
     @Override
     public void handleMouseReleased(MouseEvent event) {
-        drawingPane.setCursor(Cursor.DEFAULT);
+        drawingArea.setCursor(Cursor.DEFAULT);
 
-        Point2D localPoint = getTransformedCoordinates(event,drawingPane);
+        Point2D localPoint = drawingArea.sceneToLocal(event.getSceneX(), event.getSceneY());
         endX = localPoint.getX();
         endY = localPoint.getY();
 
@@ -117,44 +102,66 @@ public class RectangleToolStrategy implements ToolStrategy {
         } else {
             reset();
         }
+
     }
-
-
 
     @Override
     public void handleMouseMoved(MouseEvent event) {
+
     }
 
     @Override
-    public void handleBringToFront(ActionEvent actionEvent) {
+    public void handleLineBorderColorChange(Color color) {
+
     }
 
     @Override
-    public void handleBringToTop(ActionEvent actionEvent) {
+    public void handleRectangleBorderColorChange(Color color) {
+        this.borderColor = color;
     }
 
     @Override
-    public void handleSendToBack(ActionEvent actionEvent) {
+    public void handleRectangleFillColorChange(Color color) {
+        this.fillColor = color;
     }
 
     @Override
-    public void handleSendToBottom(ActionEvent actionEvent) {
+    public void handleEllipseBorderColorChange(Color color) {
+
     }
 
     @Override
-    public void handleCopy(Event event) {
+    public void handleEllipseFillColorChange(Color color) {
+
     }
 
     @Override
-    public void handleCut(Event event) {
+    public void handlePolygonBorderColorChange(Color color) {
+
     }
 
     @Override
-    public void handleDelete(Event event) {
+    public void handlePolygonFillColorChange(Color color) {
+
     }
 
     @Override
-    public void handleChangePolygonVertices(int polygonVertices) {
+    public void handleTextBorderColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleTextFillColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleTextColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handlePolygonVerticesChange(int polygonVertices) {
 
     }
 
@@ -164,19 +171,55 @@ public class RectangleToolStrategy implements ToolStrategy {
     }
 
     @Override
+    public void handleFontSizeChange(int fontSize) {
+
+    }
+
+    @Override
+    public void handleKeyPressed(KeyEvent event) {
+
+    }
+
+    @Override
+    public void handleKeyTyped(KeyEvent event) {
+
+    }
+
+    @Override
+    public void handleBorderColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleFillColorChange(Color color) {
+
+    }
+
+    @Override
+    public void handleTextColorMenuChange(Color color) {
+
+    }
+
+    @Override
+    public void handleFontSizeMenuChange(int fontSize) {
+
+    }
+
+    @Override
+    public List<Shape> getSelectedShapes() {
+        return Collections.emptyList();
+    }
+
+    @Override
     public void reset() {
         if (previewDecorator != null) {
             previewDecorator.removeDecoration();
             previewDecorator = null;
         }
         if (previewFxShape != null) {
-            drawingPane.getChildren().remove(previewFxShape);
+            drawingArea.getChildren().remove(previewFxShape);
             previewFxShape = null;
         }
-    }
 
-    @Override
-    public List<MyShape> getSelectedShapes() {
-        return Collections.emptyList();
     }
 }

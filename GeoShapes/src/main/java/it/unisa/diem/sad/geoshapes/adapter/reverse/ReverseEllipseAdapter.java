@@ -24,7 +24,6 @@ public class ReverseEllipseAdapter implements ReverseShapeAdapter {
 
         Ellipse fxEllipse = (Ellipse) fxShape;
 
-        // Converti da centerX, centerY, radiusX, radiusY a startX, startY, endX, endY
         double centerX = fxEllipse.getCenterX() / width;
         double centerY = fxEllipse.getCenterY() / height;
         double radiusX = fxEllipse.getRadiusX() / width;
@@ -34,10 +33,10 @@ public class ReverseEllipseAdapter implements ReverseShapeAdapter {
         double startY = centerY - radiusY;
         double endX = centerX + radiusX;
         double endY = centerY + radiusY;
-        double rotation = fxEllipse.getRotate();
 
         MyEllipse modelEllipse = new MyEllipse(
-                startX, startY, endX, endY,rotation,
+                startX, startY, endX, endY,
+                fxEllipse.getRotate(),
                 convertToModelColor((Color) fxEllipse.getStroke()),
                 convertToModelColor((Color) fxEllipse.getFill())
         );

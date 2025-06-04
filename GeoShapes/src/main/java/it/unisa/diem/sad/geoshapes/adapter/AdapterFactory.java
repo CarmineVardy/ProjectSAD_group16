@@ -4,6 +4,7 @@ import it.unisa.diem.sad.geoshapes.adapter.forward.EllipseAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.forward.LineAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.forward.RectangleAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.forward.PolygonAdapter;
+import it.unisa.diem.sad.geoshapes.adapter.forward.TextAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.forward.ShapeAdapter;
 import it.unisa.diem.sad.geoshapes.model.shapes.*;
 import it.unisa.diem.sad.geoshapes.adapter.reverse.*;
@@ -12,7 +13,10 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Polygon;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AdapterFactory {
@@ -30,6 +34,7 @@ public class AdapterFactory {
         adapters.put(MyRectangle.class, RectangleAdapter.getInstance());
         adapters.put(MyEllipse.class, EllipseAdapter.getInstance());
         adapters.put(MyPolygon.class, PolygonAdapter.getInstance());
+        //adapters.put(MyText.class, TextAdapter.getInstance());
         return adapters;
     }
 
@@ -39,6 +44,7 @@ public class AdapterFactory {
         adapters.put(Rectangle.class, ReverseRectangleAdapter.getInstance());
         adapters.put(Ellipse.class, ReverseEllipseAdapter.getInstance());
         adapters.put(Polygon.class, ReversePolygonAdapter.getInstance());
+        //adapters.put(TextShapeWrapper.class, ReverseTextAdapter.getInstance()); // Aggiunto TextShapeWrapper
         return adapters;
     }
 
@@ -83,8 +89,24 @@ public class AdapterFactory {
         cloned.setStartY(cloned.getStartY() + offsetY);
         cloned.setEndX(cloned.getEndX() + offsetX);
         cloned.setEndY(cloned.getEndY() + offsetY);
-        cloned.setRotation(original.getRotation());
+
+
+        List<Double> currentXPoints = cloned.getXPoints();
+        List<Double> currentYPoints = cloned.getYPoints();
+
+        List<Double> newXPoints = new ArrayList<>();
+        List<Double> newYPoints = new ArrayList<>();
+
+        for (int i = 0; i < currentXPoints.size(); i++) {
+            newXPoints.add(currentXPoints.get(i) + offsetX);
+            newYPoints.add(currentYPoints.get(i) + offsetY);
+        }
+
+        cloned.setPoints(newXPoints, newYPoints);
+
+        cloned.setRotation(cloned.getRotation());
 
         return cloned;
-    }
+}
+
 }
