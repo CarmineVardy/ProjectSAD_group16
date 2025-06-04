@@ -124,12 +124,12 @@
                                         <Menu mnemonicParsing="false" styleClass="cell-size-menu" text="Cell Size">
                                             <items>
                                                 <RadioMenuItem fx:id="cellSize10" mnemonicParsing="false" onAction="#handleCellSizeSelection" styleClass="cell-size-10-radio" text="10 px">
-                                                    <toggleGroup>
-                                                        <ToggleGroup />
-                                                    </toggleGroup>
+                                       <toggleGroup>
+                                          <ToggleGroup fx:id="cellSizeToggleGroup" />
+                                       </toggleGroup>
                                                 </RadioMenuItem>
-                                                <RadioMenuItem fx:id="cellSize20" mnemonicParsing="false" onAction="#handleCellSizeSelection" selected="true" styleClass="cell-size-20-radio" text="20 px" />
-                                                <RadioMenuItem fx:id="cellSize50" mnemonicParsing="false" onAction="#handleCellSizeSelection" styleClass="cell-size-50-radio" text="50 px" />
+                                                <RadioMenuItem fx:id="cellSize20" mnemonicParsing="false" onAction="#handleCellSizeSelection" selected="true" styleClass="cell-size-20-radio" text="20 px" toggleGroup="$cellSizeToggleGroup" />
+                                                <RadioMenuItem fx:id="cellSize50" mnemonicParsing="false" onAction="#handleCellSizeSelection" styleClass="cell-size-50-radio" text="50 px" toggleGroup="$cellSizeToggleGroup" />
                                             </items>
                                         </Menu>
                                     </items>
@@ -140,12 +140,12 @@
                                     </graphic>
                                     <items>
                                         <RadioMenuItem fx:id="zoom75Button" mnemonicParsing="false" onAction="#handleZoom75" styleClass="zoom-75-radio" text="75%">
-                                            <toggleGroup>
-                                                <ToggleGroup />
-                                            </toggleGroup>
+                                 <toggleGroup>
+                                    <ToggleGroup fx:id="zoomToggleGroup" />
+                                 </toggleGroup>
                                         </RadioMenuItem>
-                                        <RadioMenuItem fx:id="zoom100Button" mnemonicParsing="false" onAction="#handleZoom100" selected="true" styleClass="zoom-100-radio" text="100%" />
-                                        <RadioMenuItem fx:id="zoom200Button" mnemonicParsing="false" onAction="#handleZoom200" styleClass="zoom-200-radio" text="200%" />
+                                        <RadioMenuItem fx:id="zoom100Button" mnemonicParsing="false" onAction="#handleZoom100" selected="true" styleClass="zoom-100-radio" text="100%" toggleGroup="$zoomToggleGroup" />
+                                        <RadioMenuItem fx:id="zoom200Button" mnemonicParsing="false" onAction="#handleZoom200" styleClass="zoom-200-radio" text="200%" toggleGroup="$zoomToggleGroup" />
                                     </items>
                                 </Menu>
                             </items>
@@ -822,7 +822,7 @@
                         <FontIcon iconLiteral="mdi2m-magnify-minus" styleClass="zoom-out-icon" />
                         <Slider fx:id="zoomSlider" majorTickUnit="0.25" max="2.5" min="0.25" showTickLabels="false" showTickMarks="false" styleClass="zoom-slider" value="1.0" />
                         <FontIcon iconLiteral="mdi2m-magnify-plus" styleClass="zoom-in-icon" />
-                  <Label fx:id="zoomPercentageLabel" styleClass="zoom-percentage-label"/>
+                  <Label fx:id="zoomPercentageLabel" styleClass="zoom-percentage-label" />
                     </children>
                 </HBox>
             </children>

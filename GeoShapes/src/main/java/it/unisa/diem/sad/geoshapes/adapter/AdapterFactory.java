@@ -4,7 +4,6 @@ import it.unisa.diem.sad.geoshapes.adapter.forward.EllipseAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.forward.LineAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.forward.RectangleAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.forward.PolygonAdapter;
-import it.unisa.diem.sad.geoshapes.adapter.forward.TextAdapter;
 import it.unisa.diem.sad.geoshapes.adapter.forward.ShapeAdapter;
 import it.unisa.diem.sad.geoshapes.model.shapes.*;
 import it.unisa.diem.sad.geoshapes.adapter.reverse.*;

@@ -613,8 +613,9 @@ public class MainController implements ShapeObserver, InteractionCallback {
         clipRect.heightProperty().bind(drawingArea.heightProperty());
         undoButton.disableProperty().bind(commandInvoker.canUndoProperty().not());
         borderColorModifyMenuItem.disableProperty().bind(hasSelectedShapes.not());
-        fillColorModifyMenuItem.disableProperty().bind(onlyLinesSelected);
-        fillColorModifyMenuItem.disableProperty().bind(hasSelectedShapes.not());
+        fillColorModifyMenuItem.disableProperty().bind(
+                hasSelectedShapes.not().or(onlyLinesSelected)
+        );
         //ABILITATI SOLO SE HO SELEZIOANTO UN TESTO
         //textColorModifyMenuItem
         //fontSizeModifyMenuItem
